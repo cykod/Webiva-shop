@@ -1,0 +1,11 @@
+<div class='admin_content'>
+
+<% cms_form_for :carrier, @carrier, :html => {:class => 'admin_form' } do |f| -%>
+
+  <%= f.text_field :name %>
+  <%= f.select :carrier_processor, @handlers %>
+  <%= f.submit_cancel_tags @carrier.new_record? ? 'Create' : 'Edit', 'Cancel', {}, url_for(:action => 'carriers') %>
+
+<% end -%>
+
+</div>

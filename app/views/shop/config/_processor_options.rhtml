@@ -1,0 +1,9 @@
+  <% if @available_processors -%>
+    <%= f.select :processor_handler, @available_processors, {}, :onchange => 'ProcessorEditor.updateProcessors();' %>
+    <% if @processor.processor_handler %>
+      <% cms_subfields_for :options, @options do |sf| -%>
+        <%= render :partial => @processor.processor_handler_class.options_partial, :locals => { :f => sf } %>
+      <% end -%>
+    <% end -%>
+  <% end -%>
+

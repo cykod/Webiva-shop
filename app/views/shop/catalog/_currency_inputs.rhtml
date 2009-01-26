@@ -1,0 +1,10 @@
+<% currency_display = Shop::ShopProductPrice.currency_display %>
+<% Shop::AdminController.module_options.currencies.each do |currency| %>
+  <%= currency_display[currency][0] %><input type='text'  
+  class="text_field_input"  
+  name="<%= "#{field_name}[#{currency}]" %>" 
+  value='<%= vh prices[currency] %>' size='8' <%= "onchange=\"#{onchange}\"" if defined?(onchange) %> />
+  <% currency_display[currency][1] %><%= separator %>
+
+<% end -%>
+

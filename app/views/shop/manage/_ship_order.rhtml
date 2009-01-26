@@ -1,0 +1,24 @@
+<div class='cms_form'>
+<h3><%= h "Ship Order".t  %></h3>
+<div id='ship_form_container' style='text-align:center;'>
+<% if @order.state == 'paid' %>
+<form action='' id='ship_form' onsubmit='OrderProcessor.submitShipment(); return false;' >
+<div style='text-align:left'>
+<b><%= sprintf("Ship order %s".t,@order.number) %>.</b>
+<br/><br/>Optional Note:<br/>
+<textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
+</div>
+<input type='hidden' name='ship' value='1'/>
+<input type='hidden' name='order_id' value='<%= @order.id %>'/>
+<input type='submit' value='<%= vh "Ship Order".t %>' />
+<input type='submit' value='<%= vh "Cancel".t %>' onclick='RedBox.close(); return false;'/>
+</form>
+<% else -%>
+<b><%= "This order cannot be shipped.".t %></b><br/><br/>
+<div align='right'>
+  <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+</div>
+
+<% end -%>
+</div>
+</div>

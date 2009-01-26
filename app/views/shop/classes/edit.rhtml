@@ -1,0 +1,15 @@
+<div class='admin_content'>
+<form action='' method='post'>
+<% cms_fields_for :cls, @cls do |f| -%>
+  <%= f.text_field :name %>
+<% end -%>
+ <br/>
+  <h3>Manage Product Variations:</h3>
+  <br/>
+        <%= render :partial => 'options' %>
+  <div style='margin-top:20px; width:450px; text-align:right;' >
+  <button><%= h "Submit Changes".t %></button>
+  <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
+  </div>
+</form>
+</div>

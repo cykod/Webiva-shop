@@ -1,0 +1,39 @@
+<div class='cms_form'>
+<h3><%= h "Refund Order".t %></h3><br/>
+<div id='refund_form_container' style='text-align:center;'>
+<% if @message %>
+  <div style='text-align:left; height:60px;'>
+  <b>Refund Failed:</b><br/>
+  <%= @message %><br/>
+  </div>
+  <div align='right'>
+    <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+  </div>
+<% elsif @valid_refund %>
+  <form action='' id='refund_form' onsubmit='OrderProcessor.submitRefund(); return false;' >
+  <div style='text-align:left'>
+  <% if @full_refund %>
+  <b><%= sprintf("Fully Refund order %s (%s)".t,@order.number,@order.amount(@order.total)) %>.</b>
+
+  <% else -%>
+  <b><%= sprintf("Partially Refund order %s for %s".t,@order.number,@order.amount(@refund_amount)) %>.</b>
+  <% end -%>
+  <br/><br/>Optional Note:<br/>
+  <textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
+  </div>
+  <input type='hidden' name='refund' value='1'/>
+  <input type='hidden' name='full' value='<%= @full_refund ? 1 : 0 %>'/>
+  <input type='hidden' name='amount' value='<%= @refund_amount %>'/>
+  <input type='hidden' name='order_id' value='<%= @order.id %>'/>
+  <input type='submit' value='<%= vh "Refund Order".t %>' />
+  <input type='submit' value='<%= vh "Cancel".t %>' onclick='RedBox.close(); return false;'/>
+  </form>
+<% else -%>
+  <b><%= @order.refundable? ? "Please enter a valid amount to refund." : "This order cannot be refunded.".t %></b><br/><br/>
+  <div align='right'>
+    <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+  </div>
+
+<% end -%>
+</div>
+</div>

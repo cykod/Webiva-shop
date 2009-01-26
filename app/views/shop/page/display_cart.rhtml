@@ -1,0 +1,5 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Shopping Cart Display Options",:display_cart ,@options do |f| -%>
+      <%= f.select :full_cart_page_id, @pages, :label => 'Full Cart Page'.t %>
+  <% end -%>
+</div>

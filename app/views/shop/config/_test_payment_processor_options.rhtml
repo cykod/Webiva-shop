@@ -1,0 +1,6 @@
+<%= f.radio_buttons  :force_failure, 
+      [['Succeed Admin Actions'.t,'no'],
+      ['Fail all admin Actions'.t,'yes'],
+      ['Cause Exception in all Admin Actions'.t,'exception']], 
+      :required => true, :separator => '<br/>'  %>
+

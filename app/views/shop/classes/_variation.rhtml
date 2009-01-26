@@ -1,0 +1,27 @@
+<div id='variation_<%=idx %>' class='variation' style='margin:5px; border:1px solid #AAAAAA; padding:10px;'>
+<input type='hidden' name='variation[<%= idx %>][id]' value='<%= vh variation[:id] %>'/>
+<input type='hidden' name='variation[<%= idx %>][variation_type]' value='<%= vh variation[:variation_type] %>'/>
+<div id='variation_header_<%=idx %>'>
+  <%= variation[:variation_type] == 'option' ? "Product Option".t : "Quantity Variation".t %>
+  <div style='float:left; width:250px;'><input type='text' name='variation[<%= idx %>][name]' size='25' value='<%= vh variation[:name] %>' />
+      <a href='javascript:void(0);' onclick='OptionEditor.showVariationPopup(<%= idx %>);'><%= theme_icon 'ball', '/images/icons/wheel.gif' %></a></div>
+  <% if variation[:variation_type] == 'option' %>
+    <div style='float:left; width:120px;'>Default<br/>Weight Adj.</div>  
+    <div style='float:left;'>Default<br/>Price Adj.</div>
+  <% else -%>
+    <div style='float:left; width:120px;'>Upto<br/>Quantity.</div>  
+  <% end -%>
+  <div style='clear:left;'></div>
+</div>
+<div id='variation_options_<%= idx %>' class='variation_options'>
+<% variation[:options].each_with_index do |option,opt_idx| -%>
+ <%= render :partial => 'option', :locals => { :option => option, :idx => idx, :opt_idx => opt_idx, :variation_type => variation[:variation_type] } %>
+<% end -%>
+</div>
+<script>
+  OptionEditor.optionIndexes[<%= idx %>] = <%= variation[:options].length %>;
+</script>
+<div id='variation_<%= idx %>_add'>
+  &nbsp;&nbsp;&nbsp;<input type='text' id='add_option_<%= idx %>' size='15' value='' /><button id='add_option_button_<%= idx %>' onclick='OptionEditor.addOption(<%= idx %>,"<%= variation[:variation_type] %>"); return false;'>Add</button>
+</div>
+</div>

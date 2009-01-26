@@ -1,0 +1,11 @@
+
+<% active_table_for :carriers_table, @active_table_output,
+                    :actions => [ ['Delete','delete','Are you sure you want to delete the selected carriers?\nAll associated shipping categories will be deleted as well' ]] do |t| -%>
+<tr <%= highlight_row 'carrier',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "carrier", t.id %></td>
+  <td><%= link_to t.name, :action => 'carrier', :path => t %></td>
+  <td align='center'><%= t.processor_name.t %></td>
+</tr>
+
+
+<% end -%>

@@ -1,0 +1,9 @@
+<% if @shipping_category.carrier %>
+<% cms_subfields_for :category_options, @category_options do |t| %>
+  <tbody>
+  <%= t.header @shipping_category.carrier.processor_name.t + ' ' + 'Options'.t %>
+  </tbody>
+  <%= render :partial => @processor.options_partial, :locals => { :t => t } %>
+<% end -%>
+<% end -%>
+

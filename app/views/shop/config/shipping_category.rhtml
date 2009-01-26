@@ -1,0 +1,28 @@
+<script>
+ ShippingCatEditor = {
+    updateOptions:function(val) {
+      params = "carrier_id=" + val;
+      new Ajax.Updater('shipping_options',"<%= url_for :action => 'update_shipping_options', :path => @shipping_category.id %>",
+                      { parameters: params, evalScripts: true } );
+    
+    }
+ 
+ }
+</script>
+
+<div class='admin_content'>
+<% cms_form_for :shipping_category, @shipping_category, :html => { :class => 'admin_form' } do |f| %>
+<tbody id='main'>
+  <%= f.text_field :name %>
+  <%= f.select :shop_region_id , @regions, :label => 'Region' %>
+  <%= f.select :shop_carrier_id, @carriers, { :label => 'Carrier' }, :onchange => 'ShippingCatEditor.updateOptions(this.value);'  %>
+</tbody>
+<tbody >
+<tr><td colspan='2'><table id='shipping_options'>
+ <%= render :partial => 'shipping_category_options', :locals => { :category => @shipping_category } %>
+ </table></td></tr>
+</tbody>
+  <%= f.submit_cancel_tags @shipping_category.new_record? ? 'Create' : 'Edit','Cancel',{},url_for(:action => 'shipping') %>
+<% end -%>
+
+</div>

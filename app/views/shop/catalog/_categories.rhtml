@@ -1,0 +1,23 @@
+
+<% categories.each do |cat| -%>
+<div class='check_table_item' id='cat_<%= cat.id %>' style='margin-left:10px;'>
+  <input type='hidden' name='cat[prev_selected][<%= cat.id %>]' id='prev_selected_cat_<%= cat.id %>' value='<%= cat.attributes['shop_product_id'] ? 1 : 0 %>' />
+
+  <input type='hidden' name='cat[featured][<%= cat.id %>]' id='featured_cat_<%= cat.id %>' value='<%= cat.attributes['featured'].to_i == 1 ? 1 : 0 %>' />
+  <input type='hidden' name='cat[prev_featured][<%= cat.id %>]' id='prev_featured_cat_<%= cat.id %>' value='<%= cat.attributes['featured'].to_i == 1 ? 1 : 0 %>' />
+  <label for='selected_cat_<%= cat.id %>'>
+      <input type='checkbox' onclick='CategoryEditor.selectCategory(<%= cat.id %>);' name='cat[selected][<%= cat.id %>]' id='selected_cat_<%= cat.id %>' <%= "checked='checked'" if cat.attributes['shop_product_id'] %> value='1' />
+      <span id='title_cat_<%= cat.id %>'  <%= "class='check_table_item_checked'" if cat.attributes['shop_product_id'] %> ><%= cat.name %></span>
+  </label>
+  <a href='javascript:void(0);' onclick='CategoryEditor.featureCategory(<%= cat.id %>);'>
+  <img id='category_feature_img_<%= cat.id %>' src='<%= cat.attributes['featured'].to_i == 1  ? theme_src('icons/table_actions/star_selected.gif') : theme_src('icons/table_actions/star_unselected.gif') %>' align='absmiddle'/>
+  </a>
+    <div class='check_table_children' id='check_table_children_<%= cat.id %>' style='margin-left:10px;'>
+        <%= render :partial => 'categories', :locals => { :categories  => cat.nested_children } %>
+    </div>
+</div>
+<script>
+$('cat_<%= cat.id %>').category_id = <%= cat.id %>;
+$('selected_cat_<%= cat.id %>').checked = <%= cat.attributes['shop_product_id'] ? "true" : "false" %>;
+</script>
+<% end -%>

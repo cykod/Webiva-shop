@@ -1,0 +1,54 @@
+<form id='payment_form' method='post' action='' onsubmit='UserShop.payment(); return false;'>
+<input type='hidden' name='shipping_id' value='<%= @shipping_id  %>'/>
+<table class='active_table' cellspacing='0' cellpadding='0'>
+<tr>
+  <th>SKU</th><th>Item</th><th>Unit Cost</th><th></th><th>Quantity</th><th></th><th>Subtotal</th>
+</tr>
+<% if @cart.products.length == 0 %>
+<tr>  
+  <td colspan='5'>
+     No Products in order
+  </td>
+</tr>
+<% else -%>
+  <% @cart.products.each do |item| -%>
+  <tr>
+    <td valign='top'><%= item.sku %></td>
+    <td valign='top'><b><%= item.name %></b><br/><%= item.details %></td>
+    <td valign='top' align='right'><%= item.price(@currency) %> </td>
+    <td valign='top'>X</td>
+    <td valign='top'><%= item.quantity %></td>
+    <td valign='top' align='right'>=</td>
+    <td valign='top' align='right'>
+      <%=  Shop::ShopProductPrice.localized_amount(item.subtotal(@currency),@currency) %>
+    </td>
+  </tr>
+<% end -%>
+<% if @cart.shippable? -%>
+  <tr>
+    <td colspan='5' align='right' >
+        <%= @current_shipping ? @current_shipping[0].name : "Please add a shipping address".t %>
+    </td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.shipping,@currency) %></td>
+  </tr>
+<% end -%>
+  <tr>
+    <td colspan='4'><a href='javascript:void(0);' onclick='UserShop.updateOrder();'>Edit Order</a></td>
+    <td  align='right'>Total:</td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.total(@currency),@currency) %></td>
+  </tr>
+<% end -%>
+</table>
+
+
+<div id='user_payment'>
+
+  <%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => @payment_processors, :admin => true, :payment => @payment, :user => @user } %>
+
+</div>
+
+<button id='payment_button' onclick='UserShop.payment(); return false;'>Submit Payment</button> <span id='payment_indicator' style='display:none;'><b>Submitting Payment, please wait...</b></span>
+
+</form>

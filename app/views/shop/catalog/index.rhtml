@@ -1,0 +1,18 @@
+<script>
+<%= active_table_javascript %>
+</script>
+
+<div class='admin_content'>
+<ul class='action_panel'>
+  <li><a href='<%= url_for :action => 'edit' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Add New Product".t %></a></li>
+  <li><a href='<%= url_for :controller => '/shop/classes' %>'><%= theme_icon("action","icons/actions/edit.gif") %><%= "Edit Product Classes".t %></a></li>
+</ul>
+</div>
+
+<hr/>
+<div class='admin_content'>
+  <div id='product_table'>
+    <%= render :partial => 'product_table' %>
+  </div>
+
+</div>

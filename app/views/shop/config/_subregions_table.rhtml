@@ -1,0 +1,26 @@
+<% if @created_region && @created_region.id %>
+  <script>
+    $('subregion_name').value = ''; $('subregion_abr').value = ''; $('subregion_tax').value = ''; 
+  </script>
+<% elsif @created_region %>
+    <b>Could not create subregion, please fix the following problems:</b><br/>
+    <div class='error'>
+    <% @created_region.errors.each do |err| -%>
+       <%= err[0].humanize.t %> <%= err[1][0].t %><br/>
+    <% end -%>
+    </div><br/><br/>
+  </div>
+<% end -%>
+
+<% active_table_for :subregions_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_subregions_table',:path => @region.id),
+                    :actions => [ ['Delete','delete','Are you sure you want to delete the selected subregions?' ]] do |t| -%>
+<tr <%= highlight_row 'subregion',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "subregion", t.id %></td>
+  <td><%= t.name %></td>
+  <td align='center'><%= t.abr %></td>
+  <td align='center'><%= t.tax %>%</td>
+</tr>
+
+
+<% end -%>

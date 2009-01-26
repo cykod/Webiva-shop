@@ -1,0 +1,80 @@
+<% if shop_product_class %>
+<% options = @product.shop_product_options.index_by(&:shop_variation_option_id) -%>
+
+
+<table class='admin_table'>
+<% shop_product_class.quantity_variations.each_with_index do |variation,index| -%>
+<% if index == 0 %>
+<tr>
+  <th>Quantity Variation</th>
+  <th>Option</th>
+  <th>Default<br/>Quantity</th>
+  <th>Quantity<br/>Override</th>
+  <th>Quantity<br/>Adj.</th>
+  <th>Price</th>
+</tr>
+<% end -%>
+<tr>
+  <td><b><%= variation.name %></b></td>
+</tr>
+  <% last_amount = 0 %>
+  <% variation.options.each do |opt| -%>
+  <% prd_opt = options[opt.id] || @product.shop_product_options.build() %>
+  <% cms_unstyled_fields_for "options[#{opt.id}]",prd_opt do |f| -%>
+  <input type='hidden' name='options[<%= opt.id %>][variation_type]' value='quantity'/>
+  <tr>
+    <td></td>
+    <td><%= opt.name %></td>
+    <td><% if opt.max %><%= last_amount+1 %>-<%= opt.max %><% else -%><%= "More than %d"/last_amount %><% end -%></td>
+    <td align='center'><%= f.check_box :override %></td>
+    <% prd_opt.max = opt.max  if !prd_opt.override? %>
+    <td><%= f.text_field :max, :size => 10,  :class=>"text_field_input", :onchange => "$('options_#{opt.id}_override').checked = true;"  %></td>
+    <td><%= render :partial => 'currency_inputs', :locals => { :field_name => "options[#{opt.id}][prices]", :currencies => @active_currencies, :prices => prd_opt.prices || {}, :separator => "" } %></td>
+  </tr>
+  <% last_amount = opt.max %>
+  <% end -%>
+  <% end -%>
+
+
+<% end -%>
+
+
+<% shop_product_class.option_variations.each_with_index do |variation,index| -%>
+<% if index == 0 %>
+<tr>
+  <th>Option Variations</th>
+  <th>Options</th>
+  <th>Option Sku</th>
+  <th>Override</th>
+  <th>Price Adj.</th>
+  <th>Weight Adj.</th>
+</tr>
+<% end -%>
+<tr>
+  <td><b><%= variation.name %></b></td>
+</tr>
+  <% variation.options.each do |opt| -%>
+  <% prd_opt = options[opt.id] || @product.shop_product_options.build() %>
+  <% cms_unstyled_fields_for "options[#{opt.id}]",prd_opt do |f| -%>
+  <input type='hidden' name='options[<%= opt.id %>][variation_type]' value='option'/>
+  <% if !prd_opt.override? 
+    prd_opt.prices = opt.prices
+    prd_opt.weight = opt.weight
+  end %>
+  <tr>
+    <td></td>
+    <td><%= opt.name %></td>
+    <td><%= f.text_field :option_sku, :size => 15,  :class=>"text_field_input"  %></td>
+    <td align='center'><%= f.check_box :override %></td>
+    <td>  <%= render :partial => 'currency_inputs', :locals => { :field_name => "options[#{opt.id}][prices]", :currencies => @active_currencies, :prices => prd_opt.prices || {}, :separator => "", :onchange => "$('options_#{opt.id}_override').checked = true;" } %></td>
+    <td><%= f.text_field :weight, :size => 10, :class=>"text_field_input", :onchange => "$('options_#{opt.id}_override').checked = true;" %></td>
+  </tr>
+  <% end -%>
+  <% end -%>
+
+
+<% end -%>
+</table>
+<% else -%>
+Please select a product class to enable options
+<% end -%>

@@ -1,0 +1,38 @@
+<script>
+  ClassEditor = {
+      createClass: function() {
+        params = { name: $('new_class').value };
+        if($('new_class').value != '') {
+          $('new_class').value = '';
+          
+          new Ajax.Updater('class_table',
+                          '<%= url_for :action => "create_class" %>',
+                          { parameters: params, evalScripts: true  } );
+  
+        }
+      },
+
+      updateStatus: function() {
+          $('entry_update_published_at').disabled = !$('entry_status_post_date').checked;
+      }
+
+  };
+
+<%= active_table_javascript %>
+</script>
+
+<div class='admin_content'>
+<div class='action_panel'>
+<form action='' onsubmit='ClassEditor.createClass(); return false;'>
+<b>New class:</b> <input type='text' id='new_class' name='class_name' value='' /><input type='submit' value='Create'/>
+</form>
+</div>
+</div>
+
+<hr/>
+
+<div class='admin_content'>
+<div id='class_table'>
+<%= render :partial => 'class_table' %>
+</div>
+</div>

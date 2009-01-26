@@ -1,0 +1,5 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Checkout Options",:checkout ,@options do |f| -%>
+      <%= f.select :success_page_id, @pages, :label => 'Success Page'.t %>
+  <% end -%>
+</div>

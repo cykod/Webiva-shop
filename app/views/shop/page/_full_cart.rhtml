@@ -1,0 +1,80 @@
+
+<cms:no_cart>
+ You currently have no products in your shopping cart
+</cms:no_cart>
+<cms:cart>
+<table>
+<thead>
+  <tr><th>Product</th><th>Unit Cost</th><th>Quantity</th><th>Cost</th></tr>
+</thead>
+<tbody>
+<cms:products>
+  <cms:product>
+  <tr>
+      <td><cms:name/></td>
+      <td><cms:unit_cost/></td>
+      <td><cms:quantity></td>
+      <td><cms:product_cost/></td>
+  </tr>
+  </cms:product>
+<tr>
+  <td colspan='3' align='right'><cms:update_quantity>Update Quantity</cms:update_quantity></td>
+</tr>
+<tr>
+  <td colspan='3' align='right'>Total:</td>
+  <td><cms:total/></td>
+</tr>
+</cms:products>
+<tr>
+  <td colspan='4' align='right'><cms:checkout_butt>Checkout</cms:checkout></td>
+</tr>
+</cms:cart>
+
+
+
+<form action='' method='post'>
+<table class='site_table cart_table'>
+<thead>
+  <tr>
+    <th><%= "Product".t %></th>
+    <th><%= "Unit Cost".t %></th>
+    <th><%= "Quantity".t %></th>
+    <th><%= "Cost".t %></th>
+  </tr>
+</thead>
+<tbody>
+<% total = 0 %>
+<% cart.each_product do |product,quantity,option| %>
+  <tr>
+    <td><%= product.name %></td>
+    <% total += product.get_price(currency).price  * quantity -%>
+    <td><%= product.localized_price(currency) %></td>
+    <td align='center'><input type='text' size='2' value='<%= vh quantity %>' /></td>
+    <td><%= product.localized_price(currency,quantity) %></td>
+  <tr/>
+<% end -%>
+<tr>
+  <td colspan='2' valign='top' rowspan='2' align='left'>Please enter your zip code to calculate<br/>tax and shipping:<input type='text' size='5'/><input type='submit' value='Go'/> </td>
+  <td align='right'>Subtotal:</td>
+  <td><%= Shop::ShopProductPrice.localized_amount(total,currency) %></td>
+</tr>
+<tr>
+  <td align='right' valign='top'>Shipping:</td>
+  <td valign='top'>Enter Zip Code</td>
+</tr>
+<tr>
+  <td colspan='3' align='right' valign='top'>Tax:</td>
+  <td valign='top'>-</td>
+</tr>
+<tr>
+  <td colspan='3' align='right' valign='top'>Total:</td>
+  <td valign='top'><%= Shop::ShopProductPrice.localized_amount(total,currency) %></td>
+</tr>
+<tr>
+  <td align='left'><input type='submit' value='Update Quantities'/></td>
+</tr>
+<tr>
+  <td colspan='4' align='right'><input type='submit' value='Checkout' /></td>
+</tbody>
+</table>
+</form>

@@ -1,0 +1,25 @@
+<script type='text/javascript'>
+ProcessorEditor = {
+  updateProcessors: function() {
+    new Ajax.Updater('processors',"<%= url_for :action => 'processor' %>", 
+                    { parameters: Form.serialize('processor_form') } );
+  }
+
+};
+</script>
+
+<div class='admin_content'>
+<% cms_form_for :processor, @processor, :html => { :class => 'admin_form', :id => 'processor_form' } do |f| -%>
+<tbody id='basic_field'>
+  <%= f.text_field :name %>
+  <%= f.select :currency, @currencies, {}, :onchange => 'ProcessorEditor.updateProcessors();' %>
+  <%= f.select :payment_type, @payment_types, {}, :onchange => 'ProcessorEditor.updateProcessors();' %>
+</tbody>
+<tbody id='processors'>
+  <%= render :partial => 'processor_options', :locals => {:f => f } %>
+</tbody>
+<tbody>
+  <%= f.submit_tag @processor.id ? 'Update' : 'Create' %>
+</tbody>
+<% end -%>
+</div>

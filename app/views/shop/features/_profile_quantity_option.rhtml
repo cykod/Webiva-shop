@@ -1,0 +1,9 @@
+<% member_profiles =  [['--Unused--'.t,nil]] + UserClass.find_select_options(:all,:order => 'name').collect {|elm| [elm[0],elm[1].to_s] }
+  option_numbers = (1..10).to_a.collect { |elm| [ elm,elm.to_s ] } %>
+<% (0..5).to_a.each do |elm| -%>
+<tr>
+
+<td colspan='2'>
+Class: <select name='<%= "#{prefix}[member_class_id][]" %>'><%= options_for_select member_profiles, f.object.member_class_id[elm] %></select>
+Option #<select name='<%= "#{prefix}[option_number][]" %>'><%= options_for_select option_numbers, f.object.option_number[elm] %></select><br/>
+<% end -%>

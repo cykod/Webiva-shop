@@ -1,0 +1,33 @@
+<div class='cms_form'>
+<h3><%= h @ship_order ? "Capture & Ship Order".t : "Capture Order".t %></h3>
+<div id='capture_form_container' style='text-align:center;'>
+<% if @message %>
+  <div style='text-align:left; height:60px;'>
+  <b>Capture Failed:</b><br/>
+  <%= @message %><br/>
+  </div>
+  <div align='right'>
+    <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+  </div>
+<% elsif @order.state == 'authorized'%>
+<form action='' id='capture_form' onsubmit='OrderProcessor.submitCapture(); return false;' >
+<div style='text-align:left'>
+<b><%= sprintf("Capture order %s for %s".t,@order.number,@order.display_total) %>.</b>
+<br/><br/>Optional Note:<br/>
+<textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
+</div>
+<input type='hidden' name='capture' value='1'/>
+<input type='hidden' name='ship' value='<%= @ship_order ? 1 : 0 %>'/>
+<input type='hidden' name='order_id' value='<%= @order.id %>'/>
+<input type='submit' value='<%= vh @ship_order ? "Capture & Ship Order".t : "Capture Order".t %>' />
+<input type='submit' value='<%= vh "Cancel".t %>' onclick='RedBox.close(); return false;'/>
+</form>
+<% else -%>
+<b><%= "This order cannot be captured.".t %></b><br/><br/>
+<div align='right'>
+  <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+</div>
+
+<% end -%>
+</div>
+</div>

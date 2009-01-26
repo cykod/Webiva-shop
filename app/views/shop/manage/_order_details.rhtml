@@ -1,0 +1,133 @@
+<% if flash[:order_info] %>
+<div class='flash_notice'>
+  <%= flash[:order_info] %>
+</div>
+<% end -%>
+<div class='admin_content' >
+<table width='100%'>
+  <tr>
+    <td>
+<% if @order.state == 'authorized' %>
+      <input type='submit' onclick='OrderProcessor.captureOrder(0); return false;' value='<%= vh "Capture Payment".t %>'/>
+      <input type='submit' onclick='OrderProcessor.captureOrder(1); return false;' value='<%= vh "Order Shipped".t %>'/>
+<% elsif @order.state == 'paid' %>
+      <input type='submit' onclick='OrderProcessor.shipOrder(); return false;' value='<%= vh "Order Shipped".t %>'/>
+<% end -%>
+    
+    </td>
+    <td align='right'>
+<% if  @order.shop_payment_processor %>
+  <% if @order.state == 'authorized' %>
+        <input type='submit' onclick='OrderProcessor.voidOrder();' value='<%= vh "Void Order".t %>'/>
+  <% end -%>
+  <% if @order.refundable? %>
+        <input type='submit' onclick='OrderProcessor.refundOrder(1); return false;' value='<%= vh "Full Refund".t %>'/>
+        $<input type='text' size='10' id='partial_refund_amount' value=''/> <input type='submit' onclick='OrderProcessor.refundOrder(0,$("partial_refund_amount").value); return false;'  value='<%= vh "Partial Refund".t %>'/>
+  <% end -%>
+<% end -%>
+    </td>
+
+</table>
+
+</div>
+<hr/>
+
+<div class='admin_content'>
+
+<% stat_view do |f| %>
+    <%= f.header 'Order Information' %>
+    <%= f.raw 'Ordered By', @order.end_user ? link_to(@order.end_user.name,:controller => '/members',:action => 'view',:path => @order.end_user_id ) : @order.name %>
+    <%= f.raw 'State',"<b>" + @order.state_display + "</b>" %>
+    <%= f.row 'Ordered At', @order.ordered_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+    <%= f.row 'Shipped At', @order.shipped_at ? @order.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %>
+    <%= f.row 'Order Type', @order.payment_type_display %>
+    <%= f.row 'Payment Processor', @order.shop_payment_processor ? @order.shop_payment_processor.name : '(Defunct)' %>
+    <%= f.row 'Shipping', (@order.shop_shipping_category_id.blank? || @order.shop_shipping_category_id == 0)  ? 'No Shipping' :  ( @order.shop_shipping_category ? @order.shop_shipping_category.name : '(Defunct)' ) %>    
+<% end -%>
+
+<table cellpadding='10' class='admin_table'>
+  <tr>
+    <td><b>Ship To:</b><br/><%= simple_format(@order.display_shipping_address) %></td>
+    <td><b>Bill To:</b><br/><%= simple_format(@order.display_billing_address) %></td>
+  </tr>
+</table>
+
+<% ajax_tabs [ 'Items Ordered','Transactions','Admin Actions / Notes'], 'Items Ordered' do |t| -%>
+<% t.tab do -%>
+
+<table class='admin_table'>
+  <tr>
+    <th><%= "Sku".t %></th>
+    <th><%= "Item".t %></th>
+    <th><%= "Unit Cost".t %></th>
+    <th></th>
+    <th><%= "Quantity".t %></th>
+    <th><%= "Subtotal".t %></th>
+  </tr>
+<% @order.order_items.each do |item| -%>
+<tr>
+  <td valign='top'><%= item.item_sku %></td>
+  <td valign='top'><b><%= item.item_name %></b><br/><%= item.item_details %></td>
+  <td valign='top' align='right'><%= item.display_unit_price %> </td>
+  <td valign='top'>X</td>
+  <td valign='top'><%= item.quantity %></td>
+  <td valign='top' align='right'><%= item.display_subtotal %></td>
+</tr>  
+<% end -%>
+<tr>
+  <td nowrap='1' align='right' colspan='5'>
+    Subtotal:<br/>
+    Tax:<br/>
+    Shipping:<br/>
+    <% if @order.refund > 0 -%>
+    Refund:<br/>
+    <% end -%>
+    Total:
+  
+  </td>
+  <td nowrap='1' align='right'>
+      <%= @order.display_subtotal %><br/>
+      <%= @order.display_tax %><br/>
+      <%= @order.display_shipping %><br/>
+      <% if @order.refund > 0 %>
+      <span style='color:red;'><%= @order.display_refund %></span><br/>
+      <% end -%>
+      <b><%= @order.display_total %></b>
+  </td>
+</tr>
+
+</table>
+<% end -%>
+<% t.tab do -%>
+
+<table class='admin_table'>
+<tr>
+  <th>Transaction</th>
+  <th>Amount</th>
+  <th>Successful</th>
+  <th>Reference</th>
+  <th>Date</th>
+  <th>
+</tr>
+<% @order.transactions.each do |trans| -%>
+<tr>
+  <td><%= trans.action_display %></td>
+  <td><%= trans.display_amount %></td>
+  <td><%= trans.success ? "Sucessful".t : "Failed:".t + trans.message  %></td>
+  <td><%= trans.reference %></td>
+  <td><%= trans.created_at.strftime(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<% end -%>
+</table>
+
+<% end -%>
+
+<% t.tab do -%>
+  <% @order.shop_order_actions.each do |action| -%>
+
+  <% end -%>
+<% end -%>
+
+
+<% end -%>
+</div>

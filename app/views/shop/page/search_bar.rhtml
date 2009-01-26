@@ -1,0 +1,5 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for :search_bar  do |f| -%>
+    <%= f.select :search_page_id, SiteNode.page_options %>
+  <% end -%>
+</div>

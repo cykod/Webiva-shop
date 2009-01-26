@@ -1,0 +1,19 @@
+<% current_time = Time.now %>
+<% active_table_for :order_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'display_orders_table',:path => [ @user.id ]),
+                    :class => 'active_table',
+#                    :actions => [ ['Capture','capture','Capture the selected orders (must be in the authorized state)?' ],
+#                                  ['Ship','ship','Capture and Ship the selected orders (must be in the authorized or paid state)?' ]
+#                                ],
+#                    :more_actions => [ ['Void','void','Void the selected orders (must be in the authorized state)?' ],
+#                                       ['Refund','refund','Refund the selected orders (must be in paid state)?' ] ],
+                    :update => 'order_table' do |t| %>
+<tr <%= highlight_row 'order_id',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "order_id", t.id %></td>
+  <td align='right'><%= link_to t.number, :controller => '/shop/manage', :action => 'order', :path => t.id %></td>
+  <td><%= t.ordered_at ? t.ordered_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td><%= t.shipped_at ? t.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
+  <td><%= t.state_display %></td>
+  <td><%= t.display_total %></td>
+</tr>
+<% end -%>

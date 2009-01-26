@@ -1,0 +1,23 @@
+Delivery and billing details:
+<table>
+<tr>
+ <% [:billing_address,:shipping_address].each do |adr_name| -%>
+    <td style='padding:5px;'>
+    <% if (adr = @user.send(adr_name)) -%>
+      <div style='padding-bottom:10px;'><b><%= adr_name.to_s.humanize.t %></b><br/><%= adr.display("<br/>") %></div><br/>
+    <% else -%>
+      <% @no_addresses = true -%>
+    <% end -%>
+    </td>
+  <% end -%>
+</tr>
+</table>
+
+<% if @no_addresses  -%>
+ <b>Please <%= link_to 'edit user information', :controller => '/members',:action => 'edit',:path => [ @user.id ] %> to add billing and shipping addresses</b><br/>
+ <br/>
+<% end -%>
+
+<div id='user_order'>
+  <%= render :partial => 'user_order' %>
+</div>

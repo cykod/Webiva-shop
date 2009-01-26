@@ -1,0 +1,9 @@
+
+if @successful
+  page << "RedBox.close();"
+else 
+  page.replace_html :RB_window, :partial => @transaction_partial 
+end
+
+page.replace_html :order_details, :partial => 'order_details'
+

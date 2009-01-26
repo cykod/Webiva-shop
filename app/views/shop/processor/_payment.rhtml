@@ -1,0 +1,94 @@
+<%= feature_output %>
+<div class='cms_form checkout checkout_addresses'>
+
+<form action='' method='post' id='submit_form'>
+<input type='hidden' name='update' id='shopping_form_update' value='0' />
+<% if message || (errors && errors.length > 0) -%>
+<div align='center'>
+There was an error processing your request:<br/>
+<div align='left' class='error'>
+<% if errors && errors.length > 0 %>
+<%= errors.full_messages.join("<br/>") %>
+<br/><br/>
+<% end -%>
+<%= message %>
+</div>
+</div>
+
+<% end -%>
+
+<p>
+<b><%= myself.name %></b>, please confirm you order and enter you payment information<br/><br/>
+</p>
+<% if shippable %>
+
+<h1>Order Addresses (<a href='<%= url_for address_page %>'>Edit</a>)</h1>
+<table>
+<tr>
+  <td class='label'>Ship To:</td>
+  <td class='label' style='padding-left:20px;'>Bill To:</td>
+</tr>
+<tr>
+  <td>
+    <%= shipping_address[:first_name] %> <%= shipping_address[:last_name] %><br/>
+    <%= shipping_address[:address] %><br/>
+    <% unless shipping_address[:address_2].blank? %><%= shipping_address[:address_2] %><br/><% end -%>
+    <%= "#{shipping_address[:city]}, #{shipping_address[:state]} #{shipping_address[:zip]}" %><br/>
+  </td>
+  <td style='padding-left:20px;'>
+    <%= billing_address[:first_name] %> <%= billing_address[:last_name] %><br/>
+    <%= billing_address[:address] %><br/>
+    <% unless billing_address[:address_2].blank? %><%= billing_address[:address_2] %><br/><% end -%>
+    <%= "#{billing_address[:city]}, #{billing_address[:state]} #{billing_address[:zip]}" %><br/>
+   </td>
+</tr>
+</table>
+
+<% else -%>
+
+<h1>Bill To (<a href='<%= url_for address_page %>'>Edit</a>)</h1>
+<%= billing_address[:first_name] %> <%= billing_address[:last_name] %><br/>
+<%= billing_address[:address] %><br/>
+<% unless billing_address[:address_2].blank? %><%= billing_address[:address_2] %><br/><% end -%>
+<%= "#{billing_address[:city]}, #{billing_address[:state]} #{billing_address[:zip]}" %><br/>
+<br/>
+
+<% end -%>
+
+<% if shippable && shipping_options.length == 0 %>
+<br/>
+<div class='error'>
+ There are no Shipping Carriers available to ship your order, please try again later.
+</div>
+<% elsif payment_processors.length == 0 %>
+<br/>
+<div class='error'>
+ There are no Payment processors available to ship your order, please try again later.
+</div>
+<% else -%>
+<% if shippable %>
+  <h1>Shipping Options</h1>
+  <table>
+  <% shipping_options.each_with_index do |opt,index| %>
+  <tr>
+    <td><label for='shipping_<%= opt[1] %>'><input id='shipping_<%= opt[1] %>' type='radio' name='payment[shipping_category]' <%=  "checked='checked'" if payment[:shipping_category] == opt[1]  %> value="<%= opt[1] %>" onclick='document.getElementById("shopping_form_update").value=1; document.getElementById("submit_form").submit();' ><%= opt[0] %></label></td>
+  </tr>
+  <% end -%>
+  </table>
+<% end -%>
+
+<% if payment_processors.length > 1 %>
+<h1>Payment Options</h1>
+<% end -%>
+
+<%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => payment_processors, :admin => false, :payment => payment, :user => myself } %>
+
+
+<h1 align='right'>
+<input type='submit' value='Place Order'/>
+</h1>
+<% end -%>
+
+</form>
+
+</div>

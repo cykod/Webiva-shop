@@ -1,0 +1,33 @@
+<div class='cms_form'>
+<h3><%= h "Void Order".t %></h3><br/>
+<div id='void_form_container' style='text-align:center;'>
+<% if @message %>
+<div style='text-align:left; height:60px;'>
+<b>Void Failed:</b><br/>
+<%= @message %><br/>
+</div>
+<div align='right'>
+  <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+</div>
+
+<% elsif @order.state == 'authorized' %>
+<form action='' id='void_form' onsubmit='OrderProcessor.submitVoid(); return false;' >
+<div style='text-align:left'>
+<b><%= sprintf("Void order %s".t,@order.number) %>.</b>
+<br/><br/>Optional Note:<br/>
+<textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
+</div>
+<input type='hidden' name='void' value='1'/>
+<input type='hidden' name='order_id' value='<%= @order.id %>'/>
+<input type='submit' value='<%= vh "Void Order".t %>' />
+<input type='submit' value='<%= vh "Cancel".t %>' onclick='RedBox.close(); return false;'/>
+</form>
+<% else -%>
+<b><%= "This order cannot be voided.".t %></b><br/><br/>
+<div align='right'>
+  <input type='submit' value='<%= vh "Close".t %>' onclick='RedBox.close();' />
+</div>
+
+<% end -%>
+</div>
+</div>

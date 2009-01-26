@@ -1,0 +1,17 @@
+<script>
+<%= active_table_javascript %>
+</script>
+
+<div class='admin_content'>
+<ul class='action_panel'>
+  <li><%= link_to theme_icon("action","icons/actions/add.gif") + " " + "New Shipping Category".t, :action => 'shipping_category' %></li>
+</ul>
+
+</div>
+<hr/>
+<div class='admin_content'>
+<div id='shipping_table'>
+  <%= render :partial => 'shipping_table' %>
+</div>
+</div>
+

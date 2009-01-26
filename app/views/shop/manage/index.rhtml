@@ -1,0 +1,27 @@
+<div class='admin_left_columned_container'>
+
+<div class='admin_left_sidebar'><div class='top'></div>
+
+<div class='content'>
+<h3>Shop</h3>
+  <ul class='actions'>
+    <li><%= link_to 'Product Catalog'.t, { :controller => '/shop/catalog' } %></li>
+    <% if myself.has_role?('shop_admin') %>
+      <li><%= link_to 'Manage Categories'.t, { :controller => '/shop/categories' } %></li>
+      <li><%= link_to 'Shop Configuration'.t, { :controller => '/shop/config' } %></li>
+    <% end -%>
+  </ul>
+</div>
+
+<div class='bottom'></div></div>
+
+
+
+<div class='admin_center_content'>
+<div class='admin_content'>
+  <h3>Orders</h3>
+  <div id='order_table'>
+    <%= render :partial => 'order_table' %>
+  </div>
+</div>
+</div>

@@ -1,0 +1,301 @@
+<script>
+CategoryEditor = {
+  selectCategory: function(cat_id) {
+
+    // See if we are checked or not
+    var selected = $('selected_cat_' + cat_id).checked;
+
+    // if we are - add the selected class
+    if(selected) {
+        $('title_cat_' + cat_id).className = 'check_table_item_checked';
+      
+        // Category -> Parent Cat Children -> Parent Cat
+        var parent_cat = $('cat_' + cat_id).parentNode.parentNode;
+  
+        if(parent_cat.className == 'check_table_item')
+          CategoryEditor.checkCategory(parent_cat.category_id,true);
+        
+    }
+    else {
+        $('title_cat_' + cat_id).className = '';
+        var children = $('check_table_children_' + cat_id).select('.check_table_item');
+        children.each(function(elem) {
+          CategoryEditor.checkCategory(elem.category_id,false);
+        });
+
+        CategoryEditor.highlightFeature(cat_id,false);
+        $('featured_cat_' + cat_id).value = '0';
+
+    }
+        // make sure all the parent elements are selected
+    // if not, remove it
+       // make sure all the child elements are selected
+
+
+  },
+
+  checkCategory: function(cat_id,checked) {
+    $('selected_cat_' + cat_id).checked = checked;
+
+    if(!checked) {
+        $('title_cat_' + cat_id).className = '';
+        var children = $('check_table_children_' + cat_id).select('.check_table_item');
+        children.each(function(elem) {
+          CategoryEditor.checkCategory(elem.category_id,false);
+        });
+        CategoryEditor.highlightFeature(cat_id,false);
+        $('featured_cat_' + cat_id).value = '0';
+    }
+    else {
+        $('title_cat_' + cat_id).className = 'check_table_item_checked';
+      
+        // Category -> Parent Cat Children -> Parent Cat
+        var parent_cat = $('cat_' + cat_id).parentNode.parentNode;
+  
+        if(parent_cat.className == 'check_table_item')
+          CategoryEditor.checkCategory(parent_cat.category_id,true);
+    }
+  },
+
+  
+
+  featureCategory: function(cat_id) {
+    var category_check = $('selected_cat_' + cat_id);
+    var category = $('cat_' + cat_id);
+    var feature  = $('featured_cat_' +cat_id);
+
+    if(feature.value == '1') {
+       feature.value = '0';
+      CategoryEditor.highlightFeature(cat_id,false);
+    }
+    else {
+      if(!category_check.checked) {
+        CategoryEditor.checkCategory(cat_id,true);
+      }
+      feature.value = '1';
+      CategoryEditor.highlightFeature(cat_id,true);
+    }
+
+
+  },
+
+  highlightFeature: function(cat_id,highlighted) {
+    if(highlighted) {
+      $('category_feature_img_' + cat_id).src = "<%= theme_src('icons/table_actions/star_selected.gif') %>";
+    }
+    else {
+      $('category_feature_img_' + cat_id).src = "<%= theme_src('icons/table_actions/star_unselected.gif') %>";
+
+    }
+
+  }
+
+
+}
+
+ProductEditor = {
+   featureIdx: <%= @product.features.size %>,
+
+   attachFile: function(field,type,id,path,url,thumb,name) {
+    this.removeAttachment(id);
+    
+    var code = "<table><tr><td>";
+    
+    if(type != 'img') {
+      code +=  "<img id='handle_item_" + id + "' src='" + thumb + "' align='top' width='64' height='64'>";
+    }
+    else {
+      code +=  "<div class='fm_image'><img src='" + thumb + "'  align='middle'></div>";
+    }
+    
+    code += " </td><td><a href='javascript:void(0);' onclick='ProductEditor.showAttachmentPopup(" + id + ");'>" + name + "</a><br/>Caption:<input class='formatted' type='text' id='product_caption_" + id + "' size='35' name='product[caption][" + id+ "]' /></td></tr></table></div>";
+    
+    
+    // Need to create an element, otherwise
+    // $('product_images').innerHTML += ...  will kill the values
+    // in the input captions
+    var elem = document.createElement('div');
+    elem.id = 'attachment_' + id;
+    elem.className="attachment";
+    elem.innerHTML = code;
+    
+    if(type != 'img')
+     $('product_files').appendChild(elem);
+    else
+     $('product_images').appendChild(elem);
+     
+    ProductEditor.createMediaSortables();
+  },
+  
+  
+  createMediaSortables: function() {
+    Sortable.create('product_files', { tag: 'div' });
+    Sortable.create('product_images',{ tag: 'div' });
+  
+  },
+  
+  submitForm: function() {
+  
+  
+    var images = $('product_images').select(".attachment").collect(function(elem) {
+      var name = elem.id.split("_");
+      return name[name.length - 1];
+    
+    });
+    $('product_images_order').value = images.join(",");
+    
+    var files = $('product_files').select(".attachment").collect(function(elem) {
+      var name = elem.id.split("_");
+      return name[name.length - 1];
+    
+    });
+    $('product_files_order').value = files.join(",");
+    var arr = Sortable.sequence('features');
+    $('features_order').value = arr.join(",");
+
+  },
+  
+  showAttachmentPopup: function(aid) {
+     SCMS.popup(new Array(
+        [ 'Remove Attachment', 'js', 'ProductEditor.removeAttachment(' + aid + ')' ]
+      )); 
+  },
+  
+  removeAttachment: function(id) {
+    if($('attachment_' + id)) {
+      Element.remove('attachment_' + id);
+      ProductEditor.createMediaSortables();
+    }
+  },
+  
+  changeOptions: function(value) {
+    if(value) {
+      new Ajax.Updater('product_options',
+                      "<%= url_for :action => 'update_options', :product_id => @product.id %>",
+                      { parameters: $H({ product_class_id: value }).toQueryString() });
+    }
+    else {
+      $('product_options').innerHTML = '';
+    }
+  
+  },
+  
+  addFeature: function(feature) {
+    if(feature) {
+      var index = ProductEditor.featureIdx++;
+      new Ajax.Updater('features',
+                      "<%= url_for :action => 'add_feature' %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        onComplete: function(req) {
+                          ProductEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    Element.remove($('feature_' + idx));
+    ProductEditor.removeFeature(idx);
+  }
+  
+  
+
+}
+</script>
+
+<div class='admin_content'>
+<form action='' method='post' width='100%' onsubmit='ProductEditor.submitForm(); return true' class='admin_form full_page_form'>
+<% cms_subfields_for :product, @product do |f| -%>
+<table width='100%'>
+<tr>
+  <td valign='top'>
+  <table>
+<%= f.text_field :name, :required => true %>
+<%= f.text_field :name_2, :label => 'Name (Line 2)' %>
+<% if @price_error %>
+<td></td><td class='error'>Please enter valid prices for all currencies</td></tr><tr>
+<% end -%>
+<% f.custom_field 'Price', :valign => 'baseline' do  %>
+  <%= render :partial => 'currency_inputs', :locals => { :field_name => 'prices',:prices => @prices, :separator => "<br/>" } %>
+<% end -%>
+<%= f.filemanager_image :image_file_id, :label => 'Primary Image' %>
+<%= f.text_field :internal_sku, :label => 'Internal Sku' %>
+<%= f.text_field :sku, :label => 'Manufacturer Sku' %>
+<%= f.select :shop_product_class_id, @product_classes, { :label => 'Product Class'}, :onchange => 'ProductEditor.changeOptions(this.value);' %>
+   </table>
+   </td>
+   <td valign='top' width='100%' style='padding-left:20px;'>
+    <table>
+      <%= f.text_area :description, :cols => '50',:rows => '12', :required => true, :vertical => true %>
+    </table>
+   </td>
+</tr>   
+<tr>
+  <td colspan='3' align='left'>
+    <% ajax_tabs ['Details','Categories','Additional Media','Options','Stock','Fields','Features'],'Details' do |t| -%>
+        <% t.tab do -%>
+        <table style='width:100%'>
+           <%= f.radio_buttons :shippable, [['Yes',true],['No',false]], :description => 'Is this product shipped?' %>
+           <%= f.text_field :weight, :unit => 'lbs' %>
+           <%= f.text_field :brand %>
+           <%= f.text_field :unit_quantity %>
+           <%= f.text_field :dimensions  %>
+           <%= f.editor_area :detailed_description, :rows => 15 %>
+        </table>
+      <% end -%>
+
+      <% t.tab do -%>
+        <div class='cms_check_table'>
+        <%= theme_image_tag('icons/table_actions/star_selected.gif') %> Featured in Category
+        <%= theme_image_tag('icons/table_actions/star_unselected.gif') %> Not featured in Category
+        <%= render :partial => 'categories', :locals => { :categories => ( @product_categories ? @product_categories.nested_children : [] ) }%>
+        </div>
+      <% end -%>
+      <% t.tab do -%>
+          <table width='900'>
+            <tr>
+              <td valign='top' width='50%'>
+                 <div>
+                <%= link_to '+Add Additional Images'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+                  <%= render :partial => 'files', :locals => { :files =>  @product.images_product_files, :field => "images" } %>
+                </div>
+              </td>
+              <td valign='top' width='50%'>
+                 <div>
+                <%= link_to '+Add Media &amp; Files'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+                  <%= render :partial => 'files', :locals => { :files =>  @product.files_product_files, :field => "files" } %>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <script>ProductEditor.createMediaSortables();</script>
+    </div>
+      <% end -%>
+      <% t.tab do -%>
+        <div id='product_options'>
+          <%= render :partial => 'options', :locals => { :shop_product_class => @product.shop_product_class } %>
+        </div>
+      <% end -%>
+      <% t.tab do -%>
+        Stock
+      <% end -%>
+      <% t.tab do -%>
+        Fields
+      <% end -%>
+      <% t.tab do -%>
+        <%= render :partial => 'features' %>
+      <% end -%>
+    <% end -%>
+  </td>
+</tr>
+<%= f.submit_tag @product.id ? 'Update Product' : 'Create Product' %>
+<% end -%>
+
+</div>
+

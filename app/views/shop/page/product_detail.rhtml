@@ -1,0 +1,7 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Product Detail Options",:product_detail ,@options do |f| -%>
+    <%= f.select :cart_page_id, @pages %>
+    <%= f.select :list_page_id, @list_pages %>
+    <%= f.select :product_id, @products, :label => 'Product to show' %>
+  <% end -%>
+</div>

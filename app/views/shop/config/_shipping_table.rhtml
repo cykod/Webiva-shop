@@ -1,0 +1,9 @@
+<% active_table_for :shipping_table, @active_table_output,
+                    :actions => [ ['Delete','delete','Are you sure you want to delete the selected shipping categories?' ]] do |t| -%>
+<tr <%= highlight_row 'shipping_category',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "shipping_category", t.id %></td>
+  <td><%= link_to t.name, :action => 'shipping_category', :path => t %></td>
+  <td><%= t.region.name if t.region %></td>
+  <td><%= t.carrier.name if t.carrier %></td>
+</tr>
+<% end -%>

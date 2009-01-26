@@ -1,0 +1,19 @@
+<script>
+<%= active_table_javascript %>
+
+
+</script>
+
+<div class='admin_content'>
+<ul class='action_panel'>
+  <li><%= link_to theme_icon("action","icons/actions/add.gif") + " " + "New Carrier".t, :action => 'carrier' %></li>
+</ul>
+
+</div>
+<hr/>
+<div class='admin_content'>
+<div id='carriers_table'>
+  <%= render :partial => 'carriers_table' %>
+</div>
+</div>
+

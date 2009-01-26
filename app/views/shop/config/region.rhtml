@@ -1,0 +1,19 @@
+<div class='admin_content'>
+
+<% cms_form_for :region, @region, :html => {:class => 'admin_form' } do |f| -%>
+<tbody>
+  <%= f.text_field :name %>
+  <%= f.text_field :tax, :label => 'Tax Rate', :size => 5, :unit => '%' %>
+  <%= f.radio_buttons :has_subregions, [ ['Yes',true], ['No',false ] ], :onclick => "if($('region_has_subregions_1').checked) { $('multiple_countries').hide(); $('single_country').show(); } else { $('multiple_countries').show(); $('single_country').hide();  }" %>
+</tbody>
+  <tbody id='multiple_countries' style='<%= "display:none;" if @region.has_subregions? %>'>
+    <%= f.unsorted_selector :countries, f.translated_countries_for_select(["United States","Rest of the World"]), @region.countries.collect { |country| [ country.country.t, country.country ] } %>
+  </tbody>
+  <tbody id='single_country' style='<%= "display:none;" unless @region.has_subregions? %>'>
+    <%= f.select :country, f.translated_countries_for_select(["United States"]) %>
+    <%= f.select :subregion_type, Shop::ShopRegion.subregion_type_select_options %>
+  </tbody>
+  <%= f.submit_cancel_tags @region.id ? 'Edit' : 'Continue', 'Cancel', {}, url_for(:action => 'regions') %>
+<% end -%>
+
+</div>

@@ -1,0 +1,10 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Product Listing",:product_listing ,@options do |f| -%>
+    <%= f.select :base_category_id, @categories, :label => 'Base Category' %>
+    <%= f.select :detail_page, @pages, :label => 'Detail Page'.t %>
+    <%= f.radio_buttons :include_category, [['Yes','yes'],['No','no']], :label => 'Include Category'.t %>
+    <%= f.select :cart_page_id,[['--Stay on same page--']] +  @pages %>
+    <%= f.select :items_per_page, @per_page, :label => 'Items per page'.t %>
+  
+  <% end -%>
+</div>

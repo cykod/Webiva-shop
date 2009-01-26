@@ -1,0 +1,70 @@
+<script>
+  UserShop = {
+    paying: false,
+  
+    addProduct: function(product_id) {
+    
+     var params = Form.serialize('order_form')  + "&product_id=" +  product_id;
+    
+      new Ajax.Updater('user_order',"<%= url_for :action => 'add_product',:path => [ @user.id ], :cart_id => @cart_id %>",
+                          { parameters: params, evalScripts:true });
+    },
+    
+    updateOrder: function() {
+     var params = "";
+     if($('order_form')) params = Form.serialize('order_form');
+     new Ajax.Updater('user_order',"<%= url_for :action => 'edit_cart',:path => [ @user.id ], :cart_id => @cart_id %>",
+                          { parameters: params, evalScripts:true });
+    },
+    
+    checkout: function() {
+     var params = Form.serialize('order_form');
+     new Ajax.Updater('user_order',"<%= url_for :action => 'checkout',:path => [ @user.id ], :cart_id => @cart_id %>",
+                          { parameters: params, evalScripts:true });
+    },
+    
+    payment: function() {
+     if(UserShop.paying) return;
+     UserShop.paying = true;
+     $('payment_button').disabled = true;
+     $('payment_indicator').style.display='';
+     var params = Form.serialize('payment_form');
+     new Ajax.Updater('user_order',"<%= url_for :action => 'checkout',:path => [ @user.id ], :cart_id => @cart_id %>",
+                          { parameters: params, evalScripts:true });
+    
+    },
+    
+    updateOrders: function() {
+        ActiveTable.refresh("order_table","<%= url_for :action=>'display_orders_table', :path => [@user.id ] %>","order_table");
+    },
+    
+    newOrder: function() {
+     new Ajax.Updater('tab_<%= @tab %>',"<%= url_for :action => 'view',:path => [ @user.id ], :tab => @tab %>",
+                          { parameters: {show:'order'}, evalScripts:true });
+
+    }
+    
+  
+  }
+
+</script>
+
+<%  ajax_tabs ['User Orders','Place an Order'],@show ? 'Place an Order' : 'User Orders' do |t| -%>
+
+  <% t.tab do -%>
+  <div class='admin_content'>
+    <h3>Orders</h3>
+    <div id='order_table'>
+      <%= render :partial => 'order_table' %>
+    </div>
+  </div>
+
+  <% end -%>
+
+  <% t.tab do -%>
+
+    <%= render :partial => 'place_order' %>
+
+  <% end -%>
+
+<% end -%>

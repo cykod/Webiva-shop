@@ -1,0 +1,6 @@
+<%= f.select :member_classes,  UserClass.find_select_options(:all,:order => 'name').collect {|elm| [elm[0],elm[1].to_s] }, {}, :multiple => 4,:size=>5 %>
+<tr>
+  <td class='label'>Price Adjustment:</td>
+  <td class=''><%= render :partial => '/shop/catalog/currency_inputs', :locals => {:field_name => "#{f.object_name}[price_adjustments]", :prices => f.object.price_adjustments, :separator => " " } %></td>
+  
+</tr>

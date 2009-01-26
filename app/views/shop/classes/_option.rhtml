@@ -1,0 +1,17 @@
+<div id='variation_<%= idx %>_option_<%=opt_idx %>'>
+<input type='hidden' name='variation[<%=idx %>][options][<%= opt_idx %>][id]' value='<%= vh option[:id] %>'/>
+
+  <div style='float:left; width:250px;'><span class="cms_menu_handle"><img src='<%= theme_src("/images/icons/menu_entry.gif") %>' onclick='cmsMenuEdit.selectEntry(<%= @item_index %>)' align='absmiddle' /></span>
+  <input type='text' size='15' name='variation[<%= idx %>][options][<%= opt_idx %>][name]'  value='<%= vh option[:name] %>' /></div>
+  <% if variation_type == 'option' %>
+    <div style='float:left; width:120px;'><input type='text'  name='variation[<%= idx %>][options][<%= opt_idx %>][weight]' size='5' value='<%= vh option[:weight] %>' /></div>
+  <div style='float:left;'>
+    <%= render :partial => '/shop/catalog/currency_inputs', :locals => { :field_name => "variation[#{idx}][options][#{opt_idx}][prices]", :currencies => @active_currencies, :prices => option[:prices] || {}, :separator => ' ' } %>
+  </div>
+  <% else -%>
+    <div style='float:left; width:120px;'><input type='text'  name='variation[<%= idx %>][options][<%= opt_idx %>][max]' size='5' value='<%= vh option[:max] %>' /></div>
+  <% end -%>
+  <div style='float:left;'>&nbsp;&nbsp;<a href='javascript:void(0);' onclick='OptionEditor.showOptionPopup(<%= idx %>,<%= opt_idx %>);'><%= theme_icon 'ball', '/images/icons/wheel.gif' %></a></div>
+  <div style='clear:left;'></div>
+</div>
+

@@ -1,0 +1,228 @@
+
+<script>
+  var AddressManager = {
+    updateBilling: function(disableBilling) {
+      fields =  $A([ 'first_name','last_name','address','address_2','city','state','zip','phone','country','state_select' ]);
+      fields.each(function(fld) {
+          if($('billing_address_' + fld))
+            $('billing_address_' + fld).disabled = disableBilling;
+      });
+    },
+    
+    updateShippingCountry : function(country) {
+    
+      var existingState = '';
+      if($('shipping_address_state_select'))
+        existingState = $('shipping_address_state_select').value;
+      else if($('shipping_address_state'))
+        existingState = $('shipping_address_state').value;
+      var params = { state: existingState, country: country };      
+      new Ajax.Request('<%= url_for :controller => "/shop/processor", :action => "update_shipping_country" %>',
+                       { parameters: params});
+    
+    },
+    
+    updateBillingCountry: function(country) {
+    
+      if($('billing_address_state_select'))
+        existingState = $('billing_address_state_select').value;
+      else if($('billing_address_state'))
+        existingState = $('billing_address_state').value;
+      var params = { state: existingState, country: country };
+      
+      new Ajax.Request('<%= url_for :controller => "/shop/processor", :action => "update_billing_country" %>',
+                       { parameters: params });
+    
+    }
+  }
+</script>
+<% opts = { :vertical => true, :country => 'United States' } %>
+
+<%= feature_output %>
+<div class='cms_form checkout checkout_addresses'>
+<p>
+Thank you <b><%= myself.name %></b> for logging in.<br/><br/>
+</p>
+
+
+<% if cart.shippable? %>
+<h1>Please confirm your shipping and billing addresses</h1>
+<% else -%>
+<h1>Please confirm your billing address</h1>
+<% end -%>
+<form action='' method='post'>
+<table>
+
+<% if cart.shippable? %>
+
+<tr>
+  <td class='label' colspan='4'>Shipping Address:</td>
+</tr>
+ <% cms_unstyled_fields_for :shipping_address,shipping_address  do |sa| %>
+   <% if shipping_address.errors.length > 0 %>
+  <tr>
+    <td colspan='4' class='errors'>
+      <b>We encountered the following problems with your shipping address:</b><br/>
+      <% shipping_address.errors.each do |err| -%>
+        <% err[1].each do |desc| -%>
+          <% unless desc.blank? -%>
+            <%= err[0].humanize %> <%= desc %><br/>
+          <% end -%>
+        <% end -%>
+     <% end -%>
+    </div>
+  </tr>
+  <% end -%>
+<tr>
+  <td class='field'>First Name*</td>
+  <td class='field'><%= sa.text_field :first_name, :required =>true, :vertical => opts[:vertical], :size => 15, :class => 'textfield'  %> </td>
+  <td class='field'>Last Name* 
+  <td class='field'><%= sa.text_field :last_name, :required =>true, :vertical => opts[:vertical], :size => 15, :class => 'textfield'  %> </td>
+</tr>
+<tr>
+  <td class='field'>
+  Address*
+  </td>
+  <td class='field' colspan='3'>
+    <%= sa.text_field :address, :required =>true, :vertical => opts[:vertical], :size => 45, :class => 'textfield'  %>
+  </td>
+</tr>
+<tr>
+  <td class='field'>
+    Address (line 2)
+  </td>
+  <td  class='field'  colspan='3'>
+    <%= sa.text_field :address_2, :vertical => opts[:vertical], :size => 45, :class => 'textfield' %>
+  </td>
+</tr>
+<% if countries.length == 2  %>
+  <% sa.object.country = countries[1][1] %>
+  <%= sa.hidden_field :country %>
+<% else -%>
+<tr>
+  <td class='field'>
+    Country*
+  </td>
+  <td class='field' colspan='3'> <%= sa.select :country, countries, {}, :required => true, :vertical => opts[:vertical], :onchange => 'AddressManager.updateShippingCountry(this.value);', :class => 'textfield' %> 
+  </td>
+</tr>
+<% end -%>
+<tr>
+  <td colspan='4'>
+    City* <%= sa.text_field :city, :required =>true, :vertical => opts[:vertical], :size => 10, :class => 'textfield' %> 
+    <span id='shipping_state_options'>
+      <%= render :partial  => '/shop/processor/states', :locals => { :value => shipping_state_info[:selected], :options => shipping_state_info[:options], :subregion_name => shipping_state_info[:name], :address => 'shipping', :same_address => false  } %>
+    </span>
+    Zip* <%= sa.text_field :zip, :required =>true, :vertical => opts[:vertical], :size => 10, :class => 'textfield' %> 
+  </td>
+</tr>
+<tr>
+  <td class='field'>
+      Phone
+  </td>
+  <td class='field' colspan='3'>
+   <%= sa.text_field :phone, :vertical => opts[:vertical], :size => 40, :class => 'textfield' %>
+  </td>
+</tr>
+<% end -%>
+<tr>
+  <td colspan='2'>
+    <hr/>
+  </td>
+</tr>
+
+<% end -%>
+<% cms_unstyled_fields_for :billing_address, billing_address do |ba| -%>
+<% billing_opts = { :size => 15,:vertical => opts[:vertical], :required => true, :disabled => cart.shippable? && same_address, :class => 'textfield'  } %>
+
+<% if cart.shippable? %>
+<tr>
+  <td class='label' colspan='4'>
+    Billing Address
+  </td>
+</tr>
+<% end -%>
+
+   <% if billing_address.errors.length > 0 %>
+  <tr>
+    <td colspan='4' class='errors'>
+      <b>We encountered the following problems with your billing address:</b><br/>
+      <% billing_address.errors.each do |err| -%>
+        <% err[1].each do |desc| -%>
+          <% unless desc.blank? -%>
+            <%= err[0].humanize %> <%= desc %><br/>
+          <% end -%>
+        <% end -%>
+     <% end -%>
+    </div>
+  </tr>
+  <% end -%>
+
+ 
+<% if cart.shippable? %>
+<tr>
+  <td class='data' colspan='2'><label for='same_address'><input type='checkbox' id='same_address' onclick='AddressManager.updateBilling(this.checked);' name='same_address' value='1' <%= "checked='checked'" if same_address %>> <%= "same as shipping address".t %></label></td>
+</tr>
+<% end -%>
+
+<tr>
+  <td class='field'>First Name*</td>
+  <td class='field'><%= ba.text_field :first_name, billing_opts  %> </td>
+  <td class='field'>Last Name* 
+  <td class='field'><%= ba.text_field :last_name, billing_opts %> </td>
+</tr>
+<tr>
+  <td class='field'>
+  Address*
+  </td>
+  <td class='field' colspan='3'>
+     <%= ba.text_field :address, billing_opts.merge(:size => 45 )  %>
+  </td>
+</tr>
+<tr>
+  <td class='field'>
+    Address (line 2)*  
+  </td>
+  <td  class='field'  colspan='3'>
+    <%= ba.text_field :address_2, billing_opts.merge(:required => false, :size => 45 ) %>
+  </td>
+</tr>
+<% if countries.length == 2 %>
+  <% ba.object.country = countries[1][1] %>
+  <%= ba.hidden_field :country %>
+<% else -%>
+<tr>
+  <td class='field'>
+    Country*
+  </td>
+  <td class='field' colspan='3'>
+  <%= ba.select :country, countries, {},billing_opts.merge(:onchange => 'AddressManager.updateBillingCountry(this.value);' ,:size => nil) %>
+  </td>
+</tr>
+<% end -%>
+<tr>
+  <td colspan='4'>
+    City* <%= ba.text_field :city, billing_opts.merge(:size => 10) %>
+    <span id='billing_state_options'>
+    <%= render :partial  => '/shop/processor/states', :locals => { :value => billing_state_info[:selected], :options => billing_state_info[:options], :subregion_name => billing_state_info[:name], :address => 'billing', :same_address => cart.shippable? && same_address  } %>
+    </span>
+    Zip* <%= ba.text_field :zip, billing_opts.merge(:size => 10) %>
+  </td>
+</tr>
+<tr>
+  <td class='field'>
+      Phone
+  </td>
+  <td class='field' colspan='3'>
+   <%= ba.text_field :phone,  billing_opts.merge(:size => 40) %>
+  </td>
+</tr>
+</table>
+
+<% end -%>
+<h1 align='right'>
+  <input type='submit' value='Continue'/>
+</h1>
+</form>
+
+</div>

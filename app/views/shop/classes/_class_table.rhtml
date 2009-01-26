@@ -1,0 +1,13 @@
+<% active_table_for :class_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'class_table'),
+                    :class => 'active_table',
+                    :actions => [ [ 'Delete', 'delete', 'Are you sure you want to permanently delete the selected classes?' ] ],
+                    :update => 'class_table' do |t| %>
+<tr <%= highlight_row 'class',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "class", t.id %></td>
+  <td><%= link_to h(t.name), :action => 'edit', :path => t %></td>
+  <td align='center'><%= t.shop_variations.collect { |variation| variation.name + " (" + variation.options.collect { |opt| opt.name }.join(",") + ")" }.join(", ") %></td>
+</tr>
+
+
+<% end -%>

@@ -1,0 +1,66 @@
+<form action='' id='order_form' onsubmit='UserShop.updateOrder(); return false;' method='post'>
+
+Select Product: <select id='product_to_add'><%= options_for_select Shop::ShopProduct.select_options(:order => 'name' ) %></select><button onclick='UserShop.addProduct($("product_to_add").value); return false;'>Add to Order</button></select>
+
+<br/><br/>
+
+
+<table class='active_table' cellspacing='0' cellpadding='0'>
+<tr>
+  <th>SKU</th>
+  <th>Item</th>
+  <th>Unit Cost</th>
+  <th></th>
+  <th>Quantity</th>
+  <th></th>
+  <th>Subtotal</th>
+</tr>
+<% if @cart.products.length == 0 %>
+<tr>  
+  <td colspan='5'>
+     No Products in order
+  </td>
+</tr>
+<% else -%>
+  <% @cart.products.each do |item| -%>
+  <tr>
+    <td valign='top'><%= item.sku %></td>
+    <td valign='top'><b><%= item.name %></b><br/><%= item.details %></td>
+    <td valign='top' align='right'><%= item.price(@currency) %> </td>
+    <td valign='top'>X</td>
+    <td valign='top'>
+        <input type='text' onchange='UserShop.updateOrder();' name='quantity[<%= item.item_hash %>][<%= item.options_hash %>]' size='4' value='<%= item.quantity %>' />
+    </td>
+    <td valign='top' align='right'>=</td>
+    <td valign='top' align='right'>
+      <%=  Shop::ShopProductPrice.localized_amount(item.subtotal(@currency),@currency) %>
+    </td>
+  </tr>
+<% end -%>
+<% if @cart.shippable? -%>
+  <tr>
+    <td colspan='5' align='right' onchange='UserShop.updateOrder();'>
+      <select name='shipping_id'>
+        <%= options_for_select @shipping_options, @shipping_id %>
+      </select>
+    </td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.shipping,@currency) %></td>
+  </tr>
+<% end -%>
+  <tr>
+    <td colspan='4'></td>
+    <td  align='right'>Total:</td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.total(@currency),@currency) %></td>
+  </tr>
+  <tr>
+    <td colspan='7' align='right'>
+    <button onclick='UserShop.checkout(); return false;'>Checkout &raquo;</button>
+    </td>
+  </tr>
+<% end -%>
+</table>
+
+
+</form>

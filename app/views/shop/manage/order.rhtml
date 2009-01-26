@@ -1,0 +1,78 @@
+<script>
+  var loading = new Image();
+  loading.src= '<%= theme_src('loading.gif'); %>';
+  OrderProcessor = {
+    
+    captureOrder: function(ship) {
+      if(ship == undefined)
+        ship=0;
+      SCMS.remoteOverlay("<%= url_for :action => 'capture_order', :order_id => @order.id %>",
+                          { ship: ship });
+    },
+    
+    submitCapture: function() {
+      var params = Form.serialize('capture_form');
+      
+      $('capture_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Capturing Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'capture_order' %>", 
+                      { parameters: params });
+    },
+    
+    shipOrder: function() {
+      SCMS.remoteOverlay("<%= url_for :action => 'ship_order', :order_id => @order.id %>");
+    },
+    
+    submitShipment: function() {
+      var params = Form.serialize('ship_form');
+      $('ship_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Shipping Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'ship_order' %>", 
+                      { parameters: params });
+    },
+    
+    
+    refundOrder: function(full,amount) {
+      SCMS.remoteOverlay("<%= url_for :action => 'refund_order', :order_id => @order.id %>",
+                          { full:full, amount:amount });
+    
+    },
+    
+    submitRefund: function() {
+      var params = Form.serialize('refund_form');
+      
+      $('refund_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Refunding Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'refund_order' %>", 
+                      { parameters: params,
+                        evalScripts:true  }
+                      );
+    
+    },
+    
+    voidOrder: function(full,amount) {
+      SCMS.remoteOverlay("<%= url_for :action => 'void_order', :order_id => @order.id %>");
+    
+    },
+    
+    submitVoid: function() {
+      var params = Form.serialize('void_form');
+      
+      $('void_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Voiding Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'void_order' %>", 
+                      { parameters: params,
+                        evalScripts:true  }
+                      );
+    
+    }
+    
+  
+      
+    
+  
+  
+  
+  }
+</script>
+
+<div id='order_details'>
+  <%= render :partial => 'order_details' %>
+</div>
+

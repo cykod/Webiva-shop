@@ -1,0 +1,6 @@
+<div class='cms_form'>
+  <% paragraph_options_form_for "Category Listing Options",:category_listing ,@options do |f| -%>
+    <%= f.select :list_page_id, @list_pages %>
+    <%= f.select :base_category_id, @categories, :label => 'Base Category' %>
+  <% end -%>
+</div>

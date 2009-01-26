@@ -1,0 +1,27 @@
+<div id='product_<%= field %>' style='min-height:80px; border:1px solid #000000;  margin:3px;  overflow:auto;'>
+<% files.each do |file| -%>
+<% if file.domain_file %>
+<div class='attachment' id='attachment_<%= file.domain_file.id %>'>
+<table>
+   <tr>
+    <td>
+    <% case file.file_type 
+     when 'doc' -%>
+        <img id='handle_item_<%= file.id %>'  src='<%= theme_src("/images/icons/filemanager/document.gif") %>' align='top' width='64' height='64'>
+  <% when 'img' -%>
+      <div class='fm_image' id='handle_item_<%= file.id %>' ><%= image_tag file.domain_file.url(:thumb), :align => 'middle', :id => "thumb_image_#{file.domain_file.id}"  %></div>
+  <% end -%>      
+     </td>
+     <td>
+        <a href='javascript:void(0);' onclick='ProductEditor.showAttachmentPopup(<%= file.domain_file.id %>);'><%= file.domain_file.name %></a><br/>
+        Caption:<input type='text' size='35' class='formatted' name='product[caption][<%= file.domain_file.id %>]' value='<%= vh file.description %>' />
+     </td>
+    </tr>
+</table>
+ </div>
+ <% else -%>
+ <% file.destroy if file.id %>
+ <% end -%>
+ <% end -%>
+ </div>
+ <input type='hidden' name='product[<%= field %>_ids]' id='product_<%= field %>_order' value=''/>

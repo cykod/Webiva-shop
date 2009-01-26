@@ -1,0 +1,96 @@
+<script>
+OptionEditor = {
+  lastVariationIdx: 0,
+  optionIndexes: [ ],
+  
+  createOptionSortables: function() {
+    var elems = $('variations').select(".variation_options");
+    elems.each(function(elem) {
+      Sortable.create(elem,{ tag: "div" } );
+    
+    });
+  
+  },
+  
+  createOptionSortable: function(idx) {
+      var elem = $('variation_options_' + idx)  
+      Sortable.create(elem,{ tag: "div" } );
+  },
+  
+  addVariation: function() {
+    OptionEditor.lastVariationIdx++;
+    var name = $('add_variation_field').value
+    $('add_variation_button').disabled = true;
+    $('add_variation_field').disabled = true;
+    var variation_type = $('add_variation_type').value
+    new Ajax.Updater("variations","<%= url_for :action => 'new_variation' %>", { evalScripts:true, insertion: "bottom",
+        parameters: $H({ idx: OptionEditor.lastVariationIdx, name:name, variation_type:variation_type }).toQueryString(),
+        onComplete: function(req) {
+              $('add_variation_button').disabled = false;
+              $('add_variation_field').disabled = false;
+              $('add_variation_field').value = '';              
+        } });
+  
+  },
+  
+  addOption: function(idx,variation_type) {
+    OptionEditor.optionIndexes[idx]++;
+    var name = $('add_option_' + idx).value
+    $('add_option_button_' + idx).disabled = true;
+    $('add_option_' +idx).disabled = true;
+    new Ajax.Updater("variation_options_" + idx,"<%= url_for :action => 'new_option' %>", { evalScripts:true, insertion: "bottom",
+        parameters: $H({ idx: idx, opt_idx: OptionEditor.optionIndexes[idx], name:name, variation_type:variation_type }).toQueryString(),
+        onComplete: function(req) {
+              $('add_option_button_' + idx).disabled = false;
+              $('add_option_' +idx).disabled = false;
+              $('add_option_' +idx).value = '';
+              OptionEditor.createOptionSortables(idx);
+        } });
+  },
+  
+   showOptionPopup: function(idx,opt_idx) {
+     SCMS.popup(new Array(
+        [ 'Remove Option', 'js', 'OptionEditor.removeOption(' + idx + ',' + opt_idx + ')' ]
+      )); 
+  },
+  
+  removeOption: function(idx,opt_idx) {
+    var field ='variation_' + idx + '_option_' + opt_idx;
+    var elem = $(field);
+    if(elem) {
+      Element.remove(elem);
+      OptionEditor.createOptionSortables(idx);
+    }
+  },
+  
+  showVariationPopup: function(idx) {
+     SCMS.popup(new Array(
+        [ 'Remove Variation', 'js', 'OptionEditor.removeVariation(' + idx + ')' ]
+      )); 
+  
+  },
+  
+  removeVariation: function(idx) {
+    var field = 'variation_' + idx;
+    var elem = $(field);
+    if(elem) {
+      Element.remove(elem);
+    }
+  
+  }
+  
+
+}
+</script>
+<div id='variations'>
+<% @variations.each_with_index do |variation,idx| -%>
+  <%= render :partial => 'variation', :locals => {:variation => variation, :idx => idx } %>
+<% end -%>
+</div>
+<script>
+  OptionEditor.lastVariationIdx = <%= @variations.length %>;
+  OptionEditor.createOptionSortables();
+ </script>
+
+Add Variation: <input class='text_field_input' name='variation_field' id='add_variation_field' size='20' /><select name='variation_type' id='add_variation_type'><%= options_for_select Shop::ShopVariation.variation_type_select_options %></select>  <button id='add_variation_button' class='submit_button' onclick='OptionEditor.addVariation(); return false;'>Add</button> (Examples: Size, Color)
+

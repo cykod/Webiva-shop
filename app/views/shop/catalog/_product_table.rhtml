@@ -1,0 +1,25 @@
+<% current_time = Time.now %>
+<% active_table_for :product_table, @active_table_output,
+                    :refresh_url => url_for(:action => 'catalog_table'),
+                    :class => 'active_table',
+                    :style => 'width:100%',
+                    :actions => [ ['Duplicate','duplicate','Make copies of the selected products?' ]],
+                    :more_actions => [ ['Delete','delete','Are you sure you want to delete the selected products?' ] ],
+                    :update => 'product_table' do |t| %>
+<tr <%= highlight_row 'product',t.id %> >
+  <td align='left' nowrap='1'><%= entry_checkbox "product", t.id %></td>
+  <td style='width:70px;' align='center' nowrap='1'><% if t.image_file %><img src='<%= t.image_file.url(:thumb) %>'/><% end -%></td>
+  <td align='center' width='100' ><a href='<%= url_for :action => 'edit', :path => t.id %>'><%= t.internal_sku %></a></td>
+  <td><a href='<%= url_for :action => 'edit', :path => t.id %>'><%= truncate(t.name,60) %></a></td>
+  <td><% t.prices.each do |price| %>
+        <%= price.localized_price %><%= "," unless price = t.prices.last %>
+      <% end -%>
+  </td>
+  <td><%= t.shop_product_class.name if t.shop_product_class %></td>
+   <% featured_products = t.shop_category_products.index_by(&:shop_category_id) %>
+  <td><%= t.shop_categories.collect { |cat| featured_products[cat.id].featured? ? "<b>#{h(cat.name)}</b>" : h(cat.name) }.join(", ") %> </td>
+  <td><%= t.shop_product_features.collect { |feature| feature.description }.join(", ") %></td>
+</tr>
+
+
+<% end -%>

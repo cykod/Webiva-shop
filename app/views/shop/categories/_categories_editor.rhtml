@@ -1,0 +1,451 @@
+<script> 
+
+var CategoryEditor = {
+	updateNodeURL:"<%= url_for :controller => '/shop/categories', :action => 'move_category' %>",
+	createNodeURL:"<%= url_for :controller => '/shop/categories', :action => 'add_category' %>",
+  	deleteNodeURL:"<%= url_for :controller => '/shop/categories', :action => 'remove_category' %>",
+  	updateNodeTitleURL:"<%= url_for :controller => '/shop/categories', :action => 'edit_category_title' %>",
+  	elementInfoURL:"<%= url_for :controller => '/shop/categories', :action => 'category_info' %>",
+        themeSrc:"<%=  theme_src %>",
+  	
+	nodeSelected:null,
+	nodeSelectedType:null,
+	
+	dragging: null,
+	
+	
+  
+	last_node_added:null,
+	last_modifier_added:null,
+
+	elementAdjust:0,
+	adjustTimer:null,
+	modifierAdjust:0,
+	adjustModifierTimer:null,
+	
+	selectNodeAfterEdit:false,
+    	
+  
+    createDroppable: function (elem) {
+		var dropTitle = getChild(elem,'node_line');
+		
+		return Droppables.add(dropTitle.id, { 
+			hoverclass:'node_accept',
+			onDrop: CategoryEditor.nodeDrop
+		});
+	},
+	
+  	draggableStartEffect: function (elem) {
+  		CategoryEditor.closeChildren(elem);
+  		CategoryEditor.selectNode(null);
+        elem.saved_bg = elem.style.backgroundImage;
+        elem.style.backgroundImage = 'none';
+        var droppable = getChild(elem,'node_line');
+        Droppables.remove(droppable.id);
+   },
+  
+   draggableEndEffect: function (elem) {
+    if(elem.saved_bg)
+	    elem.style.backgroundImage = elem.saved_bg;
+    CategoryEditor.createDroppable(elem);
+    
+  },
+  
+  
+  
+  createDraggable: function(elem) {
+      var draggable = new Draggable(elem.id,
+      { handle:'node_handle_' + elem.node_id, 
+        revert:true, 
+        zindex:1000,
+        starteffect: CategoryEditor.draggableStartEffect,
+        endeffect: CategoryEditor.draggableEndEffect
+      });
+      elem.draggable = draggable;
+  },
+  
+ 
+  addNodeCreateDraggable: function (elem) {
+    var draggable = new Draggable(elem.id,
+     { revert: true,
+       zindex:1000,
+       starteffect: CategoryEditor.addNodeDraggableStartEffect,
+       endeffect: CategoryEditor.addNodeDraggableEndEffect
+     });
+     elem.draggable = draggable;
+  },
+  
+  addNodeDraggableStartEffect: function(elem) {
+  },
+  
+  addNodeDraggableEndEffect: function (elem) {
+  },
+  
+  updateNodeHighlight: function(node_type,id) {
+  
+    if(CategoryEditor.nodeSelected) {
+      //CategoryEditor.sendNodeAdjustment(); // Clear out any adjustment to the system
+      Element.removeClassName(CategoryEditor.nodeSelectedType + '_handle_' + CategoryEditor.nodeSelected,'node_selected');
+      if(CategoryEditor.nodeSelectedType == 'node') {
+	      Element.removeClassName('category_line_' + CategoryEditor.nodeSelected,'node_selected');
+      }
+    }
+    
+    var elem = $(node_type + '_handle_' + id);
+    if(elem) {
+      Element.addClassName(elem,'node_selected')
+    }
+    if(node_type == 'node') {
+		var title_elem = $('category_line_' + id);
+		if(title_elem) {
+		Element.addClassName(title_elem,'node_selected')
+		}
+	}
+    
+    CategoryEditor.nodeSelected = id;
+    CategoryEditor.nodeSelectedType = node_type;
+  
+  },
+
+  selectNode: function(node_type,id) 
+  {
+    if(id) {
+      if(CategoryEditor.nodeSelectedType != node_type || CategoryEditor.nodeSelected != id) {
+       CategoryEditor.loadElementInfo(node_type,id);
+      }
+    }
+    else {
+      $('element_info').innerHTML = '';
+    }
+  
+    CategoryEditor.updateNodeHighlight(node_type,id);
+  },
+ 
+ 
+  loadElementInfo:function(node_type,node_id,params) {
+  		
+      var url =   CategoryEditor.elementInfoURL
+      
+      if(node_type == 'node') {
+        var node = $('category_' + node_id)
+       
+      }
+
+      if(!params) params = '';      
+      params += "&node_type=" + node_type;
+      params += "&category_id=" + node_id;
+		
+  		$('element_info').innerHTML = '<div class="ajax_loader"></div>';
+  		new Ajax.Updater('element_info',
+  						url,
+  						{ 
+  						    evalScripts: true,
+  						    method: 'post',
+  							parameters: params
+  						});
+  						
+  	
+  
+  },
+  
+  nodeDelete:function(node_id,delete_text) {
+  	if(confirm(delete_text)) {
+      CategoryEditor.selectNode(null);
+  		CategoryEditor.nodeRemove(node_id);
+  	}
+  },
+    
+  
+  refreshNodeView: function(nodeDiv) {
+      var updateDiv = getChild(nodeDiv,'node_children');
+  
+      var elems = getChildElementsByClass(updateDiv,'node');
+      
+      for(var i=0;i<elems.length;i++) {
+          // Need to update the saved bg for the end effect
+        elems[i].saved_bg = null;
+        if(i == elems.length - 1)  {
+          elems[i].saved_bg = 'none';
+ 		  Element.setStyle(elems[i],
+								{ backgroundImage: 'url(' +  CategoryEditor.themeSrc + 'icons/menu/last_top.gif)', 
+								  backgroundRepeat: 'no-repeat' });
+        }
+        else {
+          Element.setStyle(elems[i],
+                            { backgroundImage: 'url(' + CategoryEditor.themeSrc + 'icons/menu/line.gif)',
+                              backgroundRepeat: 'repeat-y'});
+        }
+      }
+      // Now need to update the 'plus' / 'minus' image for showing the children
+      // div
+      var update_node_id = updateDiv.parentNode.node_id;
+      
+      if($('toggle_' + update_node_id)) {
+		if(elems.length > 0) {
+			Element.show('children_' + update_node_id);
+			$('toggle_' + update_node_id).src = CategoryEditor.themeSrc + 'icons/menu/last_open.gif';
+			$('toggle_' + update_node_id).onclick = function() {
+				CategoryEditor.toggleVisible($('toggle_' + update_node_id));
+			}
+		}
+		else {
+			$('toggle_' + update_node_id).src = CategoryEditor.themeSrc + 'icons/menu/last.gif';
+			$('toggle_' + update_node_id).onclick = null;
+		}
+	  }
+  
+  }, 
+  
+  nodeDrop: function(drag,drop) {
+   
+    var parentDiv = drag.parentNode;
+   
+   if(drag.id == drop.parentNode.id)
+    return;  
+    
+    if(drag.className == 'add_node_elem') {
+        CategoryEditor.nodeAdd(drop.parentNode.node_id,drag.id);
+    
+    }
+    else {
+      
+      // Move node to the correct location
+      var dropChildrenDiv = getChild(drop.parentNode,'node_children');
+      
+      if(drag.parentNode.id == dropChildrenDiv.id)
+      return;
+      
+      parentDiv.removeChild(drag);
+      
+      
+      var req = $H({
+        category_id: drag.node_id,
+        parent_id: drop.parentNode.node_id    
+      });
+      
+      // update the database
+      new Ajax.Request(CategoryEditor.updateNodeURL,
+                  {
+                      parameters : req.toQueryString(),
+                      onComplete : function(resp) {
+                      }
+                  }
+                  );               
+      
+      
+      var dropId = drop.parentNode.id.split('_');
+      dropId = dropId[1];    
+      
+      // Need to sort instead of just appending    
+      dropChildrenDiv.appendChild(drag);
+
+
+      CategoryEditor.resortChildren(drop.parentNode.node_id);
+      setTimeout(function() {
+      	CategoryEditor.refreshNodeView(parentDiv.parentNode);
+      	CategoryEditor.refreshNodeView(drop.parentNode);
+      	},10);
+      
+    }
+    
+    
+ },
+
+    resortChildren: function(parent_id) {
+        
+      var childrenDiv = $('children_' + parent_id);
+      var children = getChildElements(childrenDiv,"node");
+
+      var sorted = children.sort(function(a,b) { return (b.category_name.toLowerCase() < a.category_name.toLowerCase()) - (a.category_name.toLowerCase() < b.category_name.toLowerCase());  });
+
+      var length = sorted.length
+      for(var i =0;i<length;i++) {
+          var c = childrenDiv.removeChild(sorted[i]);
+          childrenDiv.appendChild(c);
+      }
+
+    },
+ 
+	nodeAdd: function(parent_id, node_type) {
+      
+        var req = $H({
+                node_type: node_type,
+                parent_id: parent_id,
+                title: 'ENTER TITLE'
+                });
+        var parent = $('category_' + parent_id);
+
+        var children = getChild(parent,'node_children');
+
+        // update the database
+        new Ajax.Request(CategoryEditor.createNodeURL,
+                                {
+                                        parameters : req.toQueryString(),
+                                        onComplete : function(resp) {
+                                                new Insertion.Bottom(children,resp.responseText);
+                                                CategoryEditor.refreshNodeView(parent);
+                                                setTimeout('CategoryEditor.editPageTitle(CategoryEditor.last_node_added,true);',10);
+                                        }
+                                }
+                                );
+	},
+	
+	nodeRemove: function(node_id) {
+	
+	var req = $H({
+	  category_id: node_id
+	});
+	
+	var node = $('category_' + node_id);
+	var parentNode = node.parentNode.parentNode;
+	
+	new Ajax.Request(CategoryEditor.deleteNodeURL,
+				{
+				parameters : req.toQueryString(),
+				onComplete : function(resp) {
+					Element.remove(node);
+					CategoryEditor.refreshNodeView(parentNode);
+				}
+				}
+				);
+	
+	},
+	
+	closeChildren: function(node) {
+		var node_id = node.node_id;
+		if(getChildElementsByClass($('children_' + node_id),'node').length > 0) {
+			Element.hide('children_' + node_id);
+			$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?CategoryEditor.themeSrc + 'icons/menu/last_open.gif':CategoryEditor.themeSrc + 'icons/menu/last_closed.gif';
+		}
+	},
+	
+	toggleVisible: function(elem) {
+		var node_id = elem.parentNode.node_id;
+		Element.toggle('children_' + node_id);
+		$('toggle_' + node_id).src = (Element.getStyle('children_' + node_id,'display') == 'block')?CategoryEditor.themeSrc + 'icons/menu/last_open.gif':CategoryEditor.themeSrc + 'icons/menu/last_closed.gif';
+	},
+	
+	editPageTitle: function(node_id,select_node) {
+	
+		if(select_node) {
+			CategoryEditor.selectNodeAfterEdit = true;
+		}
+		else {
+			CategoryEditor.selectNodeAfterEdit = false;
+		}
+		
+		var node = $('category_' + node_id);
+		
+		var elem = $('category_title_' + node_id);
+		//var elem = getChild(node_title,'node_handle');  
+		var edit_elem = $('category_title_edit_' + node_id);
+		
+		CategoryEditor.selectNode(null);
+		
+		if(elem && !elem.editing_title) {
+			elem.editing_title = 1;
+			var txt = node.category_name;
+			
+			Element.hide(elem);
+			Element.show(edit_elem);
+			var ctrl = Builder.node('input',{ type: "text", width: 20, value: txt });
+			edit_elem.original_text = txt;
+			
+			edit_elem.appendChild(ctrl);
+			
+			ctrl.onkeydown = CategoryEditor.titleHandleEditEnter;
+			
+			ctrl.focus();
+			ctrl.select();
+		}
+	},
+	
+	titleHandleEditEnter: function(evt) {
+	
+		evt = (evt) ? evt : ((window.event) ? event : null);
+		var charCode = (evt.charCode) ? evt.charCode :
+				((evt.which) ? evt.which : evt.keyCode);
+		
+		var Esc = (window.event) ?    
+						27 : evt.DOM_VK_ESCAPE // MSIE : Firefox
+		
+		var submitData = true;
+		if(charCode == Esc) {
+			submitData = false;    
+		}  
+		else if(charCode != 13 && charCode != 3)
+			return;
+		var txt = this.value;
+		
+		var edit_elem = this.parentNode;
+		var node_line = edit_elem.parentNode;
+		var node = node_line.parentNode;
+		var elem = getChild(node_line,'node_title');  
+		
+		Element.remove(this);
+		
+		var selectNode = CategoryEditor.selectNodeAfterEdit;
+		
+		
+		if(submitData) {
+                  var node_id=node.node_id;
+                  
+                  var req = $H({ category_id: node_id,
+                                          title: txt,
+                                          select_node: (selectNode?1:0) });
+                                          
+                  elem.innerHTML = txt;
+                  node.category_name = txt;
+                  CategoryEditor.resortChildren(node.parentNode.parentNode.node_id);
+                  CategoryEditor.refreshNodeView(node.parentNode.parentNode);
+                  
+                  if(false && selectNode) {
+
+                          new Ajax.Updater('element_info',
+                                            CategoryEditor.updateNodeTitleURL,
+                                            {
+                                            parameters : req.toQueryString(),
+                                            evalScripts:true,
+                                            onComplete : function(resp) {
+                                                            CategoryEditor.updateNodeHighlight('node',node_id);
+                                                    }
+                                            }
+                                            );
+                  }
+                  else {
+                    new Ajax.Request(CategoryEditor.updateNodeTitleURL,
+                                                    { parameters: req.toQueryString() } )
+                                                    
+                    
+                  }
+                }
+			
+		Element.hide(edit_elem);
+		Element.show(elem);
+		//Element.removeClassName(parent,'paragraph_title_edit');
+		
+		elem.editing_title = 0;
+	
+	},
+	
+	updateNodeTitle: function(node_id,title) {
+	var node = $('category_' + node_id);
+	
+	var node_title = getChild(node,'node_title');
+	var elem = getChild(node_title,'node_handle');  
+	elem.innerHTML = title;
+	
+	},
+	
+	addedNode: function (node_id) {
+		this.last_node_added = node_id;
+	},
+	
+	updateCategory: function(category_id) {
+    CategoryEditor.loadElementInfo('node',category_id,Form.serialize('category_info'));
+	  return false;
+	}
+
+}
+
+</script>
