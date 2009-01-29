@@ -55,7 +55,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
     
     has_options :card_type, [[ 'Visa', 'visa'],['MasterCard','master'],['American Express','american_express' ]]
     integer_options :remember
-    validates_presence_of :cc, :card_type, :exp_month, :exp_year
+    validates_presence_of :cc, :card_type, :exp_month, :exp_year, :cvc, :if => Proc.new { |elm| elm.type != 'reference' }
   end
   
   def validate_payment_options(opts,user_info)
