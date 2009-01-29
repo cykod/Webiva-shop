@@ -469,7 +469,7 @@ def full_cart_feature(feature,data)
       shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])
       
       unless shop_processor.test?
-        errors = shop_processor.validate_payment_options(@payment[@payment[:selected_processor_id]],session[:shop][:address][:billing])
+        errors = shop_processor.validate_payment_options(user,@payment[@payment[:selected_processor_id]],session[:shop][:address][:billing])
       end
       
       if(errors)

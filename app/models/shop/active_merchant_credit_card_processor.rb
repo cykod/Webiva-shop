@@ -58,7 +58,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
     validates_presence_of :cc, :card_type, :exp_month, :exp_year
   end
   
-  def self.validate_payment_options(opts,user_info)
+  def validate_payment_options(opts,user_info)
     opts = get_transaction_options(opts)
     return opts.errors unless opts.valid?
     

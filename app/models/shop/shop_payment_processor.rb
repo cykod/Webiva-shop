@@ -13,8 +13,8 @@ class Shop::ShopPaymentProcessor < DomainModel
     self.processor_handler.classify.constantize
   end
   
-  def validate_payment_options(opts,user_info)
-    self.processor_handler_class.validate_payment_options(opts,user_info)
+  def validate_payment_options(user,opts,user_info)
+    self.get_instance(user).validate_payment_options(opts,user_info)
   end
 
   def get_instance(user)
