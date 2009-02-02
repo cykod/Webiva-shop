@@ -1,3 +1,15 @@
+<% if @message || (@errors && @errors.length > 0) -%>
+
+There was an error processing your request:<br/>
+<div align='left' class='error'>
+<% if @errors && @errors.length > 0 %>
+<%= @errors.full_messages.join("<br/>") %>
+<br/><br/>
+<% end -%>
+<%= @message %>
+</div>
+<% end -%>
+
 <form id='payment_form' method='post' action='' onsubmit='UserShop.payment(); return false;'>
 <input type='hidden' name='shipping_id' value='<%= @shipping_id  %>'/>
 <table class='active_table' cellspacing='0' cellpadding='0'>

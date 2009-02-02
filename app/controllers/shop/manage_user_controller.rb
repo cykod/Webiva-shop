@@ -114,11 +114,12 @@ class Shop::ManageUserController < ModuleController
       # Find the ShopPaymentProcessor
       shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])
       
-      unless shop_processor.test?
-        errors = shop_processor.validate_payment_options(@user,@payment[@payment[:selected_processor_id]],session[:shop][:address][:billing])
-      end
+      #@errors = []
+      #unless shop_processor.test?
+      #  @errors = shop_processor.validate_payment_options(@user,@payment[@payment[:selected_processor_id]],@user.billing_address ? @user.billing_address.attributes : {})
+      #end
       
-      if(errors)
+      if(@errors)
         # Show errors
         # raise errors.inspect
       else
@@ -145,6 +146,8 @@ class Shop::ManageUserController < ModuleController
           end
           render :partial => 'payment_successful'
           return
+        else
+          @message = transaction.message
         end
       end
     end

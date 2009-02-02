@@ -30,7 +30,7 @@
      $('payment_indicator').style.display='';
      var params = Form.serialize('payment_form');
      new Ajax.Updater('user_order',"<%= url_for :action => 'checkout',:path => [ @user.id ], :cart_id => @cart_id %>",
-                          { parameters: params, evalScripts:true });
+                          { parameters: params, evalScripts:true, onComplete: function(req) { UserShop.paying = false; } });
     
     },
     
