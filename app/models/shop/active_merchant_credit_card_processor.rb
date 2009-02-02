@@ -132,7 +132,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
       });
     end
 
-    if test? || (reference || credit_card.valid?)
+    if test? || (reference || request_options[:admin] || credit_card.valid?)
       gw = get_gateway
       
       
