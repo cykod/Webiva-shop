@@ -25,7 +25,7 @@ class Shop::Features::ProfilePriceAdjustment < Shop::ProductFeature
    
    def price(currency,price,user)
     
-      if @options.member_classes.include?(user.user_class_id.to_s)
+      if user && @options.member_classes.include?(user.user_class_id.to_s)
         if @options.price_adjustments[currency]
           price + @options.price_adjustments[currency]
         else
