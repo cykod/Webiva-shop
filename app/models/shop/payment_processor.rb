@@ -26,6 +26,10 @@ class Shop::PaymentProcessor
      nil
   end
   
+  def payment_record(transaction,payment_info,options = {})
+    [ 'standard', nil , '' ]
+  end  
+  
   
 
 end
