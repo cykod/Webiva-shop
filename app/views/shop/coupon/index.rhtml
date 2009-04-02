@@ -1,0 +1,11 @@
+<% action_panel do |p| -%>
+  <%= p.link "Create a new Coupon", :icon => 'add.gif',:action => 'edit' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+  <div id='coupon_table'>
+    <%= render :partial => 'coupon_table' %>
+  </div>
+</div>

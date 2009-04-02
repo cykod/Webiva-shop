@@ -1,16 +1,23 @@
 
-class Shop::ShopUserCart 
+class Shop::ShopUserCart  < Shop::ShopCartBase
 
-  def initialize(user)
+  attr_reader :user
+  attr_reader :currency
+  
+  
+  def initialize(user,currency)
     @user = user
+    @currency = currency
   end
 
-  def add_product(product,quantity,options)
-     Shop::ShopCartProduct.add_product(@user,product,quantity,options)
+  def add_product(product,quantity,options = {})
+     Shop::ShopCartProduct.add_product(self,@user,product,quantity,options)
+     @products = nil
   end
 
-  def edit_product(product,quantity,options)
-     Shop::ShopCartProduct.add_product(@user,product,quantity,options,:override => true)
+  def edit_product(product,quantity,options = {})
+     Shop::ShopCartProduct.add_product(self,@user,product,quantity,options,:override => true)
+     @products = nil
   end
 
   def transfer_session_cart(session_cart)
@@ -35,17 +42,7 @@ class Shop::ShopUserCart
     end
   end
   
-  attr_accessor :shipping
-  
-  def total(currency)
-    total = 0.0
-    products.each do |product|
-      total += product.price(currency) * product.quantity
-    end
-    total + self.shipping.to_f
-  end
-  
-  def validate_cart!
+ def validate_cart!
     products.each do |prd|
       validate_item!(prd)
     end
@@ -56,10 +53,10 @@ class Shop::ShopUserCart
   def validate_item!(prd)
     item = prd.item
     if item
-      cart_limit = item.cart_limit(prd.options,@user) if item.respond_to?(:cart_limit)
+      cart_limit = item.cart_limit(prd.options,self) if item.respond_to?(:cart_limit)
 
       if item.respond_to?(:update_cart_options!)
-        save_changes = item.update_cart_options!(prd) 
+        save_changes = item.update_cart_options!(prd,self) 
       end
       if cart_limit && cart_limit == 0
         prd.destroy
@@ -71,12 +68,5 @@ class Shop::ShopUserCart
       prd.destroy
     end
     prd.save if save_changes
-  end
-  
-  def shippable? 
-    products.each do |prd|
-      return true if prd.item.cart_shippable?
-    end
-    return false
-  end
+  end  
 end

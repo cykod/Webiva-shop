@@ -1,5 +1,11 @@
 <div class='cms_form'>
   <% paragraph_options_form_for "Checkout Options",:checkout ,@options do |f| -%>
-      <%= f.select :success_page_id, @pages, :label => 'Success Page'.t %>
+      <%= f.page_selector :cart_page_id, :label => 'Edit Cart Page'.t %>
+      <%= f.page_selector :success_page_id, :label => 'Success Page'.t %>
+      <%= f.select :receipt_template_id, [["--Don't send a receipt--".t,nil]] +  MailTemplate.site_template_options, 
+                :description => "Available Variables: %%ORDER_ID%%, %%ORDER_HTML%%,\n %%ORDER_TEXT%% (User Variables as well)" %>
+      <%= f.radio_buttons :address_type, [['American'.t,'american'],['European'.t,'european']] %>
+      <%= f.radio_buttons :show_company, [['Yes'.t,true],['No'.t,false]] %>
+      <%= f.radio_buttons :show_fax, [['Yes'.t,true],['No'.t,false]] %>
   <% end -%>
 </div>

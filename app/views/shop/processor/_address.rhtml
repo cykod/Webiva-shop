@@ -2,7 +2,7 @@
 <script>
   var AddressManager = {
     updateBilling: function(disableBilling) {
-      fields =  $A([ 'first_name','last_name','address','address_2','city','state','zip','phone','country','state_select' ]);
+      fields =  $A([ 'company','first_name','last_name','address','address_2','city','state','zip','phone','fax','country','state_select' ]);
       fields.each(function(fld) {
           if($('billing_address_' + fld))
             $('billing_address_' + fld).disabled = disableBilling;
@@ -37,18 +37,20 @@
   }
 </script>
 <% opts = { :vertical => true, :country => 'United States' } %>
+<% shipping_opts = { :size => 15,:vertical => opts[:vertical], :required => true, :class => 'textfield'  } %>
 
 <%= feature_output %>
 <div class='cms_form checkout checkout_addresses'>
 <p>
-Thank you <b><%= myself.name %></b> for logging in.<br/><br/>
+
+<%= "Thank you <b>%s</b> for logging in." / myself.name %><br/><br/>
 </p>
 
 
 <% if cart.shippable? %>
-<h1>Please confirm your shipping and billing addresses</h1>
+<h1><%= "Please confirm your shipping and billing addresses".t %></h1>
 <% else -%>
-<h1>Please confirm your billing address</h1>
+<h1><%= "Please confirm your billing address".t %></h1>
 <% end -%>
 <form action='' method='post'>
 <table>
@@ -62,68 +64,21 @@ Thank you <b><%= myself.name %></b> for logging in.<br/><br/>
    <% if shipping_address.errors.length > 0 %>
   <tr>
     <td colspan='4' class='errors'>
-      <b>We encountered the following problems with your shipping address:</b><br/>
+      <b><%= "We encountered the following problems with your shipping address:".t %></b><br/>
       <% shipping_address.errors.each do |err| -%>
         <% err[1].each do |desc| -%>
           <% unless desc.blank? -%>
-            <%= err[0].humanize %> <%= desc %><br/>
+            <%= err[0].humanize.t %> <%= desc.t %><br/>
           <% end -%>
         <% end -%>
      <% end -%>
     </div>
   </tr>
   <% end -%>
-<tr>
-  <td class='field'>First Name*</td>
-  <td class='field'><%= sa.text_field :first_name, :required =>true, :vertical => opts[:vertical], :size => 15, :class => 'textfield'  %> </td>
-  <td class='field'>Last Name* 
-  <td class='field'><%= sa.text_field :last_name, :required =>true, :vertical => opts[:vertical], :size => 15, :class => 'textfield'  %> </td>
-</tr>
-<tr>
-  <td class='field'>
-  Address*
-  </td>
-  <td class='field' colspan='3'>
-    <%= sa.text_field :address, :required =>true, :vertical => opts[:vertical], :size => 45, :class => 'textfield'  %>
-  </td>
-</tr>
-<tr>
-  <td class='field'>
-    Address (line 2)
-  </td>
-  <td  class='field'  colspan='3'>
-    <%= sa.text_field :address_2, :vertical => opts[:vertical], :size => 45, :class => 'textfield' %>
-  </td>
-</tr>
-<% if countries.length == 2  %>
-  <% sa.object.country = countries[1][1] %>
-  <%= sa.hidden_field :country %>
-<% else -%>
-<tr>
-  <td class='field'>
-    Country*
-  </td>
-  <td class='field' colspan='3'> <%= sa.select :country, countries, {}, :required => true, :vertical => opts[:vertical], :onchange => 'AddressManager.updateShippingCountry(this.value);', :class => 'textfield' %> 
-  </td>
-</tr>
-<% end -%>
-<tr>
-  <td colspan='4'>
-    City* <%= sa.text_field :city, :required =>true, :vertical => opts[:vertical], :size => 10, :class => 'textfield' %> 
-    <span id='shipping_state_options'>
-      <%= render :partial  => '/shop/processor/states', :locals => { :value => shipping_state_info[:selected], :options => shipping_state_info[:options], :subregion_name => shipping_state_info[:name], :address => 'shipping', :same_address => false  } %>
-    </span>
-    Zip* <%= sa.text_field :zip, :required =>true, :vertical => opts[:vertical], :size => 10, :class => 'textfield' %> 
-  </td>
-</tr>
-<tr>
-  <td class='field'>
-      Phone
-  </td>
-  <td class='field' colspan='3'>
-   <%= sa.text_field :phone, :vertical => opts[:vertical], :size => 40, :class => 'textfield' %>
-  </td>
-</tr>
+  
+  <%= render :partial => '/shop/processor/address_form', 
+              :locals => { :f => sa, :opts => shipping_opts, :address_type => 'shipping', :state_info => shipping_state_info,
+                           :cart => cart, :countries => countries, :same_address => false, :options => options } %>
 <% end -%>
 <tr>
   <td colspan='2'>
@@ -138,7 +93,7 @@ Thank you <b><%= myself.name %></b> for logging in.<br/><br/>
 <% if cart.shippable? %>
 <tr>
   <td class='label' colspan='4'>
-    Billing Address
+    <%= "Billing Address".t %>
   </td>
 </tr>
 <% end -%>
@@ -165,58 +120,10 @@ Thank you <b><%= myself.name %></b> for logging in.<br/><br/>
 </tr>
 <% end -%>
 
-<tr>
-  <td class='field'>First Name*</td>
-  <td class='field'><%= ba.text_field :first_name, billing_opts  %> </td>
-  <td class='field'>Last Name* 
-  <td class='field'><%= ba.text_field :last_name, billing_opts %> </td>
-</tr>
-<tr>
-  <td class='field'>
-  Address*
-  </td>
-  <td class='field' colspan='3'>
-     <%= ba.text_field :address, billing_opts.merge(:size => 45 )  %>
-  </td>
-</tr>
-<tr>
-  <td class='field'>
-    Address (line 2)*  
-  </td>
-  <td  class='field'  colspan='3'>
-    <%= ba.text_field :address_2, billing_opts.merge(:required => false, :size => 45 ) %>
-  </td>
-</tr>
-<% if countries.length == 2 %>
-  <% ba.object.country = countries[1][1] %>
-  <%= ba.hidden_field :country %>
-<% else -%>
-<tr>
-  <td class='field'>
-    Country*
-  </td>
-  <td class='field' colspan='3'>
-  <%= ba.select :country, countries, {},billing_opts.merge(:onchange => 'AddressManager.updateBillingCountry(this.value);' ,:size => nil) %>
-  </td>
-</tr>
-<% end -%>
-<tr>
-  <td colspan='4'>
-    City* <%= ba.text_field :city, billing_opts.merge(:size => 10) %>
-    <span id='billing_state_options'>
-    <%= render :partial  => '/shop/processor/states', :locals => { :value => billing_state_info[:selected], :options => billing_state_info[:options], :subregion_name => billing_state_info[:name], :address => 'billing', :same_address => cart.shippable? && same_address  } %>
-    </span>
-    Zip* <%= ba.text_field :zip, billing_opts.merge(:size => 10) %>
-  </td>
-</tr>
-<tr>
-  <td class='field'>
-      Phone
-  </td>
-  <td class='field' colspan='3'>
-   <%= ba.text_field :phone,  billing_opts.merge(:size => 40) %>
-  </td>
-</tr>
+<%= render :partial => '/shop/processor/address_form', 
+              :locals => { :f => ba, :opts => billing_opts, :address_type => 'billing', :state_info => billing_state_info,
+                           :cart => cart, :countries => countries, :same_address => cart.shippable? && same_address, :options => options } %>
+
 </table>
 
 <% end -%>

@@ -28,7 +28,7 @@ class Shop::ShopProduct < DomainModel
   has_many :images, :class_name=> 'Shop::ShopProductFile', :conditions => 'file_type = "img"', :order => 'position'
   
   has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature', :foreign_key => 'shop_product_id', :dependent => :destroy
-  
+  has_many :shop_coupon_products, :class_name => "Shop:ShopCouponProduct", :dependent => :destroy
   
   # Return the products features + the features of it's product class
   def full_features
@@ -258,7 +258,7 @@ class Shop::ShopProduct < DomainModel
      end
   end
   
-  def update_cart_options!(cart_item)
+  def update_cart_options!(cart_item,cart)
     quantity_options = (cart_item.quantity_options||{}).clone
     
     save_changes = false
@@ -298,7 +298,7 @@ class Shop::ShopProduct < DomainModel
     return save_changes
   end
   
-  def cart_details(options)
+  def cart_details(options,cart)
     vars = self.variations
     description = []
     return '' unless options.is_a?(Hash) && options[:variations].is_a?(Hash)
@@ -339,23 +339,23 @@ class Shop::ShopProduct < DomainModel
   end
   
   # return the price of the product with the given options hash
-  def cart_price(options,currency,user=nil)
-    return get_unit_cost(currency,user) unless options.is_a?(Hash) && options[:variations].is_a?(Hash)
+  def cart_price(options,cart)
+    return get_unit_cost(cart.currency,cart.user) unless options.is_a?(Hash) && options[:variations].is_a?(Hash)
     opts = []
     options[:variations].each do |variation_id,variation_option_id|
      variation = self.variations.detect { |var| var.id ==  variation_id.to_i }
      opt = variation.options.find_by_id(variation_option_id,:include => :product_options, :conditions => ['shop_product_options.shop_product_id = ?',self.id],:order => 'shop_variation_options.option_index')  if variation
       opts << [ opt,variation.variation_type ] if opt 
     end
-    get_options_price(opts,currency,user)
+    get_options_price(opts,cart.currency,cart.user)
   end
   
-  def cart_limit(options,user)
+  def cart_limit(options,cart)
     limit = 10000000
     if self.stock_callbacks > 0
       self.full_features.each do |feat|
         if feat.stock_callback?
-          lim = feat.feature_instance.stock(options,user)
+          lim = feat.feature_instance.stock(options,cart.user)
           limit = lim if lim < limit
         end
       end

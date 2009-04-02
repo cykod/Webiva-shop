@@ -1,16 +1,20 @@
 
-class Shop::ShopSessionCart 
+class Shop::ShopSessionCart < Shop::ShopCartBase
 
   attr_accessor :user
+  attr_reader :currency
+  
   # cart_storage and be either and end_user or a array in the session variable
-  def initialize(cart_storage,user=nil)
+  def initialize(cart_storage,currency,user=nil)
     @cart_storage = cart_storage 
     @user = user || EndUser.new
+    @currency = currency
   end
   
    attr_accessor :shipping
 
-  def add_product(product,quantity,options=nil)
+  def add_product(product,quantity,options={})
+    @products = nil
     @cart_storage.each do |item|
       if(item[:cart_item_type] == product.class.to_s &&
          item[:cart_item_id] == product.id &&  
@@ -22,7 +26,9 @@ class Shop::ShopSessionCart
     @cart_storage << { :cart_item_type => product.class.to_s, :cart_item_id => product.id, :quantity => quantity, :options => options }
   end
 
-  def edit_product(product,quantity,options=nil,quantity_options=nil)
+  def edit_product(product,quantity,options={},quantity_options=nil)
+    @products = nil
+  
     @cart_storage.each do |item|
       if(item[:cart_item_type] == product.class.to_s &&
          item[:cart_item_id] == product.id &&  
@@ -62,51 +68,28 @@ class Shop::ShopSessionCart
       end
     end.find_all { |itm| !itm.blank? }
   end    
-    
-  def total(currency)
-    total = 0.0
-    products.each do |product|
-      total += product.price(currency) * product.quantity
-    end
-    total + self.shipping.to_f
-  end
-  
+ 
   def validate_cart!
     products.each do |prd|
       item = prd.item
       if item
-        cart_limit = item.cart_limit(prd.options,@user) if item.respond_to?(:cart_limit) 
-        
+        cart_limit = item.cart_limit(prd.options,self) if item.respond_to?(:cart_limit)
+    
         if item.respond_to?(:update_cart_options!)
-          save_changes = item.update_cart_options!(prd) 
+          save_changes = item.update_cart_options!(prd,self) 
           edit_product(item,prd.quantity,prd.options,prd.quantity_options) if save_changes
         end
         if cart_limit && cart_limit == 0
           edit_product(item,0,prd.options)
-        elsif !cart_limit.blank? && prd.quantity > cart_limit 
+        elsif !cart_limit.blank? && prd.quantity > cart_limit
           edit_product(item,cart_limit,prd.options,prd.quantity_options)
         end
       else
         edit_product(item,0,prd.options)
       end
     end
-    @products=nil  
+    @products=nil
   end
-  
-  def shippable? 
-    products.each do |prd|
-      return true if prd.item.cart_shippable?
-    end
-    return false
-  end  
-  
-  protected 
-  
-  # Need to merge the quantity options with the regular options  
-  def full_options(product)
-    opts = (product.options||{}).clone
-    opts[:variations] = (opts[:variations]||{}).clone
-    opts[:variations].merge!(product.quantity_options||{})
-    opts
-  end  
+
+    
 end

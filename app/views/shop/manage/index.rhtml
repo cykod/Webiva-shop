@@ -6,6 +6,7 @@
 <h3>Shop</h3>
   <ul class='actions'>
     <li><%= link_to 'Product Catalog'.t, { :controller => '/shop/catalog' } %></li>
+    <li><%= link_to 'Coupons & Promotions'.t, { :controller => '/shop/coupon' } %></li>
     <% if myself.has_role?('shop_admin') %>
       <li><%= link_to 'Manage Categories'.t, { :controller => '/shop/categories' } %></li>
       <li><%= link_to 'Shop Configuration'.t, { :controller => '/shop/config' } %></li>

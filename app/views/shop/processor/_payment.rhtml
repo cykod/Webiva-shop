@@ -1,14 +1,12 @@
 <%= feature_output %>
 <div class='cms_form checkout checkout_addresses'>
 
-<form action='' method='post' id='submit_form'>
-<input type='hidden' name='update' id='shopping_form_update' value='0' />
 <% if message || (errors && errors.length > 0) -%>
 <div align='center'>
-There was an error processing your request:<br/>
+<%= "There was an problem processing your request:".t %><br/>
 <div align='left' class='error'>
 <% if errors && errors.length > 0 %>
-<%= errors.full_messages.join("<br/>") %>
+<%= errors.full_messages.map(&:t).join("<br/>") %>
 <br/><br/>
 <% end -%>
 <%= message %>
@@ -18,39 +16,30 @@ There was an error processing your request:<br/>
 <% end -%>
 
 <p>
-<b><%= myself.name %></b>, please confirm you order and enter you payment information<br/><br/>
+<%= "<b>%s</b>, please confirm you order and enter you payment information." / myself.name %><br/><br/>
 </p>
+<form action='' method='post' id='submit_form'>
+<input type='hidden' name='update' id='shopping_form_update' value='0' />
+
+
 <% if shippable %>
 
-<h1>Order Addresses (<a href='<%= url_for address_page %>'>Edit</a>)</h1>
+<h1><%= "Order Addresses".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h1>
 <table>
 <tr>
-  <td class='label'>Ship To:</td>
-  <td class='label' style='padding-left:20px;'>Bill To:</td>
+  <td class='label'><%= "Ship To:".t %></td>
+  <td class='label' style='padding-left:20px;'><%= "Bill To:".t %></td>
 </tr>
 <tr>
-  <td>
-    <%= shipping_address[:first_name] %> <%= shipping_address[:last_name] %><br/>
-    <%= shipping_address[:address] %><br/>
-    <% unless shipping_address[:address_2].blank? %><%= shipping_address[:address_2] %><br/><% end -%>
-    <%= "#{shipping_address[:city]}, #{shipping_address[:state]} #{shipping_address[:zip]}" %><br/>
-  </td>
-  <td style='padding-left:20px;'>
-    <%= billing_address[:first_name] %> <%= billing_address[:last_name] %><br/>
-    <%= billing_address[:address] %><br/>
-    <% unless billing_address[:address_2].blank? %><%= billing_address[:address_2] %><br/><% end -%>
-    <%= "#{billing_address[:city]}, #{billing_address[:state]} #{billing_address[:zip]}" %><br/>
-   </td>
+  <td><%= shipping_address.display("<br/>",:address_type => options.address_type) %></td>
+  <td style='padding-left:20px;'><%= billing_address.display("<br/>",:address_type => options.address_type) %></td>
 </tr>
 </table>
 
 <% else -%>
 
-<h1>Bill To (<a href='<%= url_for address_page %>'>Edit</a>)</h1>
-<%= billing_address[:first_name] %> <%= billing_address[:last_name] %><br/>
-<%= billing_address[:address] %><br/>
-<% unless billing_address[:address_2].blank? %><%= billing_address[:address_2] %><br/><% end -%>
-<%= "#{billing_address[:city]}, #{billing_address[:state]} #{billing_address[:zip]}" %><br/>
+<h1><%= "Bill To".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h1>
+<%= billing_address.display("<br/>",:address_type => options.address_type) %>
 <br/>
 
 <% end -%>
@@ -58,16 +47,16 @@ There was an error processing your request:<br/>
 <% if shippable && shipping_options.length == 0 %>
 <br/>
 <div class='error'>
- There are no Shipping Carriers available to ship your order, please try again later.
+ <%= "There are no Shipping Carriers available to ship your order, please try again later.".t %>
 </div>
 <% elsif payment_processors.length == 0 %>
 <br/>
 <div class='error'>
- There are no Payment processors available to ship your order, please try again later.
+ <%= "There are no Payment processors available to process your order, please try again later.".t %>
 </div>
 <% else -%>
 <% if shippable %>
-  <h1>Shipping Options</h1>
+  <h1><%= "Shipping Options".t %></h1>
   <table>
   <% shipping_options.each_with_index do |opt,index| %>
   <tr>
@@ -78,7 +67,7 @@ There was an error processing your request:<br/>
 <% end -%>
 
 <% if payment_processors.length > 1 %>
-<h1>Payment Options</h1>
+<h1><%= "Payment Options".t %></h1>
 <% end -%>
 
 <%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => payment_processors, :admin => false, :payment => payment, :user => myself } %>
