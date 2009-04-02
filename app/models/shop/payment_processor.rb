@@ -16,5 +16,16 @@ class Shop::PaymentProcessor
     
     [ 'standard', nil,nil ]
   end
+  
+  def get_transaction_options(transaction,options = {})
+    HashModel.new({})
+  end
+  
+  
+  def validate_payment_options(opts,user_info)
+     nil
+  end
+  
+  
 
 end
