@@ -6,8 +6,11 @@ class Shop::ShopOrder < DomainModel
   serialize :payment_information
   
   has_many :order_items, :class_name => 'Shop::ShopOrderItem'
+  has_many :unshipped_items, :class_name => 'Shop::ShopOrderItem', :conditions => "shop_order_items.shipped = 0"
   
   has_many :shop_order_actions, :class_name => 'Shop::ShopOrderAction'
+  
+  has_many :shop_order_shipments, :class_name => 'Shop::ShopOrderShipment'
 
   has_many :transactions,
             :class_name => 'Shop::ShopOrderTransaction',
@@ -26,6 +29,7 @@ class Shop::ShopOrder < DomainModel
                         ['Authorized','authorized'],
                         ['Paid','paid'],
                         ['Payment Declined','payment_declined'],
+                        ['Partially Shipped','partially_shipped'],
                         ['Shipped','shipped'],
                         ['Partially Refunded','partially_refunded'],
                         ['Fully Refunded','fully_refunded'],
@@ -43,6 +47,7 @@ class Shop::ShopOrder < DomainModel
   state :pending
   state :authorized
   state :paid
+  state :partially_shipped
   state :shipped
   state :payment_declined
   state :partially_refunded
@@ -88,6 +93,15 @@ class Shop::ShopOrder < DomainModel
   event :shipped do 
     transitions :from => :paid,
                 :to => :shipped
+    transitions :from => :partially_shipped,
+                :to => :shipped
+  end
+  
+  event :partially_shipped do
+    transitions :from => :paid,
+                :to => :partially_shipped
+    transitions :from => :partially_shipped,
+                :to => :partially_shipped
   end
   
   event :full_refund do
@@ -227,8 +241,8 @@ class Shop::ShopOrder < DomainModel
     return false
   end
   
-  def admin_ship_order(shipped_by,notes)
-    if result = ship_order
+  def admin_ship_order(shipped_by,notes,items=nil,shipping_options={})
+    if result = ship_order(items, shipping_options )
         self.shop_order_actions.create(:end_user => shipped_by, :order_action => 'shipped', :note => notes)
         result
     else
@@ -236,11 +250,27 @@ class Shop::ShopOrder < DomainModel
     end
   end
   
-  def ship_order()
-     self.reload(:lock => true)
-    if self.state == 'paid'
-      self.update_attributes( :shipped_at => Time.now )
-      shipped!
+  def ship_order(items=nil,shipping_options={})
+    self.reload(:lock => true)
+    if self.state == 'paid' || self.state == 'partially_shipped'
+      shipment = self.shop_order_shipments.create(:end_user_id => self.end_user_id,
+                                  :shop_carrier_id => shipping_options[:shop_carrier_id],
+                                  :tracking_number => shipping_options[:tracking_number],
+                                  :deliver_on => shipping_options[:deliver_on])
+    
+      unshipped = 0
+      self.order_items.each do |oi|
+        if !oi.shipped?
+          if !items || items.include?(oi.id)
+            oi.update_attributes(:shipped => true,:shop_order_shipment_id => shipment.id)
+          else
+            unshipped+=1
+          end
+        end
+      end
+      self.shipped_at = Time.now
+      unshipped > 0 ? partially_shipped! : shipped!
+      shipment
     else
       false
     end
@@ -353,10 +383,7 @@ class Shop::ShopOrder < DomainModel
   
   protected 
   def display_address(adr)
-    "#{adr[:first_name]} #{adr[:last_name]}\n
-     #{adr[:address]}\n" +
-     (adr[:address_2] ? adr[:address_2] + "\n" : '') +
-     "#{adr[:city]} #{adr[:state]}, #{adr[:zip]}\n#{adr[:county]}"
+    EndUserAddress.new(adr).display
   end  
   
   def find_payment

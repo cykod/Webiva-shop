@@ -5,7 +5,7 @@ class Shop::ShopOrderItem < DomainModel
   
   belongs_to :order_item, :polymorphic => true
   
-  belongs_to :order, :class_name => "Shop::ShopOrderItem"
+  belongs_to :order, :class_name => "Shop::ShopOrder"
   
   def display_unit_price
     Shop::ShopProductPrice.localized_amount(unit_price,currency)    
