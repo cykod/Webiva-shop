@@ -24,7 +24,7 @@
 
 <% if shippable %>
 
-<h1><%= "Order Addresses".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h1>
+<h2><%= "Order Addresses".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h2>
 <table>
 <tr>
   <td class='label'><%= "Ship To:".t %></td>
@@ -38,7 +38,7 @@
 
 <% else -%>
 
-<h1><%= "Bill To".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h1>
+<h2><%= "Bill To".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h2>
 <%= billing_address.display("<br/>",:address_type => options.address_type) %>
 <br/>
 
@@ -56,7 +56,7 @@
 </div>
 <% else -%>
 <% if shippable %>
-  <h1><%= "Shipping Options".t %></h1>
+  <h2><%= "Shipping Options".t %></h2>
   <table>
   <% shipping_options.each_with_index do |opt,index| %>
   <tr>
@@ -67,15 +67,15 @@
 <% end -%>
 
 <% if payment_processors.length > 1 %>
-<h1><%= "Payment Options".t %></h1>
+<h2><%= "Payment Options".t %></h2>
 <% end -%>
 
 <%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => payment_processors, :admin => false, :payment => payment, :user => myself } %>
 
 
-<h1 align='right'>
+<h2 align='right'>
 <input type='submit' value='<%= vh "Place Order".t %>'/>
-</h1>
+</h2>
 <% end -%>
 
 </form>

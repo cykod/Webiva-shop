@@ -48,9 +48,9 @@
 
 
 <% if cart.shippable? %>
-<h1><%= "Please confirm your shipping and billing addresses".t %></h1>
+<h2><%= "Please confirm your shipping and billing addresses".t %></h2>
 <% else -%>
-<h1><%= "Please confirm your billing address".t %></h1>
+<h2><%= "Please confirm your billing address".t %></h2>
 <% end -%>
 <form action='' method='post'>
 <table>
@@ -58,7 +58,7 @@
 <% if cart.shippable? %>
 
 <tr>
-  <td class='label' colspan='4'>Shipping Address:</td>
+  <td class='label' colspan='4'><%= "Shipping Address:".t %></td>
 </tr>
  <% cms_unstyled_fields_for :shipping_address,shipping_address  do |sa| %>
    <% if shipping_address.errors.length > 0 %>
@@ -127,9 +127,9 @@
 </table>
 
 <% end -%>
-<h1 align='right'>
+<h2 align='right'>
   <input type='submit' value='<%= vh "Continue".t %>'/>
-</h1>
+</h2>
 </form>
 
 </div>

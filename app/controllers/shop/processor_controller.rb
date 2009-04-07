@@ -22,10 +22,8 @@ class Shop::ProcessorController < ParagraphController
     attributes :cart_page_id => nil, :success_page_id => nil, :receipt_template_id => nil, :show_company => false, :show_fax => false, :address_type => 'american'
     
     boolean_options :show_fax, :show_company
-    integer_options :success_page_id, :receipt_template_id
-    page_options :cart_page_id
-
-    validates_presence_of :success_page_id
+    integer_options :receipt_template_id
+    page_options :cart_page_id, :success_page_id
   end
   
   def update_shipping_country

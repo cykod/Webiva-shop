@@ -174,8 +174,10 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   end
 
   def address_page
-    shipping_address = myself.shipping_address  || (myself.address ? myself.address.clone :  EndUserAddress.new(:address_name => 'Shipping Address'.t) )
-    billing_address = myself.billing_address || (myself.address ? myself.address.clone : EndUserAddress.new(:address_name => 'Billing Address'.t) )
+    default_address = (myself.address &&  !myself.address.address.blank?) ? myself.address : ( (myself.work_address && !myself.work_address.blank? ) ? myself.work_address : EndUserAddress.new() )
+  
+    shipping_address = (myself.shipping_address && !myself.shipping_address.address.blank?) ? myself.shipping_address  : default_address.clone
+    billing_address = (myself.billing_address && !myself.billing_address.address.blank?) ? myself.billing_address : default_address.clone
 
     cart = get_cart 
     shippable = cart.shippable?
@@ -386,7 +388,11 @@ class Shop::ProcessorRenderer < ParagraphRenderer
             if page_redirect
               redirect_paragraph page_redirect
             else
-              redirect_paragraph site_node.node_path + "/success"
+              if @options.success_page_url
+                redirect_paragraph @options.success_page_url
+              else
+                redirect_paragraph site_node.node_path + "/success"
+              end
             end
         else
           flash[:shop_message] = transaction.message if @order
