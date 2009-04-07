@@ -349,12 +349,12 @@ class Shop::PageFeature < ParagraphFeature
         tag.locals.product_added ? tag.locals.product_added.name : 'Invalid Product'.t
       end
 
-      define_image_tag(c,'product:img','product','image_file')
+      c.image_tag('product:img') { |t| t.locals.product.image_file }
       
-      define_image_tag(c,'product:extra_img','product') do |product,tag|
-        index = (tag.attr.delete('number') || 1).to_i - 1
+      c.image_tag('product:extra_img') do |t|
+        index = (t.attr.delete('number') || 1).to_i - 1
         index = 0 if index < 0
-        file  = product.images[index]
+        file  = t.locals.product.images[index]
         img = file.domain_file if file
       end
       
