@@ -102,9 +102,9 @@ class Shop::Features::ProfileQuantityOption < Shop::ProductFeature
         end
         
       end
-      c.define_value_tag('quantities:current') { |tg| tg.locals.current_index == tg.locals.index  }
-      c.define_value_tag('quantities:below') { |tg| tg.locals.current_index < tg.locals.index  }
-      c.define_value_tag('quantities:above') { |tg| tg.locals.current_index > tg.locals.index  }
+      c.expansion_tag('quantities:current') { |tg| tg.locals.current_index == tg.locals.index  }
+      c.expansion_tag('quantities:below') { |tg| tg.locals.current_index < tg.locals.index  }
+      c.expansion_tag('quantities:above') { |tg| tg.locals.current_index > tg.locals.index  }
       
       c.define_value_tag('quantities:name') do |tg| 
         if(tg.attr['names'])
