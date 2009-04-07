@@ -33,7 +33,7 @@ class ShopCouponMigration < ActiveRecord::Migration
     add_column :shop_order_items, :processed, :boolean, :default => false
     add_column :shop_order_items, :shipped, :boolean, :default => false
     add_column :shop_order_items, :shop_order_shipment_id, :integer
-#    add_column :shop_order_items, :end_user_id, :integer
+    add_column :shop_order_items, :end_user_id, :integer
     
     create_table :shop_order_shipments do |t|
       t.integer :shop_order_id
