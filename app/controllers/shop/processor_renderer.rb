@@ -192,8 +192,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
       shipping_address.end_user_id= myself.id # end_user_id is attr_protected
       billing_address.end_user_id = myself.id
 
-      shipping_address.validate_registration(:shipping,true)  if shippable
-      billing_address.validate_registration(:billing,true) unless @same_address
+      shipping_address.validate_registration(:shipping,true,@options.address_type == 'american' ? 'us' : 'eu')  if shippable
+      billing_address.validate_registration(:billing,true,@options.address_type == 'american' ? 'us' : 'eu') unless @same_address
       
       Shop::ShopRegion.validate_country_and_state(shipping_address)  if shippable
       Shop::ShopRegion.validate_country_and_state(billing_address) unless @same_address
