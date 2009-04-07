@@ -15,8 +15,14 @@ class Shop::ShopProductPrice < DomainModel
 
   def self.localized_amount(amount,currency)
     amt = (amount.to_f * 100).to_f
+    if amt < 0
+      amt = -amt
+      neg = '-'
+    else
+      neg =''
+    end
     cur = Currency.new(amt)
     cur_display = @@currency_display[currency] || {}
-    cur_display[0].to_s + cur.amount + cur_display[1].to_s
+    neg + cur_display[0].to_s + cur.amount + cur_display[1].to_s
   end
 end

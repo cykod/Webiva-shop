@@ -1,0 +1,25 @@
+<div class='admin_content'>
+<% admin_form_for :coupon, @coupon do |f| -%>
+  <%= f.text_field :internal_name,:description => 'Not be visible users' %>
+  <%= f.text_area :internal_description, :cols => 40, :rows => 4,:description => 'Not visible to users' %>
+  <%= f.header "Coupon Details" %>
+  <%= f.text_field :cart_name, :description => 'This will appear on the first line of the cart description' %>
+  <%= f.text_field :cart_description, :size => 80, :description => 'This will appear on the second line of the cart description' %>
+  <%= f.text_field :code,:description => 'This is the code that users will enter to activate the coupon, should be recognizable but unique (e.g. FRIENDS1)'  %>
+  <%= f.text_field :tag, :description => 'Only allow users with the entered tag to use this coupon' %>
+  <%= f.radio_buttons :one_time, [['Yes'.t,true],['No'.t,false]], :description => 'This coupon can only be used once per user'  %>
+  <%= f.radio_buttons :first_order, [['Yes'.t,true],['No'.t,false]], :description => "This coupon will only apply to users' first order"  %>
+  <%= f.radio_buttons :automatic, [['Yes'.t,true],['No'.t,false]], :description => 'Automatically try to add this coupon to users carts'  %>
+  <%= f.radio_buttons :exclusive, [['Yes'.t,true],['No'.t,false]], :description => 'This is the only coupon that can be applied to a cart, if added it will remove all other coupons'  %>
+  <%= f.datetime_field :expires_at, :description => 'Leave this blank and the coupon will not expire',:blank => true %>
+  <%= f.radio_buttons :active, [['Yes'.t,true],['No'.t,false]], :description => 'Only active coupons that have not expired will appear'  %>
+  <%= f.header "Coupon Amount" %>
+  <%= f.radio_buttons :discount_type, Shop::ShopCoupon.discount_type_select_options %>
+  <%= f.text_field :discount_amount %>
+  <%= f.text_field :discount_percentage, :unit => '%' %>
+  <%= f.header "Coupon Scope" %>
+  <%= f.radio_buttons :all_products, [['This Coupon is applicable to all products'.t,true],['This Coupon is applicable to specific products'.t,false]],:separator => "<br/>"   %>
+  <%= f.multi_content_selector :shop_product_ids, Shop::ShopProduct, :content_name =>  "Products" %>
+  <%= f.submit_tag @coupon.id ? 'Edit' : 'Submit' %>  
+<% end -%>
+</div>

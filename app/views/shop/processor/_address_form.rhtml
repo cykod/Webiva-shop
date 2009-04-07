@@ -1,0 +1,71 @@
+
+<tr>
+  <td class='field'><%= "First Name".t %>*</td>
+  <td class='field'><%= f.text_field :first_name, opts  %> </td>
+  <td class='field'><%= "Last Name".t %>* 
+  <td class='field'><%= f.text_field :last_name, opts %> </td>
+</tr>
+<% if options.show_company -%>
+<tr>
+  <td class='field'><%= "Company".t %>*</td>
+  <td class='field' colspan='3'><%= f.text_field :company, opts.merge(:size => 45 )  %></td>
+</tr>
+<% end -%>
+<tr>
+  <td class='field'><%= "Address".t %>*</td>
+  <td class='field' colspan='3'><%= f.text_field :address, opts.merge(:size => 45 )  %></td>
+</tr>
+<tr>
+  <td class='field'><%= "Adr. Line 2".t %>*</td>
+  <td  class='field'  colspan='3'>
+    <%= f.text_field :address_2, opts.merge(:required => false, :size => 45 ) %>
+  </td>
+</tr>
+<% if countries.length == 2 %>
+  <% f.object.country = countries[1][1] %>
+  <%= f.hidden_field :country %>
+<% else -%>
+<tr>
+  <td class='field'>
+    <%= "Country".t %>*
+  </td>
+  <td class='field' colspan='3'>
+  <%= f.select :country, countries, {},opts.merge(:onchange => "AddressManager.update#{address_type.capitalize}Country(this.value);" ,:size => nil) %>
+  </td>
+</tr>
+<% end -%>
+
+
+<tr>
+  <% if options.address_type == 'european' -%>
+  <td class='field'><%= "Zip".t %>*</td>
+  <td class='field'><%= f.text_field :zip, opts.merge(:size => 10) %></td>
+  <td class='field' align='right'><%= "City".t %>*</td>
+  <td class='field'><%= f.text_field :city, opts.merge(:size => 10) %></td>
+  <% else -%>
+  <td colspan='4'>
+    <%= "City".t %>* <%= f.text_field :city, opts.merge(:size => 10) %>
+    <span id='<%= address_type %>_state_options'>
+    <%= render :partial  => '/shop/processor/states', 
+                    :locals => { :value => state_info[:selected], 
+                                 :options => state_info[:options], 
+                                 :subregion_name => state_info[:name], 
+                                 :address => address_type, 
+                                 :same_address => same_address  } %>
+    </span>
+    <%= "Zip".t %>* <%= f.text_field :zip, opts.merge(:size => 10) %>
+  </td>
+  <% end -%>
+</tr>
+
+
+<tr>
+  <td class='field'><%= "Phone".t %></td>
+  <td class='field'><%= f.text_field :phone, opts  %> </td>
+<% if options.show_fax -%>
+  <td class='field' align='right'><%= "Fax".t %>
+  <td class='field'><%= f.text_field :fax, opts %> </td>
+<% else -%>
+  <td colspan='2'></td>
+<% end -%>
+</tr>

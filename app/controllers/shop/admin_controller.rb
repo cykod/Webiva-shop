@@ -81,6 +81,10 @@ class Shop::AdminController < ModuleController
 
       validates_presence_of :shop_currency
       
+      def currency
+        self.shop_currency
+      end
+      
       def currencies
         [ self.shop_currency ]
       end

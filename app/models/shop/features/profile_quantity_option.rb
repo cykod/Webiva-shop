@@ -67,7 +67,7 @@ class Shop::Features::ProfileQuantityOption < Shop::ProductFeature
         # Find the feature option and the correct index to use
         if feature && cur_index = feature.feature_options[:member_class_id].index(data[:user].user_class_id.to_s)
 
-          tag.locals.current_index = feature.feature_options[:option_number][cur_index]
+          tag.locals.current_index = feature.feature_options[:option_number][cur_index].to_i
         end
 
         cls = data[:product].shop_product_class
@@ -105,8 +105,16 @@ class Shop::Features::ProfileQuantityOption < Shop::ProductFeature
       c.define_value_tag('quantities:current') { |tg| tg.locals.current_index == tg.locals.index  }
       c.define_value_tag('quantities:below') { |tg| tg.locals.current_index < tg.locals.index  }
       c.define_value_tag('quantities:above') { |tg| tg.locals.current_index > tg.locals.index  }
-            
-      c.define_value_tag('quantities:name') { |tg| tg.locals.quantity[0] }
+      
+      c.define_value_tag('quantities:name') do |tg| 
+        if(tg.attr['names'])
+          names = tg.attr['names'].split(",")
+          names[tg.locals.index-1]
+        else
+          tg.locals.quantity[0]
+        end
+      end      
+      
       c.define_value_tag('quantities:amount') { |tg| tg.locals.quantity[1] }
       c.define_value_tag('quantities:min') { |tg| tg.locals.quantity[3] }
       c.define_value_tag('quantities:max') { |tg| tg.locals.quantity[4] }

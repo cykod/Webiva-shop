@@ -6,8 +6,11 @@ class Shop::ShopOrder < DomainModel
   serialize :payment_information
   
   has_many :order_items, :class_name => 'Shop::ShopOrderItem'
+  has_many :unshipped_items, :class_name => 'Shop::ShopOrderItem', :conditions => "shop_order_items.shipped = 0"
   
   has_many :shop_order_actions, :class_name => 'Shop::ShopOrderAction'
+  
+  has_many :shop_order_shipments, :class_name => 'Shop::ShopOrderShipment'
 
   has_many :transactions,
             :class_name => 'Shop::ShopOrderTransaction',
@@ -26,6 +29,7 @@ class Shop::ShopOrder < DomainModel
                         ['Authorized','authorized'],
                         ['Paid','paid'],
                         ['Payment Declined','payment_declined'],
+                        ['Partially Shipped','partially_shipped'],
                         ['Shipped','shipped'],
                         ['Partially Refunded','partially_refunded'],
                         ['Fully Refunded','fully_refunded'],
@@ -43,6 +47,7 @@ class Shop::ShopOrder < DomainModel
   state :pending
   state :authorized
   state :paid
+  state :partially_shipped
   state :shipped
   state :payment_declined
   state :partially_refunded
@@ -88,6 +93,15 @@ class Shop::ShopOrder < DomainModel
   event :shipped do 
     transitions :from => :paid,
                 :to => :shipped
+    transitions :from => :partially_shipped,
+                :to => :shipped
+  end
+  
+  event :partially_shipped do
+    transitions :from => :paid,
+                :to => :partially_shipped
+    transitions :from => :partially_shipped,
+                :to => :partially_shipped
   end
   
   event :full_refund do
@@ -102,12 +116,21 @@ class Shop::ShopOrder < DomainModel
   event :partial_refund do 
     transitions :from => :paid,
                 :to => :partially_refunded
+    transitions :from => :shipped,
+                :to => :partially_refunded
   end
   
+  def self.first_order?(user)
+    self.find(:first,:conditions => ["state NOT IN ('initial','pending','payment_declined') AND end_user_id=?",user.id]) ? false : true
+  end
+  
+  def self.generate_order(user)
+    self.create(:end_user_id => user.id)
+  end
   
   def pending_payment(options)
     transaction do
-      self.currency = options[:currency]
+      self.currency = options[:cart].currency
       self.tax = options[:tax]
       self.shipping = options[:shipping]
       self.shipping_address = (options[:shipping_address]||{}).symbolize_keys
@@ -120,18 +143,19 @@ class Shop::ShopOrder < DomainModel
       
       total = 0.0
       options[:cart].products.each do |product|
-        subtotal = product.price(options[:currency]) * product.quantity
+        subtotal = product.price(options[:cart]) * product.quantity
         total += subtotal
         self.order_items.create(:item_sku => product.sku,
                                 :item_name => product.name,
-                                :item_details => product.details,
+                                :item_details => product.details(options[:cart]),
                                 :order_item_type => product.cart_item_type,
                                 :order_item_id => product.cart_item_id,
                                 :options => product.options,
                                 :currency => options[:currency],
-                                :unit_price => product.price(options[:currency]),
+                                :unit_price => product.price(options[:cart]),
                                 :quantity => product.quantity,
-                                :subtotal => subtotal )
+                                :subtotal => subtotal,
+                                :end_user_id => self.end_user_id )
       end
       self.subtotal = total
       self.total = total + options[:tax].to_f + options[:shipping].to_f
@@ -164,6 +188,9 @@ class Shop::ShopOrder < DomainModel
       self.payment_type, self.payment_identifier, self.payment_reference = processor.payment_record(authorization,self.payment_information,:admin => request_options[:admin])
       self.payment_information = processor.sanitize(self.payment_information)
       if authorization.success?
+        self.order_items.each do |item|
+          item.update_attributes(:processed => true)
+        end
         payment_authorized!
       else
         transaction_declined!
@@ -181,6 +208,19 @@ class Shop::ShopOrder < DomainModel
       false
     end
   
+  end
+  
+  def post_process(user,session)
+    returned_opts = {}
+    self.order_items.each do |oi|
+      oi.quantity.times do
+        opts = oi.order_item.cart_post_processing(user,oi,session)
+        if opts.is_a?(Hash) && opts[:redirect]
+          returned_opts[:redirect] = opts[:redirect] 
+        end
+      end
+    end
+    returned_opts
   end
   
   def capture_payment
@@ -201,8 +241,8 @@ class Shop::ShopOrder < DomainModel
     return false
   end
   
-  def admin_ship_order(shipped_by,notes)
-    if result = ship_order
+  def admin_ship_order(shipped_by,notes,items=nil,shipping_options={})
+    if result = ship_order(items, shipping_options )
         self.shop_order_actions.create(:end_user => shipped_by, :order_action => 'shipped', :note => notes)
         result
     else
@@ -210,11 +250,27 @@ class Shop::ShopOrder < DomainModel
     end
   end
   
-  def ship_order()
-     self.reload(:lock => true)
-    if self.state == 'paid'
-      self.update_attributes( :shipped_at => Time.now )
-      shipped!
+  def ship_order(items=nil,shipping_options={})
+    self.reload(:lock => true)
+    if self.state == 'paid' || self.state == 'partially_shipped'
+      shipment = self.shop_order_shipments.create(:end_user_id => self.end_user_id,
+                                  :shop_carrier_id => shipping_options[:shop_carrier_id],
+                                  :tracking_number => shipping_options[:tracking_number],
+                                  :deliver_on => shipping_options[:deliver_on])
+    
+      unshipped = 0
+      self.order_items.each do |oi|
+        if !oi.shipped?
+          if !items || items.include?(oi.id)
+            oi.update_attributes(:shipped => true,:shop_order_shipment_id => shipment.id)
+          else
+            unshipped+=1
+          end
+        end
+      end
+      self.shipped_at = Time.now
+      unshipped > 0 ? partially_shipped! : shipped!
+      shipment
     else
       false
     end
@@ -327,10 +383,7 @@ class Shop::ShopOrder < DomainModel
   
   protected 
   def display_address(adr)
-    "#{adr[:first_name]} #{adr[:last_name]}\n
-     #{adr[:address]}\n" +
-     (adr[:address_2] ? adr[:address_2] + "\n" : '') +
-     "#{adr[:city]} #{adr[:state]}, #{adr[:zip]}\n#{adr[:county]}"
+    EndUserAddress.new(adr).display
   end  
   
   def find_payment

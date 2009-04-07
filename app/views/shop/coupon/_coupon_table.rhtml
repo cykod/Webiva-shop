@@ -1,0 +1,15 @@
+<% active_table_for :coupon_table, @tbl, 
+    :actions => [ ['Activate','activate','Activate the selected coupons?'],
+                  ['Deactivate','deactivate','Deactivate the selected coupons?' ]],
+    :more_actions => [ ['Delete','delete','Delete the selected coupons?']] do |t| -%>
+<tr <%= highlight_row 'coupon',t.id %>>
+  <td><%= entry_checkbox 'coupon',t.id  %></td>
+  <td><%= link_to v(t.internal_name), :action => 'edit',:path => [ t.id ] %></td>
+  <td><%= v t.cart_name  %></td>
+  <td><%= v t.code %></td>
+  <td><%=  v t.expires_at.localize(DEFAULT_DATE_FORMAT) if t.expires_at %></td>
+  <td><%= t.discount_display %></td>
+  <td><%=  v t.created_at.localize(DEFAULT_DATE_FORMAT) if t.created_at %></td>
+  <td><%= t.active? ? "Yes".t : "No".t %></td>
+</tr>
+<% end -%>

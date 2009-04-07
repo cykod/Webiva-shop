@@ -28,6 +28,8 @@ class Shop::ShopPaymentProcessor < DomainModel
   def payment_record(transaction,payment,options={})
     get_instance(transaction.end_user).payment_record(transaction,payment,options)
   end
+  
+
 
   def test?
     get_instance(nil).test?
