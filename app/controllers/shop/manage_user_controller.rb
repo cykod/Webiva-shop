@@ -185,7 +185,7 @@ class Shop::ManageUserController < ModuleController
   end
   
   def get_cart
-    Shop::ShopSessionCart.new(session[:user_carts][@cart_id],@user)
+    Shop::ShopSessionCart.new(session[:user_carts][@cart_id],@currency,@user)
   end
   
   

@@ -26,13 +26,13 @@ There was an error processing your request:<br/>
   <% @cart.products.each do |item| -%>
   <tr>
     <td valign='top'><%= item.sku %></td>
-    <td valign='top'><b><%= item.name %></b><br/><%= item.details %></td>
-    <td valign='top' align='right'><%= item.price(@currency) %> </td>
+    <td valign='top'><b><%= item.name %></b><br/><%= item.details(@cart) %></td>
+    <td valign='top' align='right'><%= item.price(@cart) %> </td>
     <td valign='top'>X</td>
     <td valign='top'><%= item.quantity %></td>
     <td valign='top' align='right'>=</td>
     <td valign='top' align='right'>
-      <%=  Shop::ShopProductPrice.localized_amount(item.subtotal(@currency),@currency) %>
+      <%=  Shop::ShopProductPrice.localized_amount(item.subtotal(@cart),@currency) %>
     </td>
   </tr>
 <% end -%>
@@ -49,7 +49,7 @@ There was an error processing your request:<br/>
     <td colspan='4'><a href='javascript:void(0);' onclick='UserShop.updateOrder();'>Edit Order</a></td>
     <td  align='right'>Total:</td>
     <td></td>
-    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.total(@currency),@currency) %></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.total,@currency) %></td>
   </tr>
 <% end -%>
 </table>
