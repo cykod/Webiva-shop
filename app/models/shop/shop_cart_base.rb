@@ -28,7 +28,7 @@ attr_accessor :shipping
         cart_total += product.price(self) * product.quantity
       end
     end
-    cart_total + self.shipping.to_f
+    cart_total
   end
   
   def item_quantity(item_type,product_ids)
