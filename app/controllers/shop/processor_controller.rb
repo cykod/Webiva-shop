@@ -2,7 +2,8 @@ class Shop::ProcessorController < ParagraphController
   
   editor_header "Shop Paragraphs"
   editor_for :checkout, :name => 'Shop Checkout',
-                    :inputs => [ [ :checkout_page, 'Page Path', :path ] ], :features => ['full_cart']
+                    :inputs => [ [ :checkout_page, 'Page Path', :path ] ], :features => ['full_cart'],
+                    :triggers => [['Successful Order','action']]
 
   editor_for :full_cart, :name => 'Full Page Shopping Cart', :features => ['full_cart']
 

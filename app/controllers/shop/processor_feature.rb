@@ -8,6 +8,7 @@ class Shop::ProcessorFeature < ParagraphFeature
     You currently have no products in your shopping cart
     </cms:no_cart>
     <cms:cart>
+      <cms:message><div class='cart_message'><cms:value/></div></cms:message>
     <table>
     <thead>
       <tr><th>Product</th><th>Unit Cost</th><th>Quantity</th><th>Cost</th></tr>
@@ -98,6 +99,7 @@ def full_cart_feature(data)
           end
 
           c.define_submit_tag('cart:products:update_quantity') { |t| !data[:static] }
+      c.value_tag('message') { |t| data[:cart].messages.join("<br/>") }
       
       c.expansion_tag('cart:coupon') { |t| !data[:static] }
       c.form_for_tag('cart:coupon:form',"shop#{data[:paragraph_id]}",

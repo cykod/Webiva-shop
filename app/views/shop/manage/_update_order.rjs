@@ -5,5 +5,9 @@ else
   page.replace_html :RB_window, :partial => @transaction_partial 
 end
 
-page.replace_html :order_details, :partial => 'order_details'
+if @table
+  page.replace_html :order_table, :partial => 'order_table'
+else
+  page.replace_html :order_details, :partial => 'order_details'
+end
 

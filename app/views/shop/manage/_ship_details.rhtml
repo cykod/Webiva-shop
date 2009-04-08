@@ -1,0 +1,8 @@
+<div>
+<% cms_fields_for :shipment, @shipment do |f| -%>
+  <%= f.select :shop_carrier_id, [ ['Other/None'.t,nil ]] + Shop::ShopCarrier.select_options, :label => 'Shipment Carrier' %>
+  <%= f.text_field :tracking_number %>
+  <%= f.date_field :deliver_on,:blank => true %>
+  <%= f.check_box :notify_customer, :label=>'Email Customer' %>
+<% end -%>
+</div>

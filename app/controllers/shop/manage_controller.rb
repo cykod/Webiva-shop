@@ -15,7 +15,8 @@ class Shop::ManageController < ModuleController
                   ActiveTable::DateHeader.new('ordered_at',:datetime => true),
                   ActiveTable::DateHeader.new('shipped_at', :datetime => true),
                   ActiveTable::OptionHeader.new('state',:options => :order_states),
-                  ActiveTable::NumberHeader.new('total')
+                  ActiveTable::NumberHeader.new('total'),
+                  'Action'
                 ]
                 
   protected
@@ -53,13 +54,19 @@ class Shop::ManageController < ModuleController
     @ship_order = params[:ship].to_i == 1
     @notes = params[:notes]
     
+    @table = params[:table]
+    
+    if @ship_order
+      @shipment = Shop::ShopOrderShipment.new(:shop_carrier_id =>  @order.shop_shipping_category ? @order.shop_shipping_category.shop_carrier_id : nil, :notify_customer => true )
+    end
+    
     if request.post? && params[:capture]
       # Capture it
       # Update the order page with a message at the top
       cap = @order.admin_capture_payment(myself,@notes)
       if cap && cap.success?
         if @ship_order
-          @order.admin_ship_order(myself,'[Automatic: Capture & Ship]'.t )
+          @order.admin_ship_order(myself,'[Automatic: Capture & Ship]'.t,nil,params[:shipment])
           @order.reload
           flash.now[:order_info] = sprintf("Order %s has been captured and marked as shipped".t,@order.number)
         else
@@ -71,6 +78,7 @@ class Shop::ManageController < ModuleController
         @message = cap ? cap.message : 'Transaction could not be completed at this time'.t
       end
       @transaction_partial = 'capture_order'
+      order_table(false) if @table
       render :partial => 'update_order'
       return
     end
@@ -80,13 +88,20 @@ class Shop::ManageController < ModuleController
   def ship_order
     @order = Shop::ShopOrder.find(params[:order_id])
     @notes = params[:notes]
+    
+    @table = params[:table]
+    
+    @shipment = Shop::ShopOrderShipment.new(:shop_carrier_id =>  @order.shop_shipping_category ? @order.shop_shipping_category.shop_carrier_id : nil, :notify_customer => true)
+        
+    
     if request.post? && params['ship']
       if @order.state == 'paid'
-        @order.admin_ship_order(myself,@notes)
+        @order.admin_ship_order(myself,@notes,nil,params[:shipment])
         @order.reload
         flash.now[:order_info] = sprintf("Order %s has been shipped".t,@order.number)
         @successful = true
       end
+      order_table(false) if @table
       @transaction_partial = 'update_order'
       render :partial => 'update_order'
       return
@@ -153,5 +168,16 @@ class Shop::ManageController < ModuleController
     
     render :partial => 'refund_order'
   end
-
+  
+  def add_note
+    @order = Shop::ShopOrder.find(params[:order_id])
+    
+    if request.post? && params[:note] && !params[:note][:note].blank?
+       @order.admin_note(myself,params[:note][:note])
+       render :action => 'add_note' 
+    else
+      render :nothing => true
+    end      
+  end
+  
 end

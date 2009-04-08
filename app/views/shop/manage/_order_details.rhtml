@@ -123,9 +123,27 @@
 <% end -%>
 
 <% t.tab do -%>
-  <% @order.shop_order_actions.each do |action| -%>
+<% cms_unstyled_form_for :note, @note, :html => { :onsubmit => 'OrderProcessor.addNote(this); return false;' } do |f| -%>
+ <%= f.text_area :note, :cols => 50, :rows => 3 %><br/> <%= f.submit_tag 'Add a Note' %>
+<% end -%>
 
+<table class='admin_table'>
+<tr>
+  <th>Date</th>
+  <th>Action</th>
+  <th>User</th>
+  <th>Note</th>
+  <th>
+</tr>
+  <% @order.shop_order_actions.each do |act| -%>
+<tr>
+  <td><%= act.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
+  <td><%= act.order_action_display %></td>
+  <td><%= h act.end_user.name if act.end_user %></td>
+  <td><%= h act.note %></td>
+</tr>
   <% end -%>
+</table>
 <% end -%>
 
 

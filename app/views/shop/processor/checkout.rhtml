@@ -1,5 +1,8 @@
 <div class='cms_form'>
-  <% paragraph_options_form_for "Checkout Options",:checkout ,@options do |f| -%>
+<% paragraph_options_form_for "Checkout Options",:checkout ,@options do |f| -%>
+  
+<% tabled_ajax_tabs ['Options','Actions'], 'Options' do |t| %>
+  <% t.tabled_tab do -%>
       <%= f.page_selector :cart_page_id, :label => 'Edit Cart Page'.t %>
       <%= f.page_selector :success_page_id, :label => 'Success Page'.t %>
       <%= f.select :receipt_template_id, [["--Don't send a receipt--".t,nil]] +  MailTemplate.site_template_options, 
@@ -7,5 +10,13 @@
       <%= f.radio_buttons :address_type, [['American'.t,'american'],['European'.t,'european']] %>
       <%= f.radio_buttons :show_company, [['Yes'.t,true],['No'.t,false]] %>
       <%= f.radio_buttons :show_fax, [['Yes'.t,true],['No'.t,false]] %>
-  <% end -%>
+ <% end -%>
+ <% t.tabled_tab do %>
+    <div id='cms_triggered_actions'>
+      <%= render :partial => '/editor/includes/actions' %>
+    </div>
+  <% end -%>  
+      
+<% end -%>
+<% end -%>
 </div>

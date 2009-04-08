@@ -16,5 +16,15 @@
   <td><%= t.shipped_at ? t.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
   <td><%= t.state_display %></td>
   <td><%= t.display_total %></td>
+  <td>
+    <% if t.pending_capture? %>
+          <input type='submit' onclick='OrderProcessor.captureOrder(<%= t.id %>, 0); return false;' value='<%= vh "Capture".t %>'/>
+          <% if t.shippable? -%><input type='submit' onclick='OrderProcessor.captureOrder(<%= t.id %>, 1); return false;' value='<%= vh "Ship".t %>'/><% end -%>
+    <% elsif t.shippable? && t.pending_shipment? %>
+          <input type='submit' onclick='OrderProcessor.shipOrder(<%= t.id %>); return false;' value='<%= vh "Shipped".t %>'/>
+    <% end -%>
+        
+    
+  </td>
 </tr>
 <% end -%>

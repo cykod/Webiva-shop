@@ -1,3 +1,36 @@
+<script>
+  var loading = new Image();
+  loading.src= '<%= theme_src('loading.gif'); %>';
+  OrderProcessor = {
+    
+    captureOrder: function(order_id,ship) {
+      if(ship == undefined)
+        ship=0;
+      SCMS.remoteOverlay("<%= url_for :action => 'capture_order' %>",
+                          { ship: ship, order_id: order_id, table: 1 });
+    },
+    
+    submitCapture: function() {
+      var params = Form.serialize('capture_form');
+      
+      $('capture_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Capturing Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'capture_order' %>", 
+                      { parameters: params });
+    },
+    
+    shipOrder: function(order_id) {
+      SCMS.remoteOverlay("<%= url_for :action => 'ship_order' %>", { order_id: order_id, table: 1 });
+    },
+    
+    submitShipment: function() {
+      var params = Form.serialize('ship_form');
+      $('ship_form_container').innerHTML = '<%= theme_image_tag('loading.gif'); %><br/><b><%= h "Shipping Order".t %></b><br/><br/>';
+      new Ajax.Request("<%= url_for :action => 'ship_order' %>", 
+                      { parameters: params });
+    }
+  }
+    
+</script>
 <div class='admin_left_columned_container'>
 
 <div class='admin_left_sidebar'><div class='top'></div>

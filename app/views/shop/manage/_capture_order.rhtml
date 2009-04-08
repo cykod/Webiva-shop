@@ -13,9 +13,13 @@
 <form action='' id='capture_form' onsubmit='OrderProcessor.submitCapture(); return false;' >
 <div style='text-align:left'>
 <b><%= sprintf("Capture order %s for %s".t,@order.number,@order.display_total) %>.</b>
-<br/><br/>Optional Note:<br/>
+
+<%= render :partial => 'ship_details' if @ship_order %>
+
+<br/><br/>Administrative Note:<br/>
 <textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
 </div>
+<% if @table -%><input type='hidden' name='table' value='1'/><% end -%>
 <input type='hidden' name='capture' value='1'/>
 <input type='hidden' name='ship' value='<%= @ship_order ? 1 : 0 %>'/>
 <input type='hidden' name='order_id' value='<%= @order.id %>'/>

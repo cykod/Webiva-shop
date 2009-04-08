@@ -39,11 +39,14 @@ class Shop::ShopCoupon < DomainModel
   
   def self.search_coupon(code,cart)
     coupon = self.find_by_code(code)
-    if coupon.cart_limit({},cart) > 0
-      coupon
+    if coupon 
+      if coupon.cart_limit({},cart) > 0
+        return coupon
+      end
     else
-      nil
+      cart.add_message("'%s' is not a valid coupon." / CGI::escapeHTML(code))
     end
+    nil
   end
   
   def self.automatic_coupons(cart)

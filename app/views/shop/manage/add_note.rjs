@@ -1,0 +1,2 @@
+  page.replace_html :order_details, :partial => 'order_details'
+

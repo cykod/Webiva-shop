@@ -35,12 +35,12 @@ class Shop::ProcessorRenderer < ParagraphRenderer
       end
     end
 
-    cart = get_cart
-    Shop::ShopCoupon.automatic_coupons(cart).each { |coupon| cart.add_product(coupon,1,nil) }
+    @cart = get_cart unless @cart
+    Shop::ShopCoupon.automatic_coupons(@cart).each { |coupon| @cart.add_product(coupon,1,nil) }
     
-    cart.validate_cart!
+    @cart.validate_cart!
 
-    data = { :cart=> cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id }
+    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id }
     feature_output = full_cart_feature(data)
     render_paragraph :text => feature_output
   end  
@@ -377,6 +377,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
        @order = Shop::ShopOrder.find(:first,:conditions => ['id = ? AND end_user_id = ? AND state IN("pending","payment_declined")',session[:shop][:order_id],myself.id])
        transaction = @order.authorize_payment(:remote_ip => request.remote_ip )  if @order
         if @order && transaction.success?
+        
+        
             get_cart.clear
             opts = @order.post_process(myself,session)
             if opts.is_a?(Hash) && opts[:redirect]
@@ -384,6 +386,17 @@ class Shop::ProcessorRenderer < ParagraphRenderer
             end
             session[:shop][:stage] = 'success'
             session[:shop][:order_id] = nil
+
+            email_data =   { :ORDER_ID => @order.id, :ORDER_HTML => @order.format_order_html, :ORDER_TEXT => @order.format_order_text }
+            if @receipt_template = MailTemplate.find_by_id(@options.receipt_template_id.to_i)
+              @receipt_template.deliver_to_user(myself,email_data)
+            end
+            
+            if !editor? && paragraph.update_action_count > 0
+              paragraph.run_triggered_actions(email_data,'action',myself)
+            end
+            
+            
             
             if page_redirect
               redirect_paragraph page_redirect
@@ -435,10 +448,10 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     when 'coupon'
       if @coupon = Shop::ShopCoupon.search_coupon(act[:code],@cart)
         @cart.add_product(@coupon,1,nil)
-      else
-        flash[:shop_message] = 'That code was invalid'
+        return true
       end
     end
+    false
   end  
   
 end

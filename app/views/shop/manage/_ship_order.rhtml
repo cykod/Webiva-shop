@@ -5,10 +5,12 @@
 <form action='' id='ship_form' onsubmit='OrderProcessor.submitShipment(); return false;' >
 <div style='text-align:left'>
 <b><%= sprintf("Ship order %s".t,@order.number) %>.</b>
-<br/><br/>Optional Note:<br/>
+<%= render :partial => 'ship_details' %>
+<br/><br/>Administrative Note:<br/>
 <textarea name='notes' cols='40' rows='6' ><%= h @notes %></textarea>
 </div>
 <input type='hidden' name='ship' value='1'/>
+<% if @table -%><input type='hidden' name='table' value='1'/><% end -%>
 <input type='hidden' name='order_id' value='<%= @order.id %>'/>
 <input type='submit' value='<%= vh "Ship Order".t %>' />
 <input type='submit' value='<%= vh "Cancel".t %>' onclick='RedBox.close(); return false;'/>

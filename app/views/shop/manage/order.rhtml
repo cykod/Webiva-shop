@@ -61,13 +61,11 @@
                         evalScripts:true  }
                       );
     
-    }
+    },
     
-  
-      
-    
-  
-  
+    addNote: function(frm) {
+      new Ajax.Request("<%= url_for :action => 'add_note', :order_id => @order.id %>",{ parameters: Form.serialize(frm) } );
+    }  
   
   }
 </script>

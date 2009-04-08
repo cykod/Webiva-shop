@@ -8,7 +8,7 @@ class Shop::ShopOrder < DomainModel
   has_many :order_items, :class_name => 'Shop::ShopOrderItem'
   has_many :unshipped_items, :class_name => 'Shop::ShopOrderItem', :conditions => "shop_order_items.shipped = 0"
   
-  has_many :shop_order_actions, :class_name => 'Shop::ShopOrderAction'
+  has_many :shop_order_actions, :class_name => 'Shop::ShopOrderAction', :order => 'shop_order_actions.created_at DESC'
   
   has_many :shop_order_shipments, :class_name => 'Shop::ShopOrderShipment'
 
@@ -42,6 +42,12 @@ class Shop::ShopOrder < DomainModel
                                ['Admin Purchase','admin'],
                                ['Admin Purcahse (Remember Payment info)','admin_remember' ],
                                ['Admin Reference Purchase','admin_reference' ] ]
+  
+  
+  
+  ########
+  # State Machine Functions
+  ########
   
   state :initial
   state :pending
@@ -120,9 +126,11 @@ class Shop::ShopOrder < DomainModel
                 :to => :partially_refunded
   end
   
-  def self.first_order?(user)
-    self.find(:first,:conditions => ["state NOT IN ('initial','pending','payment_declined') AND end_user_id=?",user.id]) ? false : true
-  end
+
+  ########
+  # Order Processing Functionality
+  ########
+  
   
   def self.generate_order(user)
     self.create(:end_user_id => user.id)
@@ -133,11 +141,12 @@ class Shop::ShopOrder < DomainModel
       self.currency = options[:cart].currency
       self.tax = options[:tax]
       self.shipping = options[:shipping]
-      self.shipping_address = (options[:shipping_address]||{}).symbolize_keys
-      self.billing_address = (options[:billing_address]||{}).symbolize_keys
+      self.billing_address = (options[:billing_address]||{}).symbolize_keys 
       self.shop_payment_processor_id = options[:shop_payment_processor].id
       self.payment_information = (options[:payment]||{}).to_hash.symbolize_keys
-      self.shop_shipping_category_id = options[:shop_shipping_category_id] if  options[:shop_shipping_category_id]
+      
+      self.shop_shipping_category_id = options[:shop_shipping_category_id] if  options[:shop_shipping_category_id].to_i > 0
+      self.shipping_address = (options[:shipping_address]||{}).symbolize_keys  if  options[:shop_shipping_category_id].to_i > 0
       self.ordered_at = Time.now
       self.order_items.clear
       
@@ -200,9 +209,14 @@ class Shop::ShopOrder < DomainModel
     end
   end
   
+  def admin_note(end_user,notes)
+    self.shop_order_actions.create(:end_user => end_user, :order_action => 'note', :note => notes)
+  end
+  
+  
   def admin_capture_payment(captured_by,notes)
     if result = capture_payment
-        self.shop_order_actions.create(:end_user => captured_by, :order_action => 'captured', :note => notes)
+        self.shop_order_actions.create(:end_user => captured_by, :order_action => 'captured', :note => notes, :shop_order_transaction_id => result.id)
         result
     else
       false
@@ -243,7 +257,7 @@ class Shop::ShopOrder < DomainModel
   
   def admin_ship_order(shipped_by,notes,items=nil,shipping_options={})
     if result = ship_order(items, shipping_options )
-        self.shop_order_actions.create(:end_user => shipped_by, :order_action => 'shipped', :note => notes)
+        self.shop_order_actions.create(:end_user => shipped_by, :order_action => 'shipped', :note => notes, :shop_order_transaction_id => result.id )
         result
     else
       false
@@ -268,8 +282,12 @@ class Shop::ShopOrder < DomainModel
           end
         end
       end
+      
       self.shipped_at = Time.now
       unshipped > 0 ? partially_shipped! : shipped!
+      
+      send_shipment_notification(shipment) if shipping_options[:notify_customer].to_i == 1
+      
       shipment
     else
       false
@@ -278,7 +296,7 @@ class Shop::ShopOrder < DomainModel
   
   def admin_refund_order(amount,refunded_by,notes)
     if result = refund_order(amount)
-      self.shop_order_actions.create(:end_user => refunded_by,:order_action => 'refund', :note => notes)
+      self.shop_order_actions.create(:end_user => refunded_by,:order_action => 'refund', :note => notes, :shop_order_transaction_id => result.id )
       result
     else
       false
@@ -332,10 +350,6 @@ class Shop::ShopOrder < DomainModel
     return false
   end
   
-  def refundable?
-    return %w(paid shipped partially_refunded).include?(self.state)
-  end
-  
   def self.remember_transaction(processor,user,options)
     if options[:admin]
       remember = '"remember","admin_remember"'
@@ -347,6 +361,37 @@ class Shop::ShopOrder < DomainModel
   
   
   end
+  
+  
+  ########
+  # Informational Functionality
+  ########
+
+  def refundable?
+    return %w(paid shipped partially_refunded).include?(self.state)
+  end
+  
+
+  def self.first_order?(user)
+    self.find(:first,:conditions => ["state NOT IN ('initial','pending','payment_declined') AND end_user_id=?",user.id]) ? false : true
+  end
+    
+  def pending_shipment?
+    self.shippable? && %w(authorized paid partially_shipped).include?(self.state)
+  end
+  
+  def pending_capture?
+    self.state == 'authorized'
+  end
+
+  def shippable?
+    self.shop_shipping_category_id.to_i > 0
+  end
+  
+  ########
+  # Display Functionality
+  ########
+  
 
   def display_total
     Shop::ShopProductPrice.localized_amount(total,currency)    
@@ -381,7 +426,39 @@ class Shop::ShopOrder < DomainModel
     sprintf("#%05d",self.id)
   end
   
+  
+  def format_order_html
+    columns,data = order_table_data("<br/>")
+    Util::TextFormatter.html_table(columns,data)
+  end
+  
+  def format_order_text
+    columns,data = order_table_data("\n")
+    Util::TextFormatter.text_table(columns,data)
+  end
+  
+  
+  ###### 
+  # Protected Helper Functions
+  ######
+  
   protected 
+  
+  def order_table_data(item_separator = "\n")
+    columns = [ "Item".t,"Item Cost".t,"Subtotal".t ] 
+    
+    data = self.order_items.map do |itm|
+      [ "#{itm.item_name}#{item_separator}#{itm.item_details}","#{itm.display_unit_price} X #{itm.quantity}",itm.display_subtotal ]
+    end
+    
+    data << [ '',"Subtotal:",self.display_subtotal ] if self.subtotal > 0
+    data << [ '',"Shipping:",self.display_shipping ] if self.shipping > 0
+    data << [ '',"Tax:",self.display_tax ] if self.tax > 0
+    data << [ '',"Total:",self.display_total ] 
+
+    [ columns, data]  
+  end
+  
   def display_address(adr)
     EndUserAddress.new(adr).display
   end  
@@ -393,5 +470,15 @@ class Shop::ShopOrder < DomainModel
   
   def find_authorization
     self.transactions.find(:first,:conditions => 'success = 1 AND action="authorization"')
+  end
+  
+  
+  def send_shipment_notification(shipment)
+    opts = Shop::AdminController.module_options
+    if self.end_user && @mail_template = MailTemplate.find_by_id(opts.shipping_template_id)
+        @mail_template.deliver_to_user(self.end_user, { 'ORDER_ID' => self.id, 'ORDER_DATE' => self.ordered_at.localize(DEFAULT_DATE_FORMAT.t),
+                                                        'ORDER_HTML' => format_order_html, 'ORDER_TEXT' => format_order_text })
+                                                        
+    end
   end
 end

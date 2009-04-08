@@ -77,7 +77,7 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-      default_options :shop_currency => 'USD'
+      attributes :shop_currency => 'USD', :shipping_template_id => nil
 
       validates_presence_of :shop_currency
       

@@ -183,7 +183,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
   
   
   def self.sanitize(payment_info)
-    payment_info.slice(:card_type,:exp_month,:exp_year)
+    payment_info.slice(:card_type,:exp_year)
   end
   
   def payment_record(transaction,payment_info,options = {})
