@@ -227,6 +227,7 @@ ProductEditor = {
 <%= f.filemanager_image :image_file_id, :label => 'Primary Image' %>
 <%= f.text_field :internal_sku, :label => 'Internal Sku' %>
 <%= f.text_field :sku, :label => 'Manufacturer Sku' %>
+<%= f.radio_buttons :in_stock, [['Yes',true],['No',false]] %>
 <%= f.select :shop_product_class_id, @product_classes, { :label => 'Product Class'}, :onchange => 'ProductEditor.changeOptions(this.value);' %>
    </table>
    </td>
@@ -238,7 +239,7 @@ ProductEditor = {
 </tr>   
 <tr>
   <td colspan='3' align='left'>
-    <% ajax_tabs ['Details','Categories','Additional Media','Options','Stock','Fields','Features'],'Details' do |t| -%>
+    <% ajax_tabs ['Details','Categories','Additional Media','Options','Features'],'Details' do |t| -%>
         <% t.tab do -%>
         <table style='width:100%'>
            <%= f.radio_buttons :shippable, [['Yes',true],['No',false]], :description => 'Is this product shipped?' %>
@@ -281,12 +282,6 @@ ProductEditor = {
         <div id='product_options'>
           <%= render :partial => 'options', :locals => { :shop_product_class => @product.shop_product_class } %>
         </div>
-      <% end -%>
-      <% t.tab do -%>
-        Stock
-      <% end -%>
-      <% t.tab do -%>
-        Fields
       <% end -%>
       <% t.tab do -%>
         <%= render :partial => 'features' %>

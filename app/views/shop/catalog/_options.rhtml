@@ -2,7 +2,7 @@
 <% options = @product.shop_product_options.index_by(&:shop_variation_option_id) -%>
 
 
-<table class='admin_table'>
+<table class='admin_table' cellspacing='0'>
 <% shop_product_class.quantity_variations.each_with_index do |variation,index| -%>
 <% if index == 0 %>
 <tr>
@@ -48,6 +48,8 @@
   <th>Override</th>
   <th>Price Adj.</th>
   <th>Weight Adj.</th>
+  <th>Image</th>
+  <th>Stock</th>
 </tr>
 <% end -%>
 <tr>
@@ -61,13 +63,15 @@
     prd_opt.prices = opt.prices
     prd_opt.weight = opt.weight
   end %>
-  <tr>
+  <tr <%= highlight_row 'option', opt.id %>>
     <td></td>
     <td><%= opt.name %></td>
     <td><%= f.text_field :option_sku, :size => 15,  :class=>"text_field_input"  %></td>
     <td align='center'><%= f.check_box :override %></td>
     <td>  <%= render :partial => 'currency_inputs', :locals => { :field_name => "options[#{opt.id}][prices]", :currencies => @active_currencies, :prices => prd_opt.prices || {}, :separator => "", :onchange => "$('options_#{opt.id}_override').checked = true;" } %></td>
     <td><%= f.text_field :weight, :size => 10, :class=>"text_field_input", :onchange => "$('options_#{opt.id}_override').checked = true;" %></td>
+    <td><%= f.filemanager_image :image_id %></td>
+    <td><label> <%= f.check_box :in_stock %> In Stock</label></td>
   </tr>
   <% end -%>
   <% end -%>

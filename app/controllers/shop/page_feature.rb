@@ -33,14 +33,14 @@ class Shop::PageFeature < ParagraphFeature
       </cms:product>
       </div>
     <div class='clear'></div>
-    </cms:products>
     <div class='product_pages'>
       <cms:pages/>
     </div>
+    </cms:products>
   FEATURE
   
-  def shop_product_listing_feature(feature,data)
-   parser_context = FeatureContext.new do |c|
+  def shop_product_listing_feature(data)
+    webiva_feature('shop_product_listing') do |c|
    
       c.define_value_tag('search') { |t| h(data[:search]) }
    
@@ -177,10 +177,7 @@ class Shop::PageFeature < ParagraphFeature
       c.define_pagelist_tag 'products:pages' do |tag|
           tag.locals.page_data  
       end
-    end
-
-      
-    parse_feature(feature,parser_context)
+   end
   end
    
    feature :shop_product_detail, :default_feature => <<-FEATURE
@@ -211,9 +208,8 @@ class Shop::PageFeature < ParagraphFeature
       <cms:no_product>Invalid Product</cms:no_product>
   FEATURE
 
-  def shop_product_detail_feature(feature,data)
-
-   parser_context = FeatureContext.new do |c|
+  def shop_product_detail_feature(data)
+    webiva_feature('shop_product_detail',data) do |c|
       c.define_tag 'no_product' do |tag|
         data[:product] ? nil : tag.expand
       end
@@ -289,32 +285,36 @@ class Shop::PageFeature < ParagraphFeature
         price = price ? price.price : 0.0
         
         no_prices = tag.attr['no_prices'] ? true : false
+        
+        opt_idx = tag.attr['option']
                 
         if cls && cls.shop_variations.length > 0
         
           output = ''
           unit_cost = data[:product].get_unit_cost(data[:currency])
-          cls.option_variations.each do |variation|
-            opts = data[:product].get_variation_options(variation,data[:currency]).collect do |opt|
-              if no_prices
-                "<option value='#{opt[2]}'>#{h opt[0]}</option>"
-              else
-                if cls.shop_variations.length == 1
-                  opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1] + unit_cost,data[:currency])
-                  "<option value='#{opt[2]}'>#{h opt[0]} - #{opt_price_localized}</option>"
+          cls.option_variations.each_with_index do |variation,idx|
+            if !opt_idx || (opt_idx.to_i == (idx+1))
+              opts = data[:product].get_variation_options(variation,data[:currency]).collect do |opt|
+                if no_prices
+                  "<option value='#{opt[2]}'>#{h opt[0]}</option>"
                 else
-                  opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1],data[:currency])
-                  modifier = opt[1] > 0 ? "+" : "-"
-                  "<option value='#{opt[2]}'>#{h opt[0]} - #{modifier}#{opt_price_localized}</option>"
-                
+                  if cls.shop_variations.length == 1
+                    opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1] + unit_cost,data[:currency])
+                    "<option value='#{opt[2]}'>#{h opt[0]} - #{opt_price_localized}</option>"
+                  else
+                    opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1],data[:currency])
+                    modifier = opt[1] > 0 ? "+" : "-"
+                    "<option value='#{opt[2]}'>#{h opt[0]} - #{modifier}#{opt_price_localized}</option>"
+                  
+                  end
                 end
               end
-            end
-            output += <<-EOF
-              <select name='shop#{data[:paragraph_id]}[variation][#{variation.id}]'>
-                #{opts.join("\n")}
-              </select>
+              output += <<-EOF
+                <select name='shop#{data[:paragraph_id]}[variation][#{variation.id}]'>
+                  #{opts.join("\n")}
+                </select>
               EOF
+            end
           end
           output
           
@@ -322,9 +322,23 @@ class Shop::PageFeature < ParagraphFeature
           nil
         end
       end 
-  
-  
-      define_submit_tag(c,'add_to_cart',:default => 'Add To Cart')
+      
+      c.loop_tag('option_detail') do |t| 
+        cls = data[:product].shop_product_class
+        if cls && cls.shop_variations.length > 0
+          opt_idx = (t.attr['option']||1).to_i - 1
+          opt_idx = 0 if opt_idx < 0
+          variation = cls.option_variations[opt_idx]
+          opts = data[:product].get_variation_details(variation)
+        else
+          nil
+        end
+      end
+          
+      c.image_tag('option_detail:img') { |t| t.locals.option_detail[:opt].image }
+      c.value_tag('option_detail:name') { |t| t.locals.option_detail[:var].name }
+      
+      c.submit_tag('add_to_cart',:default => 'Add To Cart')
   
       c.define_tag 'product_added' do |tag|
         if data[:product_added] 
@@ -389,9 +403,6 @@ class Shop::PageFeature < ParagraphFeature
     end      
       
    end
-
-      
-    parse_feature(feature,parser_context)
   end
 
  feature :display_cart, :default_feature => <<-FEATURE
@@ -403,9 +414,8 @@ class Shop::PageFeature < ParagraphFeature
       </div>
   FEATURE
 
-  def display_cart_feature(feature,data)
-   
-   parser_context = FeatureContext.new do |c|
+  def display_cart_feature(data)
+    webiva_feature('display_cart') do |c|
 
       c.value_tag('product_count') { |t| data[:cart].products_count > 0 ? data[:cart].products_count : nil } 
 
@@ -430,7 +440,6 @@ class Shop::PageFeature < ParagraphFeature
       end
 
    end
-   parse_feature(feature,parser_context)
   end
   
 

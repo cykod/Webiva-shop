@@ -101,7 +101,7 @@ class Shop::PageRenderer < ParagraphRenderer
         data[:product_added] = flash[:shop_product_added]
       end
 
-      feature_output = shop_product_listing_feature(get_feature('shop_product_listing'),data)
+      feature_output = shop_product_listing_feature(data)
 
       DataCache.put_content("ShopCategory",target_string,display_string,feature_output) unless editor?  || params[:search]
     end
@@ -182,7 +182,7 @@ class Shop::PageRenderer < ParagraphRenderer
         data[:product_added] = flash[:shop_product_added]
       end
 
-      feature_output = shop_product_detail_feature(get_feature('shop_product_detail'),data)
+      feature_output = shop_product_detail_feature(data)
 
       DataCache.put_content("ShopProduct",target_string,display_string, [  product_id,product_name,feature_output ]) if @caching_active
     end
@@ -205,7 +205,7 @@ class Shop::PageRenderer < ParagraphRenderer
       
     currency = @mod.currency
     data = { :cart=> get_cart, :full_cart_page => full_cart_page, :currency => currency }
-    feature_output = display_cart_feature(get_feature('display_cart'),data)
+    feature_output = display_cart_feature(data)
     render_paragraph :text => feature_output
   end
 

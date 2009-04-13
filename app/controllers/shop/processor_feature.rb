@@ -24,16 +24,21 @@ class Shop::ProcessorFeature < ParagraphFeature
       </tr>
       </cms:product>
     <tr>
-      <td colspan='3' align='right'><cms:update_quantity>Update Quantity</cms:update_quantity></td>
-    </tr>
-    <tr>
       <td colspan='3' align='right'>Total:</td>
       <td><cms:total/></td>
     </tr>
+    <tr>
+      <td colspan='3' align='right'><cms:update_quantity>Update Quantity</cms:update_quantity></td>
+    </tr>
+    
     </cms:products>
-    <cms:coupon>
+    <tr>
+    <td colspan='4'>
+    <cms:coupon><cms:form>
      Promotional Code: <cms:code/> <cms:apply_button/>
-    </cms:coupon>
+    </cms:form></cms:coupon>
+    </td>
+    </tr>
     <tr>
       <td colspan='2' align='left'><cms:continue_shopping>Continue Shopping</cms:continue_shopping></td>
       <td colspan='2' align='right'><cms:checkout>Checkout</cms:checkout></td>

@@ -228,6 +228,15 @@ class Shop::ShopProduct < DomainModel
     return [] unless self.shop_product_class
     self.shop_product_class.quantity_variations
   end
+  
+  def get_variation_details(variation)
+    var_opts = variation.options.find(:all,:joins => :product_options, :conditions => ['shop_product_options.shop_product_id = ?',self.id],:order => 'shop_variation_options.option_index')
+    opts = self.shop_product_options.index_by(&:shop_variation_option_id)
+    
+    var_opts.map do |var_opt|
+      { :var =>  var_opt, :opt =>  opts[var_opt.id] }
+    end
+  end
 
   def get_variation_options(variation,currency) 
      opts = variation.options.find(:all,:joins => :product_options, :conditions => ['shop_product_options.shop_product_id = ?',self.id],:order => 'shop_variation_options.option_index')
@@ -321,7 +330,7 @@ class Shop::ShopProduct < DomainModel
       opt = info[0]
       variation_type = info[1]
       
-      if variation_type == 'options'
+      if variation_type == 'option'
         if(opt.product_options[0] && opt.product_options[0].override?)
          cost += opt.product_options[0].prices[currency].to_f
         else
@@ -352,6 +361,7 @@ class Shop::ShopProduct < DomainModel
   
   def cart_limit(options,cart)
     limit = 10000000
+    return 0 if !self.in_stock?
     if self.stock_callbacks > 0
       self.full_features.each do |feat|
         if feat.stock_callback?
