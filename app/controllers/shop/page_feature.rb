@@ -209,7 +209,7 @@ class Shop::PageFeature < ParagraphFeature
   FEATURE
 
   def shop_product_detail_feature(data)
-    webiva_feature('shop_product_detail',data) do |c|
+    webiva_feature('shop_product_detail') do |c|
       c.define_tag 'no_product' do |tag|
         data[:product] ? nil : tag.expand
       end
