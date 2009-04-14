@@ -68,6 +68,8 @@
 
 <% if payment_processors.length > 1 %>
 <h2><%= "Payment Options".t %></h2>
+<% else -%>
+<h2><%= "Payment".t %></h2>
 <% end -%>
 
 <%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => payment_processors, :admin => false, :payment => payment, :user => myself } %>
