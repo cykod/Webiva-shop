@@ -209,7 +209,7 @@ class Shop::PageFeature < ParagraphFeature
   FEATURE
 
   def shop_product_detail_feature(data)
-    webiva_feature('shop_product_detail') do |c|
+    webiva_feature('shop_product_detail',data) do |c|
       c.define_tag 'no_product' do |tag|
         data[:product] ? nil : tag.expand
       end
@@ -398,9 +398,9 @@ class Shop::PageFeature < ParagraphFeature
       
       
     # Get each of the handler option models
-    get_handler_info(:site_feature,:shop_product_detail).each do |handler|
-        handler[:class].shop_product_detail_feature(c,data)
-    end      
+  #  get_handler_info(:site_feature,:shop_product_detail).each do |handler|
+  #      handler[:class].shop_product_detail_feature(c,data)
+  #  end      
       
    end
   end
