@@ -4,10 +4,10 @@
 <tr>
 <td class='label'>
 <% if payment_processors.length > 1 %>
-<label for='processor_<%= processor.id %>'><input type='radio' name='payment[selected_processor_id]' id='processor_<%= processor.id %>' value='<%= processor.id %>' <%= "checked='checked'" if selected_processor == processor.id %> />Pay with <%= processor.payment_type.t %></label><br/>
+<label for='processor_<%= processor.id %>'><input type='radio' name='payment[selected_processor_id]' id='processor_<%= processor.id %>' value='<%= processor.id %>' <%= "checked='checked'" if selected_processor == processor.id %> /><%= "Pay with".t %> <%= processor.payment_type.t %></label><br/>
 </label>
 <% else -%>
-  Pay with <%= processor.payment_type.t %><input type='hidden' name='payment[selected_processor_id]' value='<%= processor.id %>' /><br/>
+  <%= "Payment via".t %> <%= processor.payment_type.t %><input type='hidden' name='payment[selected_processor_id]' value='<%= processor.id %>' /><br/>
 <% end -%>
 </td>
 </tr>
