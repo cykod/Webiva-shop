@@ -149,7 +149,8 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
           :phone => user_info[:billing_address][:phone],
         }, 
         :email => user_info[:user][:email],
-        :customer_ip => request_options[:ip_address]
+        :customer_ip => request_options[:ip_address],
+        :ip => request_options[:ip_address]
       }
       
        information[:card_code] = parameters[:cvc] unless reference

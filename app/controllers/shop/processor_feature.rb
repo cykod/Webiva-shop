@@ -50,7 +50,8 @@ class Shop::ProcessorFeature < ParagraphFeature
  
 def full_cart_feature(data)
    webiva_feature('full_cart') do |c|
-      c.define_tag('user') { |tag| myself.name }
+      c.value_tag('user') { |t| myself.id ? myself.name : nil }
+      c.expansion_tag('anonymous') { |t| !myself.id }
       c.expansion_tag('cart') { |t| data[:cart].products_count > 0 }
 
       c.expansion_tag('static') { |tag| data[:static] }

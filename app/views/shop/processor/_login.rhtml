@@ -1,6 +1,6 @@
 <%= feature_output %>
 <div class='cms_form checkout checkout_login'>
-<h1>Please login or register to continue the checkout</h1>
+<h2>Please login or register to continue the checkout</h2>
 <table>
 <% cms_unstyled_form_for :login,login, :url => '' do |f| %>
   <tr>
@@ -64,7 +64,7 @@
       Password* <%= f.password_field :password, :vertical => true, :required => true, :size => 15, :class => 'textfield' %>
     </td>
     <td class='field'>
-      Re-enter Password*<%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :required => true, :size => 15, :class => 'textfield'%>
+      Re-enter*<%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :required => true, :size => 15, :class => 'textfield'%>
     </td>
   </tr>
   <tr>

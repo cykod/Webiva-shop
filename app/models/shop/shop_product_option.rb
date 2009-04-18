@@ -6,4 +6,12 @@ class Shop::ShopProductOption < DomainModel
   belongs_to :image, :class_name => 'DomainFile',:foreign_key => 'image_id'
 
   serialize :prices
+  
+ def images
+    return @images if @images
+    
+    @images = self.image_list.to_s.split(",").find_all { |elm| !elm.blank? }
+    
+    @images = DomainFile.find(:all,:conditions => { :id => @images })
+  end  
 end

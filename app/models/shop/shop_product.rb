@@ -71,6 +71,10 @@ class Shop::ShopProduct < DomainModel
     end
   end
   
+  def image
+    self.image_file
+  end
+  
   def images_product_files
     if @image_ids && @image_ids.is_a?(Array)
       @image_ids.collect { |fl|
@@ -248,7 +252,7 @@ class Shop::ShopProduct < DomainModel
         else
           price = opt.prices[currency].to_f
         end
-        [ opt.name, price,opt.id ]
+        [ opt.name, price,opt.id, opt.product_options[0].in_stock? ]
        end
      else
        last_amount = 0

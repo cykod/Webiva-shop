@@ -143,8 +143,15 @@ class Shop::PageFeature < ParagraphFeature
         end      
       end
 
-      define_image_tag(c,'product:image','product','image_file')
-      define_image_tag(c,'product:img','product','image_file')
+      c.image_tag('product:image') { |t| t.locals.product.image_file } 
+      c.image_tag('product:img') { |t| t.locals.product.image_file } 
+      
+      c.image_tag('product:extra_img') do |t|
+        index = (t.attr.delete('number') || 1).to_i - 1
+        index = 0 if index < 0
+        file  = t.locals.product.images[index]
+        img = file.domain_file if file
+      end      
       
 
       c.define_tag 'product:price' do |tag|
@@ -295,20 +302,24 @@ class Shop::PageFeature < ParagraphFeature
           cls.option_variations.each_with_index do |variation,idx|
             if !opt_idx || (opt_idx.to_i == (idx+1))
               opts = data[:product].get_variation_options(variation,data[:currency]).collect do |opt|
-                if no_prices
-                  "<option value='#{opt[2]}'>#{h opt[0]}</option>"
-                else
-                  if cls.shop_variations.length == 1
-                    opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1] + unit_cost,data[:currency])
-                    "<option value='#{opt[2]}'>#{h opt[0]} - #{opt_price_localized}</option>"
+                if opt[3] # In stock?
+                  if no_prices
+                    "<option value='#{opt[2]}'>#{h opt[0]}</option>"
                   else
-                    opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1],data[:currency])
-                    modifier = opt[1] > 0 ? "+" : "-"
-                    "<option value='#{opt[2]}'>#{h opt[0]} - #{modifier}#{opt_price_localized}</option>"
-                  
+                    if cls.shop_variations.length == 1
+                      opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1] + unit_cost,data[:currency])
+                      "<option value='#{opt[2]}'>#{h opt[0]} - #{opt_price_localized}</option>"
+                    else
+                      opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1],data[:currency])
+                      modifier = opt[1] > 0 ? "+" : "-"
+                      "<option value='#{opt[2]}'>#{h opt[0]} - #{modifier}#{opt_price_localized}</option>"
+                    
+                    end
                   end
+                else 
+                  nil
                 end
-              end
+              end.compact
               output += <<-EOF
                 <select name='shop#{data[:paragraph_id]}[variation][#{variation.id}]'>
                   #{opts.join("\n")}
@@ -336,6 +347,13 @@ class Shop::PageFeature < ParagraphFeature
       end
           
       c.image_tag('option_detail:img') { |t| t.locals.option_detail[:opt].image }
+      
+      c.image_tag('option_detail:extra_img') do |t|
+        idx = (t.attr.delete('number') || 1).to_i - 1
+        idx = 0 if idx < 0
+        t.locals.option_detail[:opt].images[idx]      
+      end
+      
       c.value_tag('option_detail:name') { |t| t.locals.option_detail[:var].name }
       
       c.submit_tag('add_to_cart',:default => 'Add To Cart')

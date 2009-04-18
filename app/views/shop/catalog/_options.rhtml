@@ -1,6 +1,6 @@
 <% if shop_product_class %>
 <% options = @product.shop_product_options.index_by(&:shop_variation_option_id) -%>
-
+<a href='javascript:void(0);' onclick='$$(".option_image_list").each(function(elm) { $(elm).toggle(); });'>Toggle Additional Images</a><br/><br/>
 
 <table class='admin_table' cellspacing='0'>
 <% shop_product_class.quantity_variations.each_with_index do |variation,index| -%>
@@ -73,6 +73,15 @@
     <td><%= f.filemanager_image :image_id %></td>
     <td><label> <%= f.check_box :in_stock %> In Stock</label></td>
   </tr>
+  <tr>
+    <td></td>
+    <td colspan='6'>
+     <div class='option_image_list' id='image_list_<%= opt.id %>' style='display:none;'>
+      <%= f.image_list :image_list %>
+    </div>
+    </td>
+  </tr>
+  
   <% end -%>
   <% end -%>
 

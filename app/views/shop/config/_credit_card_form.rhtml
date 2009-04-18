@@ -1,5 +1,5 @@
 <% if f.object.reference_card %>
-<table cellspacing='4'>
+<table cellspacing='4' class='cc_form'>
   <tr>
     <td><input type='radio' id='payment_<%= processor.id %>_type_reference' name='payment[<%= processor.id %>][type]' value='reference' <%= "checked='checked'" if f.object.type == 'reference' %> /></td>
     <td><label for='payment_<%= processor.id %>_type_reference'> Pay using card on file: <b><%= f.object.reference_card %></b></label>
@@ -17,7 +17,7 @@
     <td valign='top' style='padding-left:5px;'>
 
 <% end -%>
-<table cellpadding='0' cellspacing='0'>
+<table cellpadding='0' cellspacing='0'  class='cc_form'>
 <tr>
 <% if !f.object.reference_card %>
   <td valign='center'>

@@ -146,7 +146,7 @@ class Shop::PageRenderer < ParagraphRenderer
       product_id = product.id if product
       product_name = product.name if product
     else
-      product_connection,product_link = page_connection()
+      product_connection,product_link = page_connection(:input)
 
       target_string = "#{product_connection}_#{product_link}"
       
@@ -176,6 +176,9 @@ class Shop::PageRenderer < ParagraphRenderer
       
       if options[:list_page_id].to_i > 0
         data[:list_page] = SiteNode.get_node_path(options[:list_page_id])
+        cat_conn_type,cat_conn_id = page_connection(:category)
+        
+        data[:list_page] << "/#{cat_conn_id}" if !cat_conn_id.blank?
       end
 
       if flash[:shop_product_added]

@@ -6,8 +6,8 @@ class Shop::PageController < ParagraphController
                                   :outputs => [ [ :content_id, 'Content Identifier', :content ],
                                                 [ :category_id, 'Category ID', :category_id ] ]
   editor_for :product_detail, :name => 'Product Detail', :features => ['shop_product_detail'],
-                       :inputs => [ [ :product_id, 'Product ID', :path ],
-                                    [ :product_sku, 'Product Sku', :path ] ],
+                       :inputs =>  { :input =>  [ [ :product_id, 'Product ID', :path ],  [ :product_sku, 'Product Sku', :path ] ] ,
+                                     :category => [ [ :product_category_1, 'Product Category - Level 1', :path ] ] }, 
                         :outputs => [ [ :content_id, 'Content Identifier', :content ],
                                       [ :product_id, 'Product ID', :product_id ] ]
   editor_for :category_listing, :name => 'Category Menu',  :features => ['menu'],
