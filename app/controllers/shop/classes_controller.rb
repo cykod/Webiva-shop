@@ -59,8 +59,8 @@ class Shop::ClassesController < ModuleController
       
       @variations = params[:variation].to_a.sort { |a,b| a[0] <=> b[0] }.collect { |e| e[1] }
       @variations.each do |variation|
-        @options = variation[:options]
-        variation[:options] = @options.to_a.sort { |a,b| a[0] <=> b[0] }.collect { |e| e[1] }
+        order = variation[:order].split(",")
+        variation[:options] = order.map { |idx| variation[:options][idx.to_s] }.compact
       end
     elsif !request.post?
       @variations = @cls.variations_hash
@@ -70,7 +70,7 @@ class Shop::ClassesController < ModuleController
     
     @active_currencies = get_currencies
    
-    
+    @cls.attributes = params[:cls]
     if request.post? && @cls.valid? && @cls.update_variations(@variations)
       @cls.save
       

@@ -1,6 +1,6 @@
 <div class='admin_content'>
 <form action='' method='post'>
-<% cms_fields_for :cls, @cls do |f| -%>
+<% cms_fields_for :cls, @cls, :html => { :onsubmit => "OptionEditor.saveVariationOrder();" } do |f| -%>
   <%= f.text_field :name %>
 <% end -%>
  <br/>

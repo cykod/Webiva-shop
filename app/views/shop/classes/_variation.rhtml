@@ -1,6 +1,7 @@
 <div id='variation_<%=idx %>' class='variation' style='margin:5px; border:1px solid #AAAAAA; padding:10px;'>
 <input type='hidden' name='variation[<%= idx %>][id]' value='<%= vh variation[:id] %>'/>
 <input type='hidden' name='variation[<%= idx %>][variation_type]' value='<%= vh variation[:variation_type] %>'/>
+<input type='hidden' name='variation[<%= idx %>][order]' id='order_variation_options_<%= idx %>' value=''/>
 <div id='variation_header_<%=idx %>'>
   <%= variation[:variation_type] == 'option' ? "Product Option".t : "Quantity Variation".t %>
   <div style='float:left; width:250px;'><input type='text' name='variation[<%= idx %>][name]' size='25' value='<%= vh variation[:name] %>' />

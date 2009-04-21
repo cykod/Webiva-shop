@@ -6,10 +6,14 @@ OptionEditor = {
   createOptionSortables: function() {
     var elems = $('variations').select(".variation_options");
     elems.each(function(elem) {
-      Sortable.create(elem,{ tag: "div" } );
+      Sortable.create(elem,{ tag: "div", onUpdate: OptionEditor.updateOrder } );
     
     });
   
+  },
+  
+  updateOrder: function(elm) {
+    $("order_" + elm.id).value = Sortable.sequence(elm);
   },
   
   createOptionSortable: function(idx) {
@@ -77,6 +81,14 @@ OptionEditor = {
       Element.remove(elem);
     }
   
+  },
+  
+  saveVariationOrder: function() {
+    var elems = $('variations').select(".variation_options");
+    elems.each(function(elem) {
+      OptionEditor.updateOrder(elem);
+    });
+    
   }
   
 
