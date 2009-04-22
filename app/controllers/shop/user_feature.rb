@@ -30,7 +30,7 @@ class Shop::UserFeature < ParagraphFeature
     </cms:orders>
   FEATURE
 
-  def shop_order_tags(c)
+  def shop_order_tags(c,data)
       c.value_tag('order:number') { |t| t.locals.order.id }
       c.link_tag('order:detail') { |t| data[:detail_url].to_s + "/" + t.locals.order.id.to_s }
       c.date_tag('order:ordered_at',DEFAULT_DATE_FORMAT.t) { |t| t.locals.order.ordered_at }
@@ -52,7 +52,7 @@ class Shop::UserFeature < ParagraphFeature
   def shop_user_orders_feature(data)
     webiva_feature(:shop_user_orders) do |c|
       c.loop_tag('order') { |t| data[:orders] }
-        shop_order_tags(c)
+        shop_order_tags(c,data)
         c.pagelist_tag('orders:pages') { |t| data[:pages] }
     end
   end
@@ -115,7 +115,7 @@ class Shop::UserFeature < ParagraphFeature
   def shop_user_order_detail_feature(data)
     webiva_feature(:shop_user_order_detail) do |c|
       c.expansion_tag('order') { |t| t.locals.order=data[:order] }
-       shop_order_tags(c)
+       shop_order_tags(c,data)
        c.loop_tag('shipment') { |t| data[:order].shop_order_shipments }
          c.value_tag('shipment:carrier_name') { |t| t.locals.shipment.shop_carrier ? t.locals.shipment.shop_carrier.name : nil }
          c.value_tag('shipment:tracking') { |t| t.locals.shipment.tracking_number }
