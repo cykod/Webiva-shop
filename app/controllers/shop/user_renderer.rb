@@ -10,7 +10,7 @@ class Shop::UserRenderer < ParagraphRenderer
   def orders
     @options = paragraph_options(:orders)
     @page_data,@orders = Shop::ShopOrder.paginate(params[:page],
-            :conditions => ['end_user_id=? AND state NOT IN ("initial","pending") ',myself.id ],:order => 'ordered_at DESC')
+            :conditions => ['end_user_id=? AND state NOT IN ("initial","pending","payment_declined") ',myself.id ],:order => 'ordered_at DESC')
   
     data = { :orders => @orders, :pages => @page_data, :detail_url => @options.detail_page_url }
     
