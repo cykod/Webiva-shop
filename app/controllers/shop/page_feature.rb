@@ -457,6 +457,8 @@ class Shop::PageFeature < ParagraphFeature
         "href='#{data[:full_cart_page].blank? ? '#' : data[:full_cart_page]}'"
       end
 
+
+      c.define_user_tags('user') { |t| data[:user] }
    end
   end
   

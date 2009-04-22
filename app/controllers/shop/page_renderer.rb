@@ -207,7 +207,7 @@ class Shop::PageRenderer < ParagraphRenderer
     @mod = get_module
       
     currency = @mod.currency
-    data = { :cart=> get_cart, :full_cart_page => full_cart_page, :currency => currency }
+    data = { :cart=> get_cart, :full_cart_page => full_cart_page, :currency => currency, :user => myself }
     feature_output = display_cart_feature(data)
     render_paragraph :text => feature_output
   end
