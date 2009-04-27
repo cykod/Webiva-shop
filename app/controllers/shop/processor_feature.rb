@@ -93,6 +93,17 @@ def full_cart_feature(data)
             Shop::ShopProductPrice.localized_amount(price,data[:currency])
           end
 
+          c.define_tag 'cart:product:remove' do |t|
+            item_hash,opt_hash = quantity_hash(t.locals.cart_item)
+            if t.attr['image']
+             tag(:image, :name => "shop#{data[:paragraph_id]}[remove][#{item_hash}][#{opt_hash}]",:src => t.expand)
+            else
+             opts = t.attr.clone
+             value = t.single? ? (opts.delete('value') || 'Remove') : t.expand
+             tag(:input,  { :type => 'submit', :name => "shop#{data[:paragraph_id]}[remove][#{item_hash}][#{opt_hash}]",:value => value}.merge(t.attr))
+            end
+          end
+
           c.value_tag('cart:total') { |t| Shop::ShopProductPrice.localized_amount(data[:cart].total,data[:currency]) }
           
           c.expansion_tag('cart:shippable') { |t| data[:cart].shippable? }

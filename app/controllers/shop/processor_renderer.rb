@@ -433,11 +433,20 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
     case act[:action]
     when 'update_quantities':
-      @cart.products.each do |cart_item|
-        item_hash,opt_hash = quantity_hash(cart_item)
-        if act[:quantity][item_hash] && act[:quantity][item_hash][opt_hash]
-          quantity = act[:quantity][item_hash][opt_hash].to_i
-          @cart.edit_product(cart_item.item,quantity,cart_item.options)
+      if act[:remove]
+        @cart.products.each do |cart_item|
+          item_hash,opt_hash = quantity_hash(cart_item)
+          if act[:remove][item_hash]  && act[:remove][item_hash][opt_hash]
+            @cart.edit_product(cart_item.item,0,cart_item.options)
+          end
+        end
+      else
+        @cart.products.each do |cart_item|
+          item_hash,opt_hash = quantity_hash(cart_item)
+          if act[:quantity][item_hash] && act[:quantity][item_hash][opt_hash]
+            quantity = act[:quantity][item_hash][opt_hash].to_i
+            @cart.edit_product(cart_item.item,quantity,cart_item.options)
+          end
         end
       end
       @cart = get_cart
