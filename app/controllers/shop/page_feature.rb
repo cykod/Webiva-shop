@@ -253,6 +253,8 @@ class Shop::PageFeature < ParagraphFeature
           data[:product].send(elem)
         end
       end
+      
+      c.value_tag('product:product_id') { |t| data[:product].id }
 
       c.define_tag 'price' do |tag|
         price = tag.locals.product.get_price(data[:currency])
