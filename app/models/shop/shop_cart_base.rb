@@ -57,6 +57,14 @@ attr_accessor :shipping
     cart_total
   end
   
+  def real_items
+    cart_total = 0
+    products.each do |product|
+      cart_total += 1 if product.cart_item_type != 'Shop::ShopCoupon'
+    end
+    cart_total
+  end
+  
  
   
   def shippable? 

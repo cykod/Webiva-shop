@@ -117,6 +117,8 @@ class Shop::ShopCoupon < DomainModel
       return 0
     end
     
+    return 0 if cart.real_items == 0
+    
     return 1
   end
   
