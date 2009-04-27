@@ -243,23 +243,26 @@ class Shop::ShopProduct < DomainModel
   end
 
   def get_variation_options(variation,currency) 
-     opts = variation.options.find(:all,:joins => :product_options, :conditions => ['shop_product_options.shop_product_id = ?',self.id],:order => 'shop_variation_options.option_index')
+     prd_opts = self.shop_product_options.index_by(&:shop_variation_option_id)
+     opts = variation.options
      
      if variation.variation_type == 'option'
        opts.collect do |opt|
-        if(opt.product_options[0] && opt.product_options[0].override?)
-          price = opt.product_options[0].prices[currency].to_f
+        prd_opt = prd_opts[opt.id]
+        if(prd_opt && prd_opt)
+          price = prd_opt.prices[currency].to_f
         else
           price = opt.prices[currency].to_f
         end
-        [ opt.name, price,opt.id, opt.product_options[0].in_stock? ]
+        [ opt.name, price,opt.id, prd_opt.in_stock? ]
        end
      else
        last_amount = 0
        opts.collect do |opt|
-        if(opt.product_options[0])
-          price = opt.product_options[0].prices[currency].to_f
-          max = opt.product_options[0].override? ? opt.product_options[0].max : opt.max 
+        prd_opt = prd_opts[opt.id]
+        if(prd_opt)
+          price = prd_opt.prices[currency].to_f
+          max = prd_opt.override? ? prd_opt.max : opt.max 
           min = last_amount + 1
           nm = max ? "#{last_amount + 1}-#{max}" : "#{last_amount + 1}+"
           last_amount = max
