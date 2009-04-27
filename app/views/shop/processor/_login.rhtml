@@ -28,7 +28,7 @@
       <hr/>
     </td>
   </tr>
-<% cms_unstyled_form_for :register,user, :url => '' do |f| %>
+<% cms_form_for :register,user, :url => '' do |f| %>
   <% if user.errors.length > 0 %>
   <tr>
     <td colspan='2' class='errors'>
@@ -48,26 +48,12 @@
       New users please register below:
     </td>
   </tr>
-  <tr>
-    <td class='field'>
-      First name* <%= f.text_field :first_name, :vertical => true, :required => true, :size => 15, :class => 'textfield' %>
-    </td>
-    <td class='field'>
-      Last name* <%= f.text_field :last_name, :vertical => true, :required => true, :size => 15, :class => 'textfield' %>
-    </td>
+  <%= f.text_field :first_name, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
+  <%= f.text_field :last_name, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
+  <%= f.text_field :email, :vertical => true, :required => true, :size => 50, :class => 'textfield' %></td>
+  <%= f.password_field :password, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
+  <%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :required => true, :size => 30, :class => 'textfield'%>
   </tr>
-  <tr>
-    <td colspan='2' class='field'>Email* <%= f.text_field :email, :vertical => true, :required => true, :size => 50, :class => 'textfield' %></td>
-  </tr>
-  <tr>
-    <td class='field'>
-      Password* <%= f.password_field :password, :vertical => true, :required => true, :size => 15, :class => 'textfield' %>
-    </td>
-    <td class='field'>
-      Re-enter*<%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :required => true, :size => 15, :class => 'textfield'%>
-    </td>
-  </tr>
-  <tr>
     <td colspan='2' align='right'>
       <%= f.submit_tag 'Register', :class => 'submittag' %>
     </td>
