@@ -94,7 +94,7 @@ def full_cart_feature(data)
           end
 
           c.define_tag 'cart:product:remove' do |t|
-            if tag.locals.cart_item.coupon? || data[:static]
+            if t.locals.cart_item.coupon? || data[:static]
               ''
             else
               item_hash,opt_hash = quantity_hash(t.locals.cart_item)
