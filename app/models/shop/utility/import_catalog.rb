@@ -1,4 +1,4 @@
-
+require 'csv'
 
 class Shop::Utility::ImportCatalog < HashModel
   attributes :import_file_id => nil, :file_folder_id => nil
