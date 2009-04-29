@@ -2,12 +2,11 @@
 <%= active_table_javascript %>
 </script>
 
-<div class='admin_content'>
-<ul class='action_panel'>
-  <li><a href='<%= url_for :action => 'edit' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Add New Product".t %></a></li>
-  <li><a href='<%= url_for :controller => '/shop/classes' %>'><%= theme_icon("action","icons/actions/edit.gif") %><%= "Edit Product Classes".t %></a></li>
-</ul>
-</div>
+<% action_panel do |p| -%>
+  <%= p.link "Add New Product",:icon => 'add.gif', :action => 'edit' %>
+  <%= p.link "Edit Product Classes",:icon => 'edit.gif', :controller => '/shop/classes' %>
+  <%= p.link "Import",:icon => 'upload.gif', :action => 'import' %>      
+<% end -%>
 
 <hr/>
 <div class='admin_content'>

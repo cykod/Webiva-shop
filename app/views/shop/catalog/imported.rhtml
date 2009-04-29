@@ -1,0 +1,15 @@
+<div class='admin_content'>
+<% table_for @imports, ['Action','Product','Errors' ], :class => 'active_table' do |import| -%>
+<tr>
+  <td><%= import[0].t %></td>
+  <td>
+    <%= import[1].image_file.image_tag(:icon,:align => 'left') if import[1].image_file %>
+    <%= import[1].name %>
+  </td>
+  <td>
+    <%= import[2].join(",") %>
+  </td> 
+</tr>
+<% end -%>
+
+</div>

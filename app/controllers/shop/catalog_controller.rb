@@ -130,6 +130,21 @@ class Shop::CatalogController < ModuleController
   
   end
   
+    
+  
+  def import
+    cms_page_path ["Content","Shop","Catalog"], 'Import Products'
+  
+    @import = Shop::Utility::ImportCatalog.new(params[:import])
+    
+    if request.post? && params[:import]
+     if @import.valid?
+      @imports = @import.run_import
+      render :action => 'imported'
+     end
+    end
+  
+  end
 
   protected 
 

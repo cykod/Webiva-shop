@@ -48,8 +48,6 @@ class Shop::ShopCategory < DomainModel
       end
     end
 
-    
-  
     return ret_arr[0]
   end
 

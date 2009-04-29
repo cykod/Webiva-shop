@@ -9,26 +9,26 @@ class Shop::ShopProduct < DomainModel
   belongs_to :shop_product_class, :class_name => 'Shop::ShopProductClass'
 
   has_many :shop_category_products, :class_name => 'Shop::ShopCategoryProduct', :include => [ :shop_category ], :dependent => :destroy
-  has_many :shop_categories, :through => :shop_category_products
+  has_many :shop_categories, :through => :shop_category_products, :class_name => 'Shop::ShopCategory'
 
   has_many :prices, :class_name => 'Shop::ShopProductPrice', :order => 'sale_id IS NOT NULL', :dependent => :destroy
   has_many :regular_prices, :class_name => 'Shop::ShopProductPrice', :conditions => 'sale_id IS NULL'
   has_many :sale_prices, :class_name => 'Shop::ShopProductPrice', :conditions => 'sale_id IS NOT NULL'
   
-  has_many :shop_product_options, :class_name => 'Shop::ShopProductOption'
+  has_many :shop_product_options, :class_name => 'Shop::ShopProductOption', :dependent => :destroy
 
   cattr_accessor :active_translation_language
 
   has_one :active_translation, :class_name => 'Shop::ShopProductTranslation', :conditions => :cond_func
 
-  has_many :shop_product_translations, :dependent => :destroy
+  has_many :shop_product_translations, :class_name => 'Shop::ShopProductTranslation', :dependent => :destroy
   
   has_many :shop_product_files, :class_name => 'Shop::ShopProductFile',:dependent => :destroy
   has_many :files, :class_name=> 'Shop::ShopProductFile', :conditions => 'file_type = "doc"', :order => 'position'
   has_many :images, :class_name=> 'Shop::ShopProductFile', :conditions => 'file_type = "img"', :order => 'position'
   
   has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature', :foreign_key => 'shop_product_id', :dependent => :destroy
-  has_many :shop_coupon_products, :class_name => "Shop:ShopCouponProduct", :dependent => :destroy
+  has_many :shop_coupon_products, :class_name => "Shop::ShopCouponProduct", :dependent => :destroy
   
   # Return the products features + the features of it's product class
   def full_features
