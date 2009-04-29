@@ -115,7 +115,7 @@ class Shop::ShopCategory < DomainModel
   end
   
  def paginate_products(product_type,opts = {})
-
+ 
     case product_type 
       when :featured; featured = 'shop_category_products.featured=1'
       when :unfeatured; featured = 'shop_category_products.featured=0'
@@ -123,14 +123,20 @@ class Shop::ShopCategory < DomainModel
     end
     if opts[:conditions]
       opts[:conditions] = [ opts[:conditions] ] if opts[:conditions].is_a?(String)
-      opts[:conditions] = [ "shop_category_id=? AND #{featured} AND (" + options[:conditions][0] + ")" ] + [ self.id ] + opts[:conditions][1..-1]
+      opts[:conditions] = [ "#{featured} AND (" + opts[:conditions][0] + ")" ]  + opts[:conditions][1..-1] 
     else
-      opts[:conditions] = [ "shop_category_id=? AND #{featured} " , self.id ]
+      opts[:conditions] = [ "#{featured}" ]
     end
+    opts[:conditions] = [ "shop_category_id=? AND " + opts[:conditions][0] ] + [ self.id ] + opts[:conditions][1..-1] if self.parent_id.to_i > 0 
     opts[:order] = 'shop_products.name'
-    opts[:include] = [ :shop_product ]
 
     page = opts.delete(:page)
-    Shop::ShopCategoryProduct.paginate(page,opts)
+    if self.parent_id.to_i > 0 
+      opts[:include] = [ :shop_product ]
+      pages,products = Shop::ShopCategoryProduct.paginate(page,opts)
+      [ pages, products.collect {|cp| cp.shop_product } ]
+    else
+      Shop::ShopProduct.paginate(page,opts)
+    end
   end  
 end

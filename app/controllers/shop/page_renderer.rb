@@ -92,10 +92,12 @@ class Shop::PageRenderer < ParagraphRenderer
       
       if params[:search]
         search = params[:search]
-        pages,products = Shop::ShopProduct.run_search(params[:search])
+        pages,products = Shop::ShopProduct.run_search(params[:search],params[:page])
+        search_url = "?search=#{CGI::escape(search)}"
+        pages[:path] = search_url
       end
       
-      data = { :pages => pages, :products => products, :category => category, :detail_page => detail_page, :items_per_page => items_per_page, :currency => currency, :paragraph_id => paragraph.id, :search => search, :page => params[:page]}
+      data = { :pages => pages, :products => products, :category => category, :detail_page => detail_page, :items_per_page => items_per_page, :currency => currency, :paragraph_id => paragraph.id, :search => search, :page => params[:page], :search_url => search_url}
       
       if flash[:shop_product_added]
         data[:product_added] = flash[:shop_product_added]
@@ -179,6 +181,7 @@ class Shop::PageRenderer < ParagraphRenderer
         cat_conn_type,cat_conn_id = page_connection(:category)
         
         data[:list_page] << "/#{cat_conn_id}" if !cat_conn_id.blank?
+        data[:list_page] << "?search=#{CGI::escape(params[:search])}" if params[:search]
       end
 
       if flash[:shop_product_added]
@@ -234,6 +237,7 @@ class Shop::PageRenderer < ParagraphRenderer
     while selected_categories[-1] && selected_categories[-1].parent_id > 0
       selected_categories << Shop::ShopCategory.find_by_id(selected_categories[-1].parent_id)
     end
+    selected_categories = [] if selected_categories[-1] && selected_categories[-1].parent_id == 0
     
     @selected_categories = selected_categories.compact.map(&:id)
     @page_url = page
@@ -284,7 +288,7 @@ class Shop::PageRenderer < ParagraphRenderer
       
     selected_category =  Shop::ShopCategory.find_by_id(@selected_category_id)
     category_list = [  ] 
-    category_list << selected_category  if selected_category
+    category_list << selected_category  if selected_category && selected_category.parent_id > 0
     while category_list[0] && category_list[0].parent_id > 0
       parent_cat = Shop::ShopCategory.find_by_id(category_list[0].parent_id)
       if !parent_cat || parent_cat.id == opts.base_category_id

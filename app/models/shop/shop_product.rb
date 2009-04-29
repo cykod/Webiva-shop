@@ -35,6 +35,7 @@ class Shop::ShopProduct < DomainModel
     self.features + (self.shop_product_class ? self.shop_product_class.shop_product_features : []).to_a
   end
   
+  
   @@callbacks = [ :price,:purchase,:stock,:shipping,:rendering,:update_cart,:other ]
   
   def copy_product
@@ -430,7 +431,7 @@ class Shop::ShopProduct < DomainModel
     end
   end
   
-  def self.run_search(search_params,options={})
+  def self.run_search(search_params,page=1)
   
     terms = search_params.split(/( |,)/).map { |elm| elm.strip }.find_all { |elm| elm!="" && elm != ',' }
     match_terms = terms.join(" ")
@@ -438,7 +439,7 @@ class Shop::ShopProduct < DomainModel
     fields = [ "`name`", "`description`","`internal_sku`","`detailed_description`" ]
     cond = terms.map { |elm| fields.map { |fld| "#{fld} LIKE #{self.connection.quote("%#{elm}%")}" }.join(" OR ")  }.join(" OR ")
   
-    Shop::ShopProduct.paginate(:all,:order => "MATCH(`name`,`description`,`internal_sku`,`detailed_description`) AGAINST (" + self.connection.quote(terms) + " IN BOOLEAN MODE) DESC" ,:include => [ :prices ], :conditions => cond )
+    Shop::ShopProduct.paginate(page,:order => "MATCH(`name`,`description`,`internal_sku`,`detailed_description`) AGAINST (" + self.connection.quote(terms) + " IN BOOLEAN MODE) DESC" ,:include => [ :prices ], :conditions => cond )
   end
 
 

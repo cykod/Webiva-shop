@@ -75,9 +75,10 @@ class Shop::PageFeature < ParagraphFeature
         else
           tag.locals.search = false
           tag.locals.page_data,products =data[:category].paginate_products(:all, :per_page => data[:items_per_page], :page => data[:page])
-          tag.locals.products = products.collect {|cp| cp.shop_product }
+          tag.locals.products = products
         end
-        data[:category].shop_category_products.size > 0 ? tag.expand : nil
+        
+        (data[:products] || data[:category].parent_id.to_i == 0 || data[:category].shop_category_products.size > 0) ? tag.expand : nil
       end
 
       c.define_tag 'no_featured_products' do |tag|
@@ -160,7 +161,7 @@ class Shop::PageFeature < ParagraphFeature
       end
 
       c.define_tag 'product:href' do |tag|
-        "href='#{data[:detail_page].blank? ? '' : data[:detail_page] + "/" + tag.locals.product.id.to_s }'"
+        "href='#{data[:detail_page].blank? ? '' : data[:detail_page] + "/" + tag.locals.product.id.to_s }#{data[:search_url]}'"
       end
 
       define_position_tags(c)
