@@ -98,8 +98,8 @@ def full_cart_feature(data)
               ''
             else
               item_hash,opt_hash = quantity_hash(t.locals.cart_item)
-              if t.attr['image']
-               tag(:image, :name => "shop#{data[:paragraph_id]}[remove][#{item_hash}][#{opt_hash}]",:src => t.expand)
+              if t.attr['type'].to_s == 'image'
+               tag(:input, { :type => 'image', :name => "shop#{data[:paragraph_id]}[remove][#{item_hash}][#{opt_hash}]",:src => t.expand }.merge(t.attr))
               else
                opts = t.attr.clone
                value = t.single? ? (opts.delete('value') || 'Remove') : t.expand
