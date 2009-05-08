@@ -238,7 +238,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
     session[:shop] ||= {}
     unless session[:shop][:address]
-      session[:shop][:address] = { :shipping => myself.shipping_address.attributes.clone.symbolize_keys!,
+      session[:shop][:address] = { :shipping => myself.shipping_address ? myself.shipping_address.attributes.clone.symbolize_keys! : {},
                             :billing => myself.billing_address.attributes.clone.symbolize_keys! }
     end
     unless session[:shop][:order]

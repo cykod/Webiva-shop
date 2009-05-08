@@ -124,7 +124,7 @@ def full_cart_feature(data)
       
       c.expansion_tag('cart:coupon') { |t| !data[:static] }
       c.form_for_tag('cart:coupon:form',"shop#{data[:paragraph_id]}",
-        :code => "<input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='coupon'/>" ) { |t| nil }
+        :code => "<input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='coupon'/>" ) { |t| DefaultsHashObject.new({}) }
         c.field_tag('cart:coupon:form:code',:size => 10)
         c.submit_tag('cart:coupon:form:apply_button',:default => 'Apply')
           
