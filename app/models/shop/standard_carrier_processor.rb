@@ -5,13 +5,16 @@ class Shop::StandardCarrierProcessor
     @options = options
   end
   
-  def calculate_shipping(cart_items)
+  def calculate_shipping(cart)
     total = 0.0
     
+    cart_items = cart.products
     # Only calculate on the shippable items
     cart_items = cart_items.find_all { |item| item.item.cart_shippable? }
     
     case @options[:shipping_calculation]
+    when 'total':
+          total = total_cost(cart.shippable_total)
     when 'weight':
       if @options[:weights_shipping_cost] == 'item'
           # Go through each item, figure the weight and then the cost
@@ -76,7 +79,7 @@ class Shop::StandardCarrierProcessor
   end
   
   class Options < HashModel
-    default_options :weights => [], :weight_prices => [], :items => [], :item_prices => [], :class_prices => {}, :shipping_calculation => nil, :items_shipping_cost => 'order', :weights_shipping_cost => 'order', :classes_shipping_cost => 'item'
+    default_options :weights => [], :weight_prices => [], :items => [], :item_prices => [], :total_prices => [], :totals => [], :class_prices => {}, :shipping_calculation => nil, :items_shipping_cost => 'order', :weights_shipping_cost => 'order', :classes_shipping_cost => 'item'
     
     validates_presence_of :shipping_calculation
   end
@@ -108,5 +111,12 @@ class Shop::StandardCarrierProcessor
       return @options[:class_prices]["0"].to_f
     end
   end
+  
+  def total_cost(item_num)
+    @options[:totals].each_with_index do |option_item,index|
+      return @options[:total_prices][index].to_f if item_num < option_item.to_i
+    end
+    return @options[:total_prices][-1].to_f
+  end  
   
 end

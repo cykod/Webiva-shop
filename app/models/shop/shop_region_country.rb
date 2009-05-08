@@ -28,7 +28,7 @@ class Shop::ShopRegionCountry < DomainModel
 
       shipping.collect do |cat|
         processor = cat.carrier.processor.new(cat.options)
-        [ cat, processor.calculate_shipping(cart.products) ]
+        [ cat, processor.calculate_shipping(cart) ]
       end
   end
   

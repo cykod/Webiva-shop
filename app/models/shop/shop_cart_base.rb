@@ -21,6 +21,16 @@ attr_accessor :shipping
     cart_total + self.shipping.to_f
   end
   
+  def shippable_total
+    cart_total = 0.0
+    products.each do |product|
+      if product.item.cart_shippable?
+        cart_total += product.price(self) * product.quantity
+      end
+    end
+    cart_total
+  end
+  
   def product_total(product_ids)
     cart_total = 0.0
     products.each do |product|

@@ -1,7 +1,7 @@
 <script>
  StandardCarrierEditor = {
     updateCalc: function(val) {
-        var vals = [ 'weight','items','class']
+        var vals = [ 'weight','items','class','total']
         vals.each(function (elem) {
           if(val == elem) 
             $(elem + "_options").show();
@@ -16,8 +16,14 @@
 
 </script>
 <tbody>
-<%= t.select :shipping_calculation, [ ['By Weight','weight'],['By Items','items'],['By Product Class','class'] ], {}, :onchange => 'StandardCarrierEditor.updateCalc(this.value);' %>
+<%= t.select :shipping_calculation, [ ['By Weight','weight'],['By Items','items'],['By Product Class','class'], ['By Total Cost','total'] ], {}, :onchange => 'StandardCarrierEditor.updateCalc(this.value);' %>
 </tbody>
+
+<tbody id='class_options' style='<%= "display:none;" unless @category_options.shipping_calculation == 'class' %>'>
+  <%= t.radio_buttons :classes_shipping_cost, [ ['Per item','item'], ['For entire class','order'] ], :label => 'Listed cost is' %>
+  <%= t.price_classes :class_prices, Shop::ShopProductClass.find_select_options(:all,:order => 'name') + [ [ 'No Class',0 ] ], :currency => ['$','']  %>
+</tbody>
+
 
 <tbody id='weight_options' style='<%= "display:none;" unless @category_options.shipping_calculation == 'weight' || @category_options.shipping_calculation.blank? %>'>
   <%= t.radio_buttons :weights_shipping_cost, [ ['Per item','item'], ['For entire order','order'] ], :label => 'Listed cost is' %>
@@ -27,8 +33,7 @@
   <%= t.radio_buttons :items_shipping_cost, [ ['For entire order'.t,'order'], ['Per item (Each item is charged at the calculated rate)'.t,'item'],  ['Incrementally Per item (E.g. $X.XX for items 1-3, $Y.YY for items 4 and up, etc.)','incremental' ]  ], :label => 'Listed cost is', :separator => '<br/>' %>
   <%= t.price_range :items, :item_prices, :measure => 'items', :units => 'items', :currency => ['$',''], :field_units => 0, :valign => 'top' %>
 </tbody>
-<tbody id='class_options' style='<%= "display:none;" unless @category_options.shipping_calculation == 'class' %>'>
-  <%= t.radio_buttons :classes_shipping_cost, [ ['Per item','item'], ['For entire class','order'] ], :label => 'Listed cost is' %>
-  <%= t.price_classes :class_prices, Shop::ShopProductClass.find_select_options(:all,:order => 'name') + [ [ 'No Class',0 ] ], :currency => ['$','']  %>
+<tbody id='total_options' style='<%= "display:none;" unless @category_options.shipping_calculation == 'total' %>'>
+  <%= t.price_range :totals, :total_prices, :measure => 'USD', :units => 'USD', :currency => ['$',''], :field_units => 0, :valign => 'top' %>
 </tbody>
 
