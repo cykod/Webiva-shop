@@ -477,7 +477,11 @@ class Shop::ShopOrder < DomainModel
     opts = Shop::AdminController.module_options
     if self.end_user && @mail_template = MailTemplate.find_by_id(opts.shipping_template_id)
         @mail_template.deliver_to_user(self.end_user, { 'ORDER_ID' => self.id, 'ORDER_DATE' => self.ordered_at.localize(DEFAULT_DATE_FORMAT.t),
-                                                        'ORDER_HTML' => format_order_html, 'ORDER_TEXT' => format_order_text })
+                                                        'ORDER_HTML' => format_order_html, 'ORDER_TEXT' => format_order_text,
+                                                         'TRACKING' => shipment.tracking_number,
+                                                         'CARRIER' => shipment.shop_carrier ? shipment.shop_carrier.name : 'Other',
+                                                         'DATE' => shipment.deliver_on ? shipment.deliver_on.strftime(DEFAULT_DATE_FORMAT.t) : 'Unknown'
+                                                          })
                                                         
     end
   end
