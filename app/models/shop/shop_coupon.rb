@@ -117,6 +117,13 @@ class Shop::ShopCoupon < DomainModel
       return 0
     end
     
+    # Check if this is only for users first order
+    if self.exclusive? && !cart.item_exclusive("Shop::ShopCoupon",self.id)
+      cart.add_message("'%s' cannot be combined with other coupons." / self.code)
+      return 0
+    end
+    
+    
     return 0 if cart.real_items == 0
     
     return 1

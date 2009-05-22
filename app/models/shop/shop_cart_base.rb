@@ -53,6 +53,18 @@ attr_accessor :shipping
     cnt
   end
   
+  def item_exclusive(item_type,product_id)
+   
+    cnt = 0 
+    products.each do |product|
+      if product.cart_item_type == item_type && product_id != product.cart_item_id
+        cnt += product.quantity
+      end
+    end
+    cnt > 0 ? false : true
+  end
+  
+  
   # Return the cart total without any coupons or shipping
   def full_price
     cart_total = 0.0
