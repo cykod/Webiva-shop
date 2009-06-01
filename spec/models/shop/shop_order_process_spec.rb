@@ -1,6 +1,8 @@
 require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
 
 module ShopOrderProcessHelper
+
+
   def create_order(cart)
     order = Shop::ShopOrder.generate_order(@user)
     order.should be_valid
@@ -44,8 +46,10 @@ end
 
 shared_examples_for "General Order Process" do
  include ShopOrderProcessHelper
-
- before(:all) do
+ 
+ reset_domain_tables :shop_product, :shop_order, :shop_order_items, :shop_payment_processors, :end_user,:end_user_address, :shop_cart_products
+  
+  before(:each) do
     @shirt_cost = 14.95
     @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
     @shirt.set_prices('USD' => @shirt_cost)
@@ -55,9 +59,7 @@ shared_examples_for "General Order Process" do
     @coat.set_prices('USD' => @coat_cost)
     
     create_test_user
-  end
   
-  before(:each) do
     @cart = Shop::ShopUserCart.new(@user,'USD')
   end
   

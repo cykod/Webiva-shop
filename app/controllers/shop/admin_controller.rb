@@ -29,16 +29,16 @@ class Shop::AdminController < ModuleController
 
   register_handler :members, :view,  "Shop::ManageUserController"
 
-
+  content_node_type "Shop Product", "Shop::ShopProduct",  :search => true
 
   content_model :shop
 
   protected
- def self.get_shop_info
-      [
-      {:name => "Shop",:url => { :controller => '/shop/manage' } ,:permission => 'shop_manage', :icon => 'icons/content/shop.gif' }
-      ]
-  end
+    def self.get_shop_info
+        [
+        {:name => "Shop",:url => { :controller => '/shop/manage' } ,:permission => 'shop_manage', :icon => 'icons/content/shop.gif' }
+        ]
+    end
 
   public
 
