@@ -9,7 +9,11 @@ require 'shop/shop_coupon'
 describe Shop::ShopCoupon do
    include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality
 
-   before(:all) do
+ reset_domain_tables :shop_product, :shop_order, :shop_order_items, :shop_payment_processors, 
+                      :end_user,:end_user_address, :shop_cart_products, :shop_coupon, :end_user_tags
+
+
+  before(:each) do
     @shirt_cost = 14.95
     @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
     @shirt.set_prices('USD' => @shirt_cost)
@@ -17,9 +21,7 @@ describe Shop::ShopCoupon do
     @coat_cost = 18.88
     @coat =  Shop::ShopProduct.create(:name => 'A Coat')
     @coat.set_prices('USD' => @coat_cost)
-  end
-
-  before(:each) do
+  
     @cart_session = []
     @cart = Shop::ShopSessionCart.new(@cart_session,'USD')
 

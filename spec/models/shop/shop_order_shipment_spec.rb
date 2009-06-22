@@ -7,19 +7,22 @@ require 'shop/shop_order_shipment'
 
 
 describe Shop::ShopOrderShipment do
-   include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality
 
-   before(:all) do
+
+   include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality
+   
+   reset_domain_tables :shop_product, :shop_order, :shop_order_items, :shop_payment_processors, :end_user,:end_user_address, :shop_cart_products
+
+
+  before(:each) do
     @shirt_cost = 14.95
     @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
     @shirt.set_prices('USD' => @shirt_cost)
     
     @coat_cost = 18.88
     @coat =  Shop::ShopProduct.create(:name => 'A Coat')
-    @coat.set_prices('USD' => @coat_cost)
-  end
-
-  before(:each) do
+    @coat.set_prices('USD' => @coat_cost)  
+    
     create_test_user
     create_test_payment_processor
     @cart = Shop::ShopUserCart.new(@user,'USD')

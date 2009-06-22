@@ -34,16 +34,30 @@
 
 <div class='admin_content'>
 
-<% stat_view do |f| %>
-    <%= f.header 'Order Information' %>
-    <%= f.raw 'Ordered By', @order.end_user ? link_to(@order.end_user.name,:controller => '/members',:action => 'view',:path => @order.end_user_id ) : @order.name %>
-    <%= f.raw 'State',"<b>" + @order.state_display + "</b>" %>
-    <%= f.row 'Ordered At', @order.ordered_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
-    <%= f.row 'Shipped At', @order.shipped_at ? @order.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %>
-    <%= f.row 'Order Type', @order.payment_type_display %>
-    <%= f.row 'Payment Processor', @order.shop_payment_processor ? @order.shop_payment_processor.name : '(Defunct)' %>
-    <%= f.row 'Shipping', (@order.shop_shipping_category_id.blank? || @order.shop_shipping_category_id == 0)  ? 'No Shipping' :  ( @order.shop_shipping_category ? @order.shop_shipping_category.name : '(Defunct)' ) %>    
+<div style='float:left;'>
+  <% stat_view do |f| %>
+      <%= f.header 'Order Information' %>
+      <%= f.raw 'Ordered By', @order.end_user ? link_to(@order.end_user.name,:controller => '/members',:action => 'view',:path => @order.end_user_id ) : @order.name %>
+      <%= f.raw 'State',"<b>" + @order.state_display + "</b>" %>
+      <%= f.row 'Ordered At', @order.ordered_at.strftime(DEFAULT_DATETIME_FORMAT.t) %>
+      <%= f.row 'Shipped At', @order.shipped_at ? @order.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %>
+      <%= f.row 'Order Type', @order.payment_type_display %>
+      <%= f.row 'Payment Processor', @order.shop_payment_processor ? @order.shop_payment_processor.name : '(Defunct)' %>
+      <%= f.row 'Shipping', (@order.shop_shipping_category_id.blank? || @order.shop_shipping_category_id == 0)  ? 'No Shipping' :  ( @order.shop_shipping_category ? @order.shop_shipping_category.name : '(Defunct)' ) %>    
+  <% end -%>
+</div>
+
+<% if @order.gift_order? -%>
+<div style='float:left; padding-left:10px;'  >
+  <% stat_view do |f| %>
+      <%= f.header 'Gift Information' %>
+      <%= f.row 'Gift', 'This order was purchased as a gift' %>
+      <%= f.raw 'Personal Message', @order.gift_message.blank? ? 'No Message' : nl2br(h(@order.gift_message)) %>
+  <% end -%>
+</div>
 <% end -%>
+
+<div style='clear:both;'></div>
 
 <table cellpadding='10' class='admin_table'>
   <tr>

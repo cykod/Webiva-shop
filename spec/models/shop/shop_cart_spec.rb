@@ -3,7 +3,9 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spe
 
 shared_examples_for "User Shopping Cart" do
 
-  before(:all) do
+  reset_domain_tables :shop_product, :shop_order, :shop_order_items, :shop_payment_processors, :end_user,:end_user_address, :shop_cart_products
+
+  before(:each) do
     @shirt_cost = 14.95
     @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
     @shirt.set_prices('USD' => @shirt_cost)

@@ -303,6 +303,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
         session[:shop][:order_id] = @order.id
       end
       
+      @order.attributes = params[:order].slice(:gift_order,:gift_message) if params[:order]
+      
       session[:shop][:payment_info] = @payment
       
       
@@ -348,6 +350,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
         render_paragraph :partial => "/shop/processor/processing"
         return 
       end
+    else 
+      @order = Shop::ShopOrder.new unless @order
     end
 
 
@@ -363,6 +367,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
             :currency => currency,
             :payment_processors => payment_processors, 
             :message => flash[:shop_message], 
+            :order => @order,
             :address_page => site_node.node_path + "/address",
             :feature_output => @feature_output, 
             :shippable => cart.shippable?, 
@@ -396,7 +401,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
               paragraph.run_triggered_actions(email_data,'action',myself)
             end
             
-            
+            myself.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
             
             if page_redirect
               redirect_paragraph page_redirect
