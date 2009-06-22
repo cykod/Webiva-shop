@@ -25,6 +25,8 @@ class Shop::AdminController < ModuleController
 
   register_handler :shop, :product_feature, "Shop::Features::ProfilePriceAdjustment"
   register_handler :shop, :product_feature, "Shop::Features::ProfileQuantityOption"
+  register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
+  
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
   register_handler :members, :view,  "Shop::ManageUserController"

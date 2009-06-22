@@ -20,9 +20,9 @@ class Shop::ProcessorController < ParagraphController
 
 
   class CheckoutOptions < HashModel
-    attributes :cart_page_id => nil, :success_page_id => nil, :receipt_template_id => nil, :show_company => false, :show_fax => false, :address_type => 'american'
+    attributes :cart_page_id => nil, :success_page_id => nil, :receipt_template_id => nil, :show_company => false, :show_fax => false, :address_type => 'american', :show_gift => false, :add_tags => ''
     
-    boolean_options :show_fax, :show_company
+    boolean_options :show_fax, :show_company, :show_gift
     integer_options :receipt_template_id
     page_options :cart_page_id, :success_page_id
   end

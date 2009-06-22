@@ -176,7 +176,7 @@ class Shop::PageFeature < ParagraphFeature
         end
       end
 
-      %w(name weight dimensions detailed_description name_2 brand).each do |elem|
+      %w(name weight dimensions detailed_description name_2 brand sku internal_sku).each do |elem|
         c.define_tag 'product:' + elem do |tag|
           tag.locals.product.send(elem)
         end
