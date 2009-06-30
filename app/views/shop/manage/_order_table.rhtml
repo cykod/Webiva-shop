@@ -10,7 +10,7 @@
                     :update => 'order_table' do |t| %>
 <tr <%= highlight_row 'order_id',t.id %> >
   <td align='left' nowrap='1'><%= entry_checkbox "order_id", t.id %></td>
-  <td align='right'><%= link_to t.number, :action => 'order', :path => t.id %></td>
+  <td align='right'><%= image_tag('/components/shop/images/gift_icon.gif', :align => 'absmiddle') + "&nbsp;" if t.gift_order?  %><%= link_to t.number, :action => 'order', :path => t.id %></td>
   <td><%= h t.end_user ? t.end_user.name : t.name %></td>
   <td><%= t.ordered_at ? t.ordered_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
   <td><%= t.shipped_at ? t.shipped_at.strftime(DEFAULT_DATETIME_FORMAT.t) : '-' %></td>
