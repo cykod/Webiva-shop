@@ -13,7 +13,7 @@ class Shop::PageRenderer < ParagraphRenderer
   paragraph :search_bar
   
   features '/shop/page_feature'
-  
+  features '/editor/menu_feature'
 
   def self.get_module
     mod = SiteModule.get_module('shop')
@@ -214,8 +214,6 @@ class Shop::PageRenderer < ParagraphRenderer
     feature_output = display_cart_feature(data)
     render_paragraph :text => feature_output
   end
-
-  include Editor::MenuRenderer::MenuFeature
 
   def category_listing
     opts = Shop::PageController::CategoryListingOptions.new(paragraph.data||{})
