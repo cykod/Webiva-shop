@@ -18,7 +18,7 @@
 <p>
 <%= "<b>%s</b>, please confirm you order and enter you payment information." / myself.name %><br/><br/>
 </p>
-<form action='' method='post' id='submit_form'>
+<%= form_tag('',:id => 'submit_form') %>
 <input type='hidden' name='update' id='shopping_form_update' value='0' />
 
 

@@ -52,7 +52,7 @@
 <% else -%>
 <h2><%= "Please confirm your billing address".t %></h2>
 <% end -%>
-<form action='' method='post'>
+<%= form_tag('') %>
 <table>
 
 <% if cart.shippable? %>

@@ -57,8 +57,8 @@ def full_cart_feature(data)
       c.expansion_tag('static') { |tag| data[:static] }
       
       c.define_tag 'cart:products' do |tag|
-        <<-EOTAG
-         <form action='' method='post'>
+      <<-EOTAG
+            #{form_tag('')}
                <input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='update_quantities'/>
           #{tag.expand}
           </form>
