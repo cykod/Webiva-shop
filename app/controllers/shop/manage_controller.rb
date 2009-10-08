@@ -54,7 +54,7 @@ class Shop::ManageController < ModuleController
 
     output = ''
     CSV::Writer.generate(output) do |csv|
-      csv << [ 'Order ID','Order State', 'Name','Email','Link','Ordered At','Shipped At','Shipping Adr.','Shp.Line 2', 'Shp.City',
+      csv << [ 'Order ID','Order State', 'Name','Email','Link','Gift','Ordered At','Shipped At','Shipping Adr.','Shp.Line 2', 'Shp.City',
                'Shp.State','Shp.Zip','Billing Adr.','Bil.City','Bil.State','Bil.Zip','Bil.State','Subtotal','Tax','Shipping','Total',
                'Item SKU','Item','Unit Cost','Quantity','Subtotal' ]
 
@@ -66,6 +66,7 @@ class Shop::ManageController < ModuleController
                  order.name,
                  order.end_user ? order.end_user.email : '',
                  url_for(:action => 'order',:path => [ order.id ]),
+                 order.gift_order? ? 'Y' : 'N',
                  order.ordered_at.strftime(DEFAULT_DATETIME_FORMAT),
                  order.shipped_at ? order.shipped_at.strftime(DEFAULT_DATETIME_FORMAT) : '',
                  order.shipping_address[:address],
@@ -84,7 +85,7 @@ class Shop::ManageController < ModuleController
                  order.display_total
                ]
         order.order_items.each do |item|
-          csv << [ order.id,'','','','','','','','','','','','','','','','','','','','',
+          csv << [ order.id,'','','','','','','','','','','','','','','','','','','','','',
                    item.item_sku,
                    item.item_name,
                    item.display_unit_price,
