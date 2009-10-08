@@ -43,7 +43,9 @@
     <% if myself.has_role?('shop_admin') %>
       <li><%= link_to 'Manage Categories'.t, { :controller => '/shop/categories' } %></li>
       <li><%= link_to 'Shop Configuration'.t, { :controller => '/shop/config' } %></li>
+      
     <% end -%>
+    
   </ul>
 </div>
 
@@ -53,7 +55,7 @@
 
 <div class='admin_center_content'>
 <div class='admin_content'>
-  <h3>Orders</h3>
+  <h3>Orders ( <%= link_to 'Download Visible Orders'.t, { :action => 'download'} %>) </h3>
   <div id='order_table'>
     <%= render :partial => 'order_table' %>
   </div>
