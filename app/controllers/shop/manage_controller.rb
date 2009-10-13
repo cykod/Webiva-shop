@@ -56,7 +56,7 @@ class Shop::ManageController < ModuleController
     CSV::Writer.generate(output) do |csv|
       csv << [ 'Order ID','Order State', 'Name','Email','Link','Gift','Ordered At','Shipped At','Shipping Adr.','Shp.Line 2', 'Shp.City',
                'Shp.State','Shp.Zip','Billing Adr.','Bil.City','Bil.State','Bil.Zip','Bil.State','Subtotal','Tax','Shipping','Total',
-               'Item SKU','Item','Unit Cost','Quantity','Subtotal' ]
+               'Item SKU','Item','Details','Unit Cost','Quantity','Subtotal' ]
 
       @tbl.data.each do |order|
         order.shipping_address ||= {}
@@ -88,6 +88,7 @@ class Shop::ManageController < ModuleController
           csv << [ order.id,'','','','','','','','','','','','','','','','','','','','','',
                    item.item_sku,
                    item.item_name,
+                   item.item_details,
                    item.display_unit_price,
                    item.quantity,
                    item.subtotal
