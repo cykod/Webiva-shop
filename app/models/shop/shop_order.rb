@@ -429,7 +429,7 @@ class Shop::ShopOrder < DomainModel
   
   def format_order_html
     columns,data = order_table_data("<br/>")
-    Util::TextFormatter.html_table(columns,data)
+    Util::TextFormatter.html_table(columns,data, :class=>'order_table')
   end
   
   def format_order_text
