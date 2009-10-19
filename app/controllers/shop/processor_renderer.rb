@@ -397,7 +397,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
               @receipt_template.deliver_to_user(myself,email_data)
             end
             
-            if !editor? && paragraph.update_action_count > 0
+          if !editor? && paragraph.update_action_count > 0
+              email_data.delete(:ORDER_TEXT)
               paragraph.run_triggered_actions(email_data,'action',myself)
             end
             
