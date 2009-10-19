@@ -77,7 +77,9 @@ class Shop::PageController < ParagraphController
   class CategoryListingOptions < HashModel
       default_options :base_category_id => nil, :list_page_id => nil, :depth => 3
 
-      integer_options :base_category_id,:list_page_id
+    integer_options :base_category_id,:list_page_id, :depth
+
+    validates_numericality_of :depth
       
       validates_presence_of :base_category_id,:list_page_id
   end

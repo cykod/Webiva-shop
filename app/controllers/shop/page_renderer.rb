@@ -242,7 +242,7 @@ class Shop::PageRenderer < ParagraphRenderer
     @selected_categories = selected_categories.compact.map(&:id)
     @page_url = page
     
-    categories = Shop::ShopCategory.find(:all,:conditions => ['parent_id = ?',opts.base_category_id])
+    categories = Shop::ShopCategory.find(:all,:conditions => ['parent_id = ?',opts.base_category_id],:order => 'name')
     
     depth = opts.depth - 1
     
