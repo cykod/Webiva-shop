@@ -1,6 +1,6 @@
 require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
 
-describe Organize::ManageController do
+describe Shop::ManageController do
  
  
   reset_domain_tables :content_types
