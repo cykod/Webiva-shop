@@ -56,14 +56,11 @@ class Shop::AdminController < ModuleController
 
     @options = ShopModuleOptions.new(params[:options] || @mod.options || {})
 
-    if request.post?
-      if @options.valid?
-        @mod.options  = @options.to_h
-        @mod.save
-        flash[:notice] = "Updated shop options".t 
-        redirect_to :controller => '/modules'
-        return
-      end
+    if request.post? && @options.valid?
+      Configuration.set_config_model(@options)
+      flash[:notice] = "Updated shop options".t 
+      redirect_to :controller => '/modules'
+      return
     end
 
     @currencies = get_currencies
@@ -73,9 +70,8 @@ class Shop::AdminController < ModuleController
   end
 
 
-  def self.module_options
-    md = SiteModule.find_by_name('shop')
-    opts = ShopModuleOptions.new(md ? md.options : {})
+  def self.module_options(vals=nil)
+    Configuration.get_config_model(ShopModuleOptions,vals)
   end
 
   class ShopModuleOptions < HashModel

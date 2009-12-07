@@ -210,7 +210,7 @@ ProductEditor = {
 </script>
 
 <div class='admin_content'>
-<form action='' method='post' width='100%' onsubmit='ProductEditor.submitForm(); return true' class='admin_form full_page_form'>
+<%= form_tag('',:method => 'post', :width => '100%', :onsubmit =>'ProductEditor.submitForm(); return true', :class => 'admin_form full_page_form') -%>
 <% cms_subfields_for :product, @product do |f| -%>
 <table width='100%'>
 <tr>
