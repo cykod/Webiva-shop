@@ -169,11 +169,10 @@ class Shop::ManageUserController < ModuleController
   
   def shipping_options
     if @cart.shippable? 
-      if @user.shipping_address
-        country = Shop::ShopRegionCountry.locate(@user.shipping_address.country) 
+      if @user.shipping_address && country = Shop::ShopRegionCountry.locate(@user.shipping_address.country)
         shipping_info = country.shipping_details(@cart)
+ 
         @shipping_options = country.shipping_options(@currency,shipping_info)
-        
         @shipping_id = (params[:shipping_id] || @shipping_options[0][1]).to_i
         
         @current_shipping = shipping_info.detect { |elm| elm[0].id == @shipping_id }
