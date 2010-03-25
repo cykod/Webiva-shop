@@ -1,7 +1,5 @@
 class Shop::ProcessorRenderer < ParagraphRenderer
 
-  module_renderer
-  
   paragraph :full_cart
   paragraph :checkout
   

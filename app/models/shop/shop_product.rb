@@ -2,6 +2,7 @@
 class Shop::ShopProduct < DomainModel
   
   validates_presence_of :name
+  validates_uniqueness_of :url
 
   belongs_to :image_file, :class_name => 'DomainFile', :foreign_key => 'image_file_id'
   belongs_to :download_file, :class_name => 'DomainFile', :foreign_key => 'download_file_id'
@@ -29,12 +30,38 @@ class Shop::ShopProduct < DomainModel
   
   has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature', :foreign_key => 'shop_product_id', :dependent => :destroy
   has_many :shop_coupon_products, :class_name => "Shop::ShopCouponProduct", :dependent => :destroy
+
+  cached_content :identifier => :url
+  content_node :container_type => 'Shop::ShopShop', :container_field => 'shop_shop_id', :push_value => true 
+
+  belongs_to :shop_shop, :class_name => 'Shop::ShopShop'
+
+  def content_node_body(language)
+    %w(sku internal_sku name name_2 description detailed_description brand url).map do |fld|
+      self.send(fld)
+    end.compact.join("\n\n")
+  end
+
+  # return the deepest category a product belongs to - helpful for searches
+  # or indexes
+  def deepest_category
+    left_index, cat = self.shop_categories.inject([-1,nil]) do |cur,cat| 
+      if cat.left_index > cur[0]
+        [ cat.left_index, cat ]
+      else
+        cur
+      end
+    end
+
+    return cat
+  end
   
   # Return the products features + the features of it's product class
   def full_features
     self.features + (self.shop_product_class ? self.shop_product_class.shop_product_features : []).to_a
   end
   
+  before_validation :create_url 
   
   @@callbacks = [ :price,:purchase,:stock,:shipping,:rendering,:update_cart,:other ]
   
@@ -55,11 +82,11 @@ class Shop::ShopProduct < DomainModel
   end
   
   def files_ids=(ids)
-    @file_ids = ids.split(",") unless ids.blank?
+    @file_ids = ids.split(",").select { |elm| !elm.blank? } unless ids.nil?
   end
   
   def images_ids=(ids)
-    @image_ids = ids.split(",") unless ids.blank?
+    @image_ids = ids.split(",").select { |elm| !elm.blank? } unless ids.nil?
   end
   
   def files_product_files
@@ -458,4 +485,46 @@ class Shop::ShopProduct < DomainModel
 
     prd
   end
+
+
+  protected
+
+ def create_url
+   if self.url.blank?
+     name_base = self.name.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+     if name_base != self.url
+       cnt = 2
+       name_try = name_base
+
+       if check_duplicate(name_try) && !self.sku.blank?
+         name_try = name_base = name_base + "-" + self.sku.to_s.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+       end
+
+       while check_duplicate(name_try)
+         name_try = name_base + '-' + cnt.to_s
+         cnt += 1
+       end
+       self.url = name_try
+     end
+   else
+     self.url = self.url.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+   end
+
+   if !self.shop_shop
+    self.shop_shop = Shop::ShopShop.default_shop
+   end
+ end
+
+
+ def check_duplicate(url_try)
+   if self.id.blank?
+    Shop::ShopProduct.find(:first,:conditions => ['`url`=? ',url_try])
+   else
+     Shop::ShopProduct.find(:first,:conditions => ['`url`=? AND id != ? ',url_try,self.id])
+   end
+
+   
+ end
+
+
 end

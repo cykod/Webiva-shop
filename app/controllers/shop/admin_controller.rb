@@ -53,8 +53,12 @@ class Shop::AdminController < ModuleController
     cms_page_info [ ["Options",url_for(:controller => '/options') ], ["Modules",url_for(:controller => "/modules")], "Shop Module Options "], "options"
     get_module
     
+    if Shop::ShopShop.count == 0
+      Shop::ShopShop.create_default_shop
+      Shop::ShopCategory.get_root_category
+    end
 
-    @options = ShopModuleOptions.new(params[:options] || @mod.options || {})
+    @options = self.class.module_options(params[:options])
 
     if request.post? && @options.valid?
       Configuration.set_config_model(@options)
@@ -75,7 +79,7 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-      attributes :shop_currency => 'USD', :shipping_template_id => nil
+      attributes :shop_currency => nil, :shipping_template_id => nil
 
       validates_presence_of :shop_currency
       

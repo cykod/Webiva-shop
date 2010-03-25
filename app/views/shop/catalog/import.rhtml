@@ -1,4 +1,5 @@
 <div class='admin_content'>
+  Sample Import File: <%= link_to "Import File Format", '/components/shop/downloads/shop_import_format.csv' %>
 <% admin_form_for :import, @import do |f| -%>
   <%= f.filemanager_file :import_file_id %>
   <%= f.filemanager_folder :file_folder_id %>

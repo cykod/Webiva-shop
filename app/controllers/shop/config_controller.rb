@@ -5,15 +5,93 @@ class Shop::ConfigController < ModuleController
 
   component_info 'shop'
 
-  
+  cms_admin_paths "content",
+    "Shop" => { :controller => "/shop/manage" },
+    "Configuration" => {:controller => "/shop/config" },
+    "Shops" => { :action => "shops" }
+
   public
 
   def index
      cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], "Configuration" ], "content"
      
+   @subpages = 
+     [
+      [ "Site Shops", :shop_config, "website_configuration.gif",
+        { :action => "shops" },
+        "Add additional shops to your site (1 shop is added by default)"
+      ],
+      [ "Regions", :shop_config, "system_domains.gif",
+         { :action=> 'regions' },
+        "Configure the different regions you ship products to"
+      ],
+      [
+         'Delivery Carriers',  :shop_config, "website_configuration.gif",
+         { :action => 'carriers' },
+         "Configure your delivery carriers for shipping"
+      ],
+      [
+        'Shipping Options',  :shop_config, "system_clients.gif",
+         { :action => 'shipping' },
+         "Configure the different shipping options for each delivery carrier (Like Ground, 2-Day, etc)"
+      ],
+      [
+        'Payment Processors', :shop_config, "site_editors.gif",
+         { :action => 'payment' },
+         "Configure payment processing gateways on the site"
+      ],
+      [ "General Options", :shop_config, "module_setup.gif",
+         { :controller => '/shop/admin', :action=> 'options' },
+         "Shortcut to Shop module options"
+      ]
+
+      
+     ]  
+
+
   end
 
-   include ActiveTable::Controller
+   active_table :shops_table,
+                Shop::ShopShop,
+                [ :check, :name, hdr(:static,"Products" ) ]
+
+
+   def display_shops_table(display=true)
+     active_table_action('shop') do |act,shop_ids|
+       if act == 'delete'
+         Shop::ShopShop.find(:shop_ids).each do |shop|
+           if shop.shop_products.count == 0
+             shop.destroy
+           else
+             flash.now[:notice] = "Cannot delete a shop with products in it"
+           end
+         end
+       end
+     end
+
+     @tbl = shops_table_generate params, :order => 'shop_shops.name'
+
+     render :partial => 'shops_table' if display
+   end
+
+   def shops
+      cms_page_path ["Shop","Configuration"],"Shops"
+      display_shops_table(false)
+   end
+
+   def shop
+    @shop = Shop::ShopShop.find_by_id(params[:path][0]) || Shop::ShopShop.new
+      cms_page_path ["Shop","Configuration","Shops"], @shop.new_record? ? "Create Shop" : @shop.name
+      if request.post? && params[:shop]
+        if !params[:commit]
+          redirect_to :action => 'shops'
+        elsif @shop.update_attributes(params[:shop])
+          redirect_to :action => 'shops'
+        end
+      end
+ 
+   end
+
    active_table :region_table,
                 Shop::ShopRegion,
                 [ ActiveTable::IconHeader.new('',:width => '15'),
@@ -333,7 +411,8 @@ class Shop::ConfigController < ModuleController
                      ["Payment Processors",url_for(:action => 'payment') ],
                      @processor.new_record? ? 'Create Processor' : [ "Edit %s",nil,@processor.name ] ], 'content'
 
-      currency = @mod.options[:shop_currency] || 'USD'
+      @mod = Shop::AdminController.module_options
+      currency = @mod.shop_currency
   
       @processor.attributes = params[:processor] if params[:processor]
       @processor.currency = currency if !@processor.currency

@@ -2,40 +2,30 @@
 class Shop::PageFeature < ParagraphFeature
 
  feature :shop_product_listing, :default_feature => <<-FEATURE
-    <cms:search>
-     <h1>Searching for '<cms:value/>'</h1>
-    </cms:search>
-    <cms:category>
-      <h1><cms:value/></h1>
-    </cms:category>
+    <cms:search><em>Searching for '<cms:value/>'</em> </cms:search>
+    <cms:category><h2><cms:value/></h2></cms:category>
     <cms:featured_products>
      <h1>Featured Products</h1>
-    <div class='products'>
-      <cms:product>
-        <div class='product'>
-          <cms:img border='1' size='preview' /><br/>
-          <em><cms:name/></em> &nbsp;&nbsp;<b><cms:price/></b><br/>
-          <a <cms:href/> >details</a>
-        </div>
+     <ul class='products featured_products'>
+       <cms:product>
+       <li><cms:img border='1' size='preview' />
+           <span class='product_name'><cms:name/></span> &nbsp; 
+           <span class='produce_price'><cms:price/></span>
+           <cms:link>Details &raquo;</cms:link>
+       </li>
       </cms:product>
-     </div>
-     <div class='clear'></div>
-      <hr/>
+    </ul>
+    <hr/>
     </cms:featured_products>
     <cms:products>
-      <div class='products'>
-      <cms:product>
-        <div class='product'>
-          <cms:img border='1' size='preview' /><br/.
-          <em><cms:name/></em> &nbsp;&nbsp;<b><cms:price/></b><br/>
-          <a <cms:href/> >details</a>
-        </div>
-      </cms:product>
-      </div>
-    <div class='clear'></div>
-    <div class='product_pages'>
-      <cms:pages/>
-    </div>
+    <cms:product>
+       <li><cms:img border='1' size='preview' />
+           <span class='product_name'><cms:name/></span> &nbsp; 
+           <span class='produce_price'><cms:price/></span>
+           <cms:link>Details &raquo;</cms:link>
+       </li>
+    </cms:product>
+    <div class='product_pages'><cms:pages/></div>
     </cms:products>
   FEATURE
   
@@ -65,7 +55,7 @@ class Shop::PageFeature < ParagraphFeature
         data[:category].shop_category_products.size ==  0 ? nil : tag.expand
       end
       
-      c.define_value_tag('count') { |tag|  data[:category].shop_category_products.size  }
+      c.define_value_tag('count') { |tag|  data[:category].product_count(data[:options].shop_shop_id)  }
       
       c.define_tag 'products' do |tag|
         if data[:products]
@@ -74,7 +64,10 @@ class Shop::PageFeature < ParagraphFeature
           tag.locals.search = true
         else
           tag.locals.search = false
-          tag.locals.page_data,products =data[:category].paginate_products(:all, :per_page => data[:items_per_page], :page => data[:page])
+          tag.locals.page_data,products = data[:category].paginate_products(data[:options].shop_shop_id,
+                                                                           :all, 
+                                                                           :per_page => data[:items_per_page], 
+                                                                           :page => data[:page])
           tag.locals.products = products
         end
         
@@ -160,8 +153,17 @@ class Shop::PageFeature < ParagraphFeature
         price ? price.localized_price : ''
       end
 
-      c.define_tag 'product:href' do |tag|
-        "href='#{data[:detail_page].blank? ? '' : data[:detail_page] + "/" + tag.locals.product.id.to_s }#{data[:search_url]}'"
+      c.link_tag 'product:' do |tag|
+         if data[:options].include_category
+           if !data[:category] || data[:category].parent_id == 0 || data[:options].deepest_category
+             deepest_cat = tag.locals.product.deepest_category 
+            "#{data[:detail_page]}/#{deepest_cat ? deepest_cat.url : '-'}/#{tag.locals.product.url}#{data[:search_url]}"
+           else
+            "#{data[:detail_page]}/#{data[:category].url}/#{tag.locals.product.url}#{data[:search_url]}"
+           end
+         else
+            "#{data[:detail_page]}/#{tag.locals.product.url.to_s}#{data[:search_url]}"
+         end
       end
 
       define_position_tags(c)
@@ -195,18 +197,15 @@ class Shop::PageFeature < ParagraphFeature
           "<cms:name/>" has been added to your cart
         </div>
         </cms:product_added>
+        
         <div class='product_detail'>
-          <cms:img align='left' border='10' size='preview' shadow='1' />
-          <h3><cms:name/></h3>
-          <cms:no_options>
-          <cms:price/>
-          </cms:no_options>
-          <br/><br/>
+          <cms:img align='left' border='10' size='small' shadow='1' />
+          <cms:category><h4><cms:list_page_link><cms:value/></cms:list_page_link></h4></cms:category>
+          <h1><cms:name/></h1>
+          <cms:no_options> <cms:price/> </cms:no_options>
           <cms:quantities/>
-          <cms:options/>Quantity:<cms:quantity/><cms:add_to_cart>Add To Cart</cms:add_to_cart><br/>
-          <br/>
+          <cms:options/>Quantity:<cms:quantity/><cms:add_to_cart>Add To Cart</cms:add_to_cart>
           <cms:description/>
-          <br/>
           <cms:detailed_description>
               <hr/>
               <cms:value/>
@@ -369,17 +368,15 @@ class Shop::PageFeature < ParagraphFeature
           nil
         end
       end
-      
-      c.define_tag 'list_page' do |tag|
-        tag.locals.value = data[:list_page]
-        data[:list_page] ? tag.expand : nil
-      end
-      
-      c.define_tag 'list_page:href' do |tag|
-        editor? ? "href='#'" : "href='#{data[:list_page]}'"
-      end
-      
 
+      c.value_tag('category') { |t| data[:category] ? data[:category].name : nil }
+      
+      c.define_link_tag 'list_page' do |tag|:w
+        data[:list_page]
+      end
+
+
+      
       c.define_tag 'product_added:name' do |tag|
         tag.locals.product_added ? tag.locals.product_added.name : 'Invalid Product'.t
       end

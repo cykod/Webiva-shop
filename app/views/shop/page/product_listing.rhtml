@@ -1,9 +1,11 @@
 <div class='cms_form'>
   <% paragraph_options_form_for "Product Listing",:product_listing ,@options do |f| -%>
+    <%= f.select :shop_shop_id, Shop::ShopShop.select_options %>
     <%= f.select :base_category_id, @categories, :label => 'Base Category' %>
-    <%= f.select :detail_page, @pages, :label => 'Detail Page'.t %>
-    <%= f.radio_buttons :include_category, [['Yes','yes'],['No','no']], :label => 'Include Category'.t %>
-    <%= f.select :cart_page_id,[['--Stay on same page--']] +  @pages %>
+    <%= f.page_selector :detail_page_id %>
+    <%= f.radio_buttons :include_category, [['Yes',true],['No',false]], :label => 'Include Category'.t %>
+    <%= f.radio_buttons :deepest_category,  [['Yes',true],['No',false]], :description => 'Link to deepest category a product is in'.t %> 
+    <%= f.page_selector :cart_page_id,:description => 'Leave blank to stay on same page'  %>
     <%= f.select :items_per_page, @per_page, :label => 'Items per page'.t %>
   
   <% end -%>

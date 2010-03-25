@@ -221,19 +221,22 @@ ProductEditor = {
 <% if @price_error %>
 <td></td><td class='error'>Please enter valid prices for all currencies</td></tr><tr>
 <% end -%>
-<% f.custom_field 'Price', :valign => 'baseline' do  %>
+<% f.custom_field 'Price', :valign => 'baseline' do  %>  
   <%= render :partial => 'currency_inputs', :locals => { :field_name => 'prices',:prices => @prices, :separator => "<br/>" } %>
 <% end -%>
+<%= f.text_field :url, :description => 'Leave blank to create automatically',:label => 'Product url' %>
 <%= f.filemanager_image :image_file_id, :label => 'Primary Image' %>
 <%= f.text_field :internal_sku, :label => 'Internal Sku' %>
 <%= f.text_field :sku, :label => 'Manufacturer Sku' %>
-<%= f.radio_buttons :in_stock, [['Yes',true],['No',false]] %>
+<%= f.select :shop_shop_id, Shop::ShopShop.select_options, :label => 'Site Shop' %>
 <%= f.select :shop_product_class_id, @product_classes, { :label => 'Product Class'}, :onchange => 'ProductEditor.changeOptions(this.value);' %>
    </table>
    </td>
    <td valign='top' width='100%' style='padding-left:20px;'>
     <table>
-      <%= f.text_area :description, :cols => '50',:rows => '12', :required => true, :vertical => true %>
+      <%= f.text_area :description, :cols => '60',:rows => '12', :required => true, :vertical => true %>
+      <%= f.radio_buttons :in_stock, [['In Stock',true],['Out of Stock',false]],:label => '',:vertical => true %>
+      <%= f.submit_tag @product.id ? 'Update Product' : 'Create Product' %>
     </table>
    </td>
 </tr>   
@@ -247,7 +250,7 @@ ProductEditor = {
            <%= f.text_field :brand %>
            <%= f.text_field :unit_quantity %>
            <%= f.text_field :dimensions  %>
-           <%= f.editor_area :detailed_description, :rows => 15 %>
+           <%= f.editor_area :detailed_description, :rows => 15, :label => 'Details' %>
         </table>
       <% end -%>
 

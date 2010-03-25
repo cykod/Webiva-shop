@@ -1,8 +1,7 @@
 <div class='admin_content'>
-<form action='' method='post' onsubmit='OptionEditor.saveVariationOrder();' >
-<% cms_fields_for :cls, @cls do |f| -%>
+  <% admin_form_for :cls, @cls, :html => { :onsubmit => 'OptionEditor.saveVariationOrder();' } do |f| -%>
   <%= f.text_field :name %>
-<% end -%>
+  <% f.custom_field '', :vertical => true do %>
  <br/>
   <h3>Manage Product Variations:</h3>
   <br/>
@@ -11,5 +10,6 @@
   <button><%= h "Submit Changes".t %></button>
   <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
   </div>
-</form>
+<% end -%>
+<% end -%>
 </div>

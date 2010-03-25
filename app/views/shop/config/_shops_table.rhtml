@@ -1,0 +1,7 @@
+<% active_table_for :shops_table, @tbl, :actions => [['Delete Shop','delete','Delete the selected shop? (Only shops without products can be deleted']] do |t| %>
+  <% active_tr "shop", t.id do |tr| %>
+  <td><%= tr.checkbox %></td>
+  <td><%= link_to h(t.name), :action => 'shop', :path => t.id %></td>
+  <td><%= t.shop_products.count %></td>
+  <% end -%>
+<% end -%>

@@ -1,0 +1,9 @@
+<% action_panel do |p| %>
+  <%= p.link "Create new shop", :action => 'shop' %>
+<% end -%>
+
+<hr/>
+
+<div class='admin_content'>
+  <%= active_table_render :shops_table %>
+</div>

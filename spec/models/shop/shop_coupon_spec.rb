@@ -3,8 +3,6 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spe
 
 require  File.expand_path(File.dirname(__FILE__)) + '/shop_order_process_spec'
 
-require 'shop/shop_coupon'
-
 
 describe Shop::ShopCoupon do
    include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality

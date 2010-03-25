@@ -29,15 +29,15 @@ class Shop::PageRenderer < ParagraphRenderer
 
   def product_listing
 
-    options = paragraph.data || {}
+    options = paragraph_options(:product_listing)
 
     display_string = "#{paragraph.id}_#{myself.user_class_id}"
     
     if request.post? && params["shop#{paragraph.id}"]
       if handle_shop_action(params["shop#{paragraph.id}"])
-        if options[:cart_page_id].to_i > 0
+        if options.cart_page_id.to_i > 0
           flash[:shop_continue_shopping_url] = paragraph_page_url
-          redirect_paragraph :site_node => options[:cart_page_id]        
+          redirect_paragraph :site_node => options.cart_page_id        
         else
           redirect_paragraph :page
         end
@@ -45,85 +45,79 @@ class Shop::PageRenderer < ParagraphRenderer
       end
     end    
 
-   if editor?
-      category = Shop::ShopCategory.find_by_id(options[:base_category_id].to_i)
-      category_id = category.id if category
-      category_title = category.name if category
+    # if we have a detail link connection, don't display the category paragraph
+    detail_connection, detail_link = page_connection(:detail)
+    return render_paragraph :nothing => true if !detail_link.blank?
+
+    category_connection,category_link = page_connection(:input)
+
+    if category_link.blank?
+      category = Shop::ShopCategory.find_by_id(options.base_category_id.to_i)
     else
-      category_connection,category_link = page_connection()
-
-      target_string = "#{category_connection}_#{category_link}"
-      
-      category_id,category_title,feature_output = DataCache.get_content("ShopCategory",target_string,display_string) unless flash[:shop_product_added] || request.post? || params[:search]
-
-      unless feature_output
-        if category_link.to_i == 0
-          category = Shop::ShopCategory.find_by_id(options[:base_category_id].to_i)
-        else
-          category = Shop::ShopCategory.find_by_id(category_link)
-        end
-        category_id = category.id if category
-      end
-
+      category = Shop::ShopCategory.find_by_url(category_link)
     end
-    
+
     unless category
       render_paragraph :inline => 'Invalid Category'.t
       return
     end
 
-    if category_id || params[:search]
-      set_page_connection(:content_id, [ 'Shop::ShopCategory',category_id ] )
-      set_page_connection(:shop_category_id, category_id)
+    target_string = "#{category.id}_#{myself.user_class_id}"
+      
+    result = renderer_cache(Shop::ShopProduct,target_string,
+                              :skip =>  flash[:shop_product_added] || 
+                                        request.post? || 
+                                        params[:search] ) do |cache|
+       cache[:category_id] = category.id
+       cache[:category_url] = category.url
+       cache[:cache_title] = category.name
+
+       get_module 
+       detail_page =  options.detail_page_url
+
+      
+       items_per_page = options.items_per_page || 10
+       currency = @mod.currency
+
+       if params[:search]
+         search = params[:search]
+         pages,products = Shop::ShopProduct.run_search(options.shop_shop_id,params[:search],params[:page])
+         search_url = "?search=#{CGI::escape(search)}"
+         pages[:path] = search_url
+       end
+
+       data = { :pages => pages, :products => products, :category => category, :detail_page => detail_page, :items_per_page => items_per_page, :currency => currency, :paragraph_id => paragraph.id, :search => search, :page => params[:page], :search_url => search_url, :options => options}
+
+       if flash[:shop_product_added]
+         data[:product_added] = flash[:shop_product_added]
+       end
+
+       cache[:feature_output] = shop_product_listing_feature(data)         
     end
 
-    set_title(category_title)
-
-
-    if !feature_output 
-      get_module 
-      options = paragraph.data || {}
-      detail_page =  SiteNode.get_node_path(options[:detail_page],'#')
-      detail_page += "/" + (category_id || '0').to_s if options[:include_category].to_s == 'yes'
-      
-      
-      items_per_page = options[:items_per_page] || 10
-      currency = @mod.currency
-      
-      if params[:search]
-        search = params[:search]
-        pages,products = Shop::ShopProduct.run_search(params[:search],params[:page])
-        search_url = "?search=#{CGI::escape(search)}"
-        pages[:path] = search_url
-      end
-      
-      data = { :pages => pages, :products => products, :category => category, :detail_page => detail_page, :items_per_page => items_per_page, :currency => currency, :paragraph_id => paragraph.id, :search => search, :page => params[:page], :search_url => search_url}
-      
-      if flash[:shop_product_added]
-        data[:product_added] = flash[:shop_product_added]
-      end
-
-      feature_output = shop_product_listing_feature(data)
-
-      DataCache.put_content("ShopCategory",target_string,display_string,feature_output) unless editor?  || params[:search]
+    if result.category_id || params[:search]
+      set_page_connection(:content_id, [ 'Shop::ShopCategory',result.category_id ] )
+      set_page_connection(:shop_category_id, result.category_id)
     end
-    
+
+    set_title(result.category_title)
+
     require_css('gallery')
 
-    render_paragraph :text => feature_output
+    render_paragraph :text => result.feature_output
   end
 
   
   def product_detail
-    options = paragraph.data || {}
-    
+    options = paragraph_options(:product_detail)
+
     display_string = "#{paragraph.id}_#{myself.user_class_id}"
 
     if request.post? && params["shop#{paragraph.id}"]
       if handle_shop_action(params["shop#{paragraph.id}"])
-        if options[:cart_page_id].to_i > 0
+        if options.cart_page_id.to_i > 0
           flash[:shop_continue_shopping_url] = paragraph_page_url
-          redirect_paragraph :site_node => options[:cart_page_id]        
+          redirect_paragraph :site_node => options.cart_page_id        
         else
           redirect_paragraph :page
         end
@@ -131,56 +125,57 @@ class Shop::PageRenderer < ParagraphRenderer
       end
     end
 
-    @caching_active = false # !editor? && !flash[:shop_product_added]
+    product_connection,product_link = page_connection(:input)
 
-    if options[:product_id].to_i > 0
-      target_string = "product_#{options[:product_id]}"
+    # If we have a category connection and aren't displaying a product,
+    # let the listing paragraph have this one
+    category_connection, category_link = page_connection(:category)
+    if !category_connection.blank? &&  !options.product_id && product_link.blank?
+      return  render_paragraph :nothing => true
+    end
 
-      product_id,product_name,feature_output = DataCache.get_content("ShopProduct",target_string,display_string) if @caching_active
+    @skip_caching = flash[:shop_product_added]
 
-      if !feature_output
-        product = Shop::ShopProduct.find(options[:product_id])
-        product_id = product.id if product
-        product_name = product.name
-      end
+    if options.product_id.to_i > 0
+      cache_object = [ Shop::ShopProduct, options.product_id ]
     elsif editor?
-      product = Shop::ShopProduct.find(:first)
-      product_id = product.id if product
-      product_name = product.name if product
-    else
-      product_connection,product_link = page_connection(:input)
+      cache_object = nil
+    else 
+      cache_object = [ Shop::ShopProduct, product_link ]
+    end
 
-      target_string = "#{product_connection}_#{product_link}"
-      
-      product_id,product_name,feature_output = DataCache.get_content("ShopProduct",target_string,display_string) if @caching_active
-
-      unless feature_output
-        product = Shop::ShopProduct.find_by_id(product_link, :include => [ { :shop_product_options =>  :variation_option }, { :shop_product_class =>  :shop_variations }])
-        product_id = product.id if product
-        product_name = product.name if product
+    result = renderer_cache(cache_object,"#{myself.user_class_id}",:skip => @skip_caching) do |cache|
+      find_args = { :include => [ { :shop_product_options =>  :variation_option }, { :shop_product_class =>  :shop_variations }] }
+      if editor?
+        product = Shop::ShopProduct.find(:first,find_args)
+      elsif cache_object[1].is_a?(Integer)
+        product = Shop::ShopProduct.find_by_id(cache_object[1],find_args)
+      else
+        product = Shop::ShopProduct.find_by_url(cache_object[1],find_args)
       end
 
-    end
+      if product
+        cache[:product_id] = product.id
+        cache[:product_name] = product.name
+      end
 
-    if product_id
-      set_page_connection(:content_id, [ 'Shop::ShopProduct',product_id ] )
-      set_page_connection(:product_id, product_id )
-    end
-
-
-    set_title(product_name)
-      
-    if !feature_output
       @mod = get_module
       currency = @mod.currency
 
       data = { :product => product, :currency => currency, :paragraph_id => paragraph.id, :user => myself }
-      
-      if options[:list_page_id].to_i > 0
-        data[:list_page] = SiteNode.get_node_path(options[:list_page_id])
-        cat_conn_type,cat_conn_id = page_connection(:category)
-        
-        data[:list_page] << "/#{cat_conn_id}" if !cat_conn_id.blank?
+
+      if options.list_page_url
+        data[:list_page] = options.list_page_url
+        if product 
+          category = Shop::ShopCategory.find_by_url(category_link) if category_link 
+          if !category || category.parent_id == 0
+            category = product.deepest_category
+          end
+          if category && category.parent_id > 0
+            data[:category] = category
+            data[:list_page] << "/#{category.url}" 
+          end
+        end
         data[:list_page] << "?search=#{CGI::escape(params[:search])}" if params[:search]
       end
 
@@ -188,14 +183,18 @@ class Shop::PageRenderer < ParagraphRenderer
         data[:product_added] = flash[:shop_product_added]
       end
 
-      feature_output = shop_product_detail_feature(data)
-
-      DataCache.put_content("ShopProduct",target_string,display_string, [  product_id,product_name,feature_output ]) if @caching_active
+      cache[:output] = shop_product_detail_feature(data)
     end
-    
-    require_css('gallery')
 
-    render_paragraph :text => feature_output
+
+    if result.product_id
+      set_page_connection(:content_id, [ 'Shop::ShopProduct',result.product_id ] )
+      set_page_connection(:product_id, result.product_id )
+    end
+
+    set_title(result.product_name) if result.product_name
+    require_css('gallery')
+    render_paragraph :text => result.output
   end
 
 
@@ -216,9 +215,9 @@ class Shop::PageRenderer < ParagraphRenderer
   end
 
   def category_listing
-    opts = Shop::PageController::CategoryListingOptions.new(paragraph.data||{})
+    opts = paragraph_options(:category_listing)
     
-    page = SiteNode.get_node_path(opts.list_page_id)
+    page = opts.list_page_url
     
     if !page || !opts.base_category_id
       render_paragraph :text => 'Configure Paragraph'.t
@@ -227,41 +226,39 @@ class Shop::PageRenderer < ParagraphRenderer
     
     category_connection,category_link = page_connection()
     if(category_link) 
-      @selected_category_id = category_link
+      @selected_category_url = category_link
     end
     
-    selected_categories = []
-    selected_categories << Shop::ShopCategory.find_by_id(@selected_category_id)
-    while selected_categories[-1] && selected_categories[-1].parent_id > 0
-      selected_categories << Shop::ShopCategory.find_by_id(selected_categories[-1].parent_id)
+
+    result = renderer_cache(Shop::ShopCategory,category_link) do |cache|
+      selected_categories = []
+      selected_categories << Shop::ShopCategory.find_by_url(@selected_category_url)
+      while selected_categories[-1] && selected_categories[-1].parent_id > 0
+        selected_categories << Shop::ShopCategory.find_by_id(selected_categories[-1].parent_id)
+      end
+      @selected_categories = selected_categories.compact.map(&:id)
+
+      @page_url = page
+
+      categories = Shop::ShopCategory.find(:all,:conditions => ['parent_id = ?',opts.base_category_id])
+
+      depth = opts.depth - 1
+
+      menu = category_data(categories,depth)
+      request_path = "/" + (params[:full_path]||[]).join("/")
+      data = { :url =>  request_path, :menu => menu }
+      data[:edit] = true if editor?
+
+      cache[:output] = menu_feature(data)
     end
-    selected_categories = [] if selected_categories[-1] && selected_categories[-1].parent_id == 0
-    
-    @selected_categories = selected_categories.compact.map(&:id)
-    @page_url = page
-    
-    categories = Shop::ShopCategory.find(:all,:conditions => ['parent_id = ?',opts.base_category_id])
-    
-    depth = opts.depth - 1
-    
-    
-    menu = category_data(categories,depth)
-    
-    request_path = "/" + (params[:full_path]||[]).join("/")
-    
-    data = { :url =>  request_path,
-             :menu => menu
-           }
-           
-    data[:edit] = true if editor?
-           
-    render_paragraph :text => menu_feature(get_feature('menu', :class_name => 'Editor::MenuRenderer'),data)
+
+    render_paragraph :text => result.output
   end
   
   def category_data(categories,depth)
    categories.collect do |cat|
       { :title => cat.name,
-	      :link => @page_url + "/" + cat.id.to_s,
+	      :link => @page_url + "/" + cat.url.to_s,
 	      :description => cat.description,
 	      :selected => @selected_categories.include?(cat.id),
 	      :menu => depth > 1 ? category_data(cat.children,depth-1) : nil }

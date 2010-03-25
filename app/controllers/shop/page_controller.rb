@@ -2,16 +2,17 @@ class Shop::PageController < ParagraphController
   
   editor_header "Shop Paragraphs"
   editor_for :product_listing, :name => 'Product Listing',  :features => ['shop_product_listing'],
-                                  :inputs => [ [ :product_category_1, 'Product Category - Level 1', :path ] ],
+                                  :inputs => { :input => [ [ :product_category_1, 'Product Category', :path ] ],
+                                              :detail => [ [ :produce_url, 'Product URL', :path ]] },
                                   :outputs => [ [ :content_id, 'Content Identifier', :content ],
                                                 [ :category_id, 'Category ID', :category_id ] ]
   editor_for :product_detail, :name => 'Product Detail', :features => ['shop_product_detail'],
-                       :inputs =>  { :input =>  [ [ :product_id, 'Product ID', :path ],  [ :product_sku, 'Product Sku', :path ] ] ,
-                                     :category => [ [ :product_category_1, 'Product Category - Level 1', :path ] ] }, 
+                       :inputs =>  { :input =>  [ [ :product_id, 'Product URL', :path ]] ,
+                                     :category => [ [ :product_category_1, 'Product Category URL', :path ] ] }, 
                         :outputs => [ [ :content_id, 'Content Identifier', :content ],
                                       [ :product_id, 'Product ID', :product_id ] ]
   editor_for :category_listing, :name => 'Category Menu',  :features => ['menu'],
-                                  :inputs => [ [ :product_category_1, 'Product Category - Level 1', :path ] ]
+                                  :inputs => [ [ :product_category_1, 'Product Category', :path ] ]
 
   editor_for :display_cart, :name => 'Mini Shopping Cart', :features => ['display_cart']
 
@@ -25,7 +26,7 @@ class Shop::PageController < ParagraphController
       [ Array.new(cat.left_index) { "--" }.join('') + cat.name, cat.id ]
     end
 
-    @options = ProductListOptions.new(params[:product_listing] || @paragraph.data)
+    @options = ProductListingOptions.new(params[:product_listing] || @paragraph.data)
       
     return if handle_module_paragraph_update(@options)
 
@@ -35,12 +36,15 @@ class Shop::PageController < ParagraphController
 
   
  
-  class ProductListOptions < HashModel
-      default_options :base_category_id => nil, :items_per_page => 10,:detail_page => nil, :show_featured => false,:cart_page_id => nil, :include_category => 'yes'
+  class ProductListingOptions < HashModel
+      attributes :base_category_id => nil, :items_per_page => 10,:detail_page_id => nil, :show_featured => false,:cart_page_id => nil, :include_category => true, :shop_shop_id => nil, :deepest_category => false
       
-      integer_options :base_category_id, :items_per_page, :detail_page,:cart_page_id
+      page_options :detail_page_id 
 
+      integer_options :items_per_page
       validates_presence_of :items_per_page
+
+      boolean_options :include_category, :deepest_category
   end
     
   
@@ -58,9 +62,8 @@ class Shop::PageController < ParagraphController
   
 
   class ProductDetailOptions < HashModel
-      default_options :product_id => nil, :cart_page_id => nil, :list_page_id => nil
-      
-      integer_options :product_id, :cart_page_id, :list_page_id
+      attributes :product_id => nil, :cart_page_id => nil, :list_page_id => nil, :shop_shop_id => nil
+      page_options :list_page_id 
   end
 
 
@@ -77,7 +80,8 @@ class Shop::PageController < ParagraphController
   class CategoryListingOptions < HashModel
       default_options :base_category_id => nil, :list_page_id => nil, :depth => 3
 
-      integer_options :base_category_id,:list_page_id
+      page_options :list_page_id
+      integer_options :depth
       
       validates_presence_of :base_category_id,:list_page_id
   end

@@ -14,10 +14,18 @@ class Shop::ShopCategory < DomainModel
 
   has_many :unfeatured_shop_category_products, :class_name => 'Shop::ShopCategoryProduct', :conditions => 'shop_category_products.featured = 0'
 
-  attr_accessor :nested_children_arr
+ before_validation :create_url
+ before_create :find_parent 
+
+ validates_uniqueness_of :url
+
+ cached_content 
+
+  attr_accessor :nested_children_arr, :is_root
 
   def self.get_root_category
-    self.find(:first,:conditions => 'parent_id=0') || self.create(:name => 'Categories'.t, :parent_id => 0)
+    
+    self.find(:first,:conditions => 'parent_id=0') || self.create(:name => 'Categories'.t, :parent_id => 0,:is_root => true)
   end
 
   def self.generate_tree( product_id = nil)
@@ -25,13 +33,13 @@ class Shop::ShopCategory < DomainModel
     if product_id.is_a?(Array)
       elements = self.find(:all,:select =>     'shop_categories.*,COUNT(shop_category_products.shop_product_id) as shop_product_id,SUM(shop_category_products.featured) as featured',
                                 :joins => " LEFT JOIN shop_category_products ON (shop_category_products.shop_product_id = #{Shop::ShopCategory.connection.quote(product_id)} AND shop_category_products.shop_category_id = shop_categories.id )",
-                                :order => 'left_index,name')
+                                :order => 'left_index,weight,name')
     elsif product_id
       elements = self.find(:all,:select => 'shop_categories.*,shop_category_products.shop_product_id,shop_category_products.featured',
                                 :joins => " LEFT JOIN shop_category_products ON (shop_category_products.shop_product_id = #{Shop::ShopCategory.connection.quote(product_id)} AND shop_category_products.shop_category_id = shop_categories.id )",
-                                :order => 'left_index,name')
+                                :order => 'left_index,weight,name')
     else
-      elements = self.find(:all,:order => 'left_index,name')
+      elements = self.find(:all,:order => 'left_index,weight,name')
     end
     children_hash = {}
 
@@ -94,7 +102,12 @@ class Shop::ShopCategory < DomainModel
     end
   end
 
-  def find_products(product_type,opts = {})
+  def product_count(shop_id)
+    self.shop_products.count(:shop_shop_id => shop_id )
+
+  end
+
+  def find_products(shop_id,product_type,opts = {})
 
     case product_type 
       when :featured; featured = 'shop_category_products.featured=1'
@@ -107,14 +120,17 @@ class Shop::ShopCategory < DomainModel
     else
       opts[:conditions] = [ "shop_category_id=? AND #{featured} " , self.id ]
     end
+    opts[:conditions][0] += " AND shop_products.shop_shop_id=?"
+    opts[:conditions] << shop_id
   
     opts[:order] = 'shop_products.name'
     opts[:include] = [ :shop_product ]
+    opts[:joins] = [:shop_product] 
 
     Shop::ShopCategoryProduct.find(:all,opts)
   end
   
- def paginate_products(product_type,opts = {})
+ def paginate_products(shop_id,product_type,opts = {})
  
     case product_type 
       when :featured; featured = 'shop_category_products.featured=1'
@@ -128,15 +144,57 @@ class Shop::ShopCategory < DomainModel
       opts[:conditions] = [ "#{featured}" ]
     end
     opts[:conditions] = [ "shop_category_id=? AND " + opts[:conditions][0] ] + [ self.id ] + opts[:conditions][1..-1] if self.parent_id.to_i > 0 
-    opts[:order] = 'shop_products.name'
+    opts[:conditions][0] += " AND shop_products.shop_shop_id=?"
+    opts[:conditions] << shop_id
+     opts[:order] = 'shop_products.name'
 
-    page = opts.delete(:page)
+  page = opts.delete(:page)
     if self.parent_id.to_i > 0 
-      opts[:include] = [ :shop_product ]
-      pages,products = Shop::ShopCategoryProduct.paginate(page,opts)
+       opts[:include] = { :shop_product => [ :prices, :image_file ] }
+       opts[:joins] = [ :shop_product ] 
+       pages,products = Shop::ShopCategoryProduct.paginate(page,opts)
       [ pages, products.collect {|cp| cp.shop_product } ]
     else
+      opts[:include] = [ :prices, :image_file, :shop_categories ]
       Shop::ShopProduct.paginate(page,opts)
     end
   end  
+
+
+ protected
+
+ def create_url
+   if self.url.blank?
+     name_base = self.name.downcase.gsub(/[ _]+/,"-").gsub(/[^a-z+0-9\-]/,"")
+     if name_base != self.url
+       cnt = 2
+       name_try = name_base
+
+       while check_duplicate(name_try)
+         name_try = name_base + '-' + cnt.to_s
+         cnt += 1
+       end
+       self.url = name_try
+     end
+
+   end
+ end
+
+ def find_parent
+   if self.parent_id==0 && !is_root 
+      self.parent = self.class.get_root_category
+   end
+ end  
+
+ def check_duplicate(url_try)
+   if self.id.blank?
+    Shop::ShopCategory.find(:first,:conditions => ['`url`=? ',url_try])
+   else
+     Shop::ShopCategory.find(:first,:conditions => ['`url`=? AND id != ? ',url_try,self.id])
+   end
+
+   
+ end
+
+
 end
