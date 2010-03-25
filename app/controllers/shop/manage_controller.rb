@@ -1,3 +1,4 @@
+require 'csv'
 
 class Shop::ManageController < ModuleController
   
@@ -12,8 +13,8 @@ class Shop::ManageController < ModuleController
                 [ ActiveTable::IconHeader.new('', :width=>10),
                   ActiveTable::NumberHeader.new('shop_orders.id',:label=>'Order #'),
                   ActiveTable::StringHeader.new('shop_orders.name', :label => 'Ordered By'),
-                  ActiveTable::DateHeader.new('ordered_at',:datetime => true),
-                  ActiveTable::DateHeader.new('shipped_at', :datetime => true),
+                  ActiveTable::DateRangeHeader.new('ordered_at',:datetime => true),
+                  ActiveTable::DateRangeHeader.new('shipped_at', :datetime => true),
                   ActiveTable::OptionHeader.new('state',:options => :order_states),
                   ActiveTable::NumberHeader.new('total'),
                   'Action'
@@ -26,6 +27,8 @@ class Shop::ManageController < ModuleController
   end 
   
   public
+
+  
 
   def order_table(display=true)
     @active_table_output = order_table_generate params, :order => 'ordered_at DESC', :conditions =>  [ 'state != "pending"' ]
@@ -44,8 +47,66 @@ class Shop::ManageController < ModuleController
   def order
      @order = Shop::ShopOrder.find(params[:path][0])
      cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:action => 'index') ], ['View Order %s',nil,@order.number ] ], "content"
-     
-     
+  end
+
+  def download
+    @tbl = order_table_generate( { :page => 1 }, :order => 'ordered_at DESC',  :conditions =>  [ 'state != "pending"' ], :include => :order_items , :all => true)
+
+    output = ''
+    CSV::Writer.generate(output) do |csv|
+      csv << [ 'Order ID','Order State', 'Name','Email','Link','Gift','Ordered At','Shipped At','Shipping Adr.','Shp.Line 2', 'Shp.City',
+               'Shp.State','Shp.Zip','Billing Adr.','Bil.City','Bil.State','Bil.Zip','Bil.State','Subtotal','Tax','Shipping','Total',
+               'Item SKU','Item','Details','Unit Cost','Quantity','Subtotal' ]
+
+      @tbl.data.each do |order|
+        order.shipping_address ||= {}
+        order.billing_address ||= {}
+        csv << [ order.id,
+                 order.state_display,
+                 order.name,
+                 order.end_user ? order.end_user.email : '',
+                 url_for(:action => 'order',:path => [ order.id ]),
+                 order.gift_order? ? 'Y' : 'N',
+                 order.ordered_at.strftime(DEFAULT_DATETIME_FORMAT),
+                 order.shipped_at ? order.shipped_at.strftime(DEFAULT_DATETIME_FORMAT) : '',
+                 order.shipping_address[:address],
+                 order.shipping_address[:address_2],
+                 order.shipping_address[:city],
+                 order.shipping_address[:state],
+                 order.shipping_address[:zip],
+                 order.billing_address[:address],
+                 order.billing_address[:address_2],
+                 order.billing_address[:city],
+                 order.billing_address[:state],
+                 order.billing_address[:zip],
+                 order.display_subtotal,
+                 order.display_tax,
+                 order.display_shipping,
+                 order.display_total
+               ]
+        order.order_items.each do |item|
+          csv << [ order.id,'','','','','','','','','','','','','','','','','','','','','',
+                   item.item_sku,
+                   item.item_name,
+                   item.item_details,
+                   item.display_unit_price,
+                   item.quantity,
+                   item.subtotal
+                 ]
+        end
+                
+      end
+
+    end
+    
+    
+    send_data(output,
+      :stream => true,
+      :type => "text/csv",
+              :disposition => 'attachment',
+              :filename => sprintf("orders_%s.csv",Time.now.strftime("%Y_%m_%d"))
+	    )
+    
   end
   
   def capture_order

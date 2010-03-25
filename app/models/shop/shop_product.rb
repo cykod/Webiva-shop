@@ -80,7 +80,7 @@ class Shop::ShopProduct < DomainModel
   def set_captions(captions)
     @captions = captions
   end
-  
+
   def files_ids=(ids)
     @file_ids = ids.split(",").select { |elm| !elm.blank? } unless ids.nil?
   end
@@ -88,6 +88,7 @@ class Shop::ShopProduct < DomainModel
   def images_ids=(ids)
     @image_ids = ids.split(",").select { |elm| !elm.blank? } unless ids.nil?
   end
+  
   
   def files_product_files
     if @file_ids && @file_ids.is_a?(Array) && @file_ids.length > 0

@@ -82,6 +82,8 @@ class Shop::PageController < ParagraphController
 
       page_options :list_page_id
       integer_options :depth
+
+    validates_numericality_of :depth
       
       validates_presence_of :base_category_id,:list_page_id
   end
