@@ -38,5 +38,9 @@ class Shop::AuthorizeNetPaymentProcessor < Shop::ActiveMerchantCreditCardProcess
   def test?
     @options[:test_server] != 'live'
   end
+
+  def self.remember_transactions?
+    true
+  end
   
 end

@@ -31,19 +31,7 @@ class Shop::PageRenderer < ParagraphRenderer
 
     options = paragraph_options(:product_listing)
 
-    display_string = "#{paragraph.id}_#{myself.user_class_id}"
-    
-    if request.post? && params["shop#{paragraph.id}"]
-      if handle_shop_action(params["shop#{paragraph.id}"])
-        if options.cart_page_id.to_i > 0
-          flash[:shop_continue_shopping_url] = paragraph_page_url
-          redirect_paragraph :site_node => options.cart_page_id        
-        else
-          redirect_paragraph :page
-        end
-        return
-      end
-    end    
+    return if handle_shop_action(options,params["shop#{paragraph.id}"])
 
     # if we have a detail link connection, don't display the category paragraph
     detail_connection, detail_link = page_connection(:detail)
@@ -58,7 +46,7 @@ class Shop::PageRenderer < ParagraphRenderer
     end
 
     unless category
-      render_paragraph :inline => 'Invalid Category'.t
+      render_paragraph :text => 'Invalid Category'.t
       return
     end
 
@@ -111,19 +99,7 @@ class Shop::PageRenderer < ParagraphRenderer
   def product_detail
     options = paragraph_options(:product_detail)
 
-    display_string = "#{paragraph.id}_#{myself.user_class_id}"
-
-    if request.post? && params["shop#{paragraph.id}"]
-      if handle_shop_action(params["shop#{paragraph.id}"])
-        if options.cart_page_id.to_i > 0
-          flash[:shop_continue_shopping_url] = paragraph_page_url
-          redirect_paragraph :site_node => options.cart_page_id        
-        else
-          redirect_paragraph :page
-        end
-        return
-      end
-    end
+    return if handle_shop_action(options,params["shop#{paragraph.id}"])
 
     product_connection,product_link = page_connection(:input)
 
@@ -145,7 +121,7 @@ class Shop::PageRenderer < ParagraphRenderer
     end
 
     result = renderer_cache(cache_object,"#{myself.user_class_id}",:skip => @skip_caching) do |cache|
-      find_args = { :include => [ { :shop_product_options =>  :variation_option }, { :shop_product_class =>  :shop_variations }] }
+      find_args = { :include => [ { :shop_product_options =>  :variation_option }, { :shop_product_class =>  :shop_variations }], :conditions => { :shop_shop_id => options.shop_shop_id } }
       if editor?
         product = Shop::ShopProduct.find(:first,find_args)
       elsif cache_object[1].is_a?(Integer)
@@ -201,18 +177,18 @@ class Shop::PageRenderer < ParagraphRenderer
  
 
   def display_cart
-    options = paragraph.data || {}
+    options = paragraph_options(:display_cart)
 
     cart = get_cart
 
-    full_cart_page =  SiteNode.get_node_path(options[:full_cart_page_id],'#')
+    full_cart_page =  SiteNode.get_node_path(options.full_cart_page_id,'#')
     @mod = get_module
       
     currency = @mod.currency
     data = { :cart=> get_cart, :full_cart_page => full_cart_page, :currency => currency, :user => myself }
-    feature_output = display_cart_feature(data)
-    render_paragraph :text => feature_output
+    render_paragraph :text => shop_display_cart_feature(data)
   end
+
 
   def category_listing
     opts = paragraph_options(:category_listing)
@@ -278,50 +254,29 @@ class Shop::PageRenderer < ParagraphRenderer
     
     category_connection,category_link = page_connection()
     if(category_link) 
-      @selected_category_id = category_link
+      @selected_category_url = category_link
     end
       
-    selected_category =  Shop::ShopCategory.find_by_id(@selected_category_id)
-    category_list = [  ] 
-    category_list << selected_category  if selected_category && selected_category.parent_id > 0
-    while category_list[0] && category_list[0].parent_id > 0
-      parent_cat = Shop::ShopCategory.find_by_id(category_list[0].parent_id)
-      if !parent_cat || parent_cat.id == opts.base_category_id
-        break
-      else
-        category_list.unshift(parent_cat)
+    result = renderer_cache(["Shop::ShopCategory", category_link]) do |cache|
+      selected_category =  Shop::ShopCategory.find_by_url(@selected_category_url)
+      if selected_category
+        category_list = selected_category.parent_list(opts.base_category_id)
+        child_categories = selected_category.children
       end
+
+      data = { :categories => category_list, :child_categories => child_categories, :page_url => page, :selected_category => selected_category }
+      cache[:output] = shop_page_category_breadcrumbs_feature(data)
     end
-    category_list.compact!
-  
-    child_categories = selected_category.children if selected_category
-    
-    
-    data = { :categories => category_list, :child_categories => child_categories, :page_url => page, :selected_category => selected_category }
-    
-    render_paragraph :text => shop_page_category_breadcrumbs_feature(data)
+
+    render_paragraph :text => result.output 
   end
 
-  feature :shop_page_search_bar, :default_feature => <<-FEATURE
-    <cms:search>
-    Search: <cms:field/><cms:button>Search</cms:button>
-    </cms:search>
-  FEATURE
-
-  def shop_page_search_bar_feature(data)
-    webiva_feature(:shop_page_search_bar) do |c|
-      c.define_tag('search') { |t| "<form action='?' method='post'  >" + t.expand + "</form>" }
-        c.define_tag('field') { |t| tag(:input,t.attr.merge({:type => 'text', :class => 'text_field', :name => 'run_search', :value => vh(data[:search]) })) }
-        c.define_button_tag('button')
-    end
-  end
 
   def search_bar
     if request.post? &&  params[:run_search]
       @options = paragraph_options(:search_bar)
       
-      path = SiteNode.node_path(@options.search_page_id)
-      redirect_paragraph path + "?search=" + CGI.escape(params[:run_search])
+      redirect_paragraph @options.search_page_url + "?search=" + CGI.escape(params[:run_search])
       return
     end
     
@@ -333,28 +288,40 @@ class Shop::PageRenderer < ParagraphRenderer
 
   protected
 
-  def handle_shop_action(act)
+  def handle_shop_action(options,act)
 
-    @cart = get_cart
+    if request.post? && params["shop#{paragraph.id}"]
 
-    case act[:action]
-    when 'add_to_cart':
-      prd = Shop::ShopProduct.find_by_id(act[:product])
-      return false unless prd
-      options = { :variations => {}}
-      prd.option_variations.each do |variation|
-        option_id = act[:variation][variation.id.to_s]
-        option = variation.options.find_by_id(option_id)
-        return false unless option
-        options[:variations][variation.id] = option.id
+      @cart = get_cart
+
+      case act[:action]
+      when 'add_to_cart':
+        prd = Shop::ShopProduct.find_by_id(act[:product],:conditions => { :shop_shop_id => options.shop_shop_id })
+        return false unless prd
+        product_options = { :variations => {}}
+        prd.option_variations.each do |variation|
+          option_id = act[:variation][variation.id.to_s]
+          option = variation.options.find_by_id(option_id)
+          return false unless option
+          product_options[:variations][variation.id] = option.id
+        end
+        paragraph_action('Add to Cart: %s' / prd.name)
+        @cart.add_product(prd,(act[:quantity] || 1).to_i,product_options)
+        flash[:shop_product_added] = prd.id
+        @cart.validate_cart!
+
+        if options.cart_page_id.to_i > 0
+          flash[:shop_continue_shopping_url] = paragraph_page_url
+          return redirect_paragraph :site_node => options.cart_page_id        
+        else
+          return redirect_paragraph :page
+        end
+        return true
       end
-      paragraph_action('Add to Cart: %s' / prd.name)
-      @cart.add_product(prd,(act[:quantity] || 1).to_i,options)
-      flash[:shop_product_added] = prd.id
-      @cart.validate_cart!
-
-      return true
     end
+
+    return false
+
   end
   
   include Shop::CartUtility # Get Cart Functionality

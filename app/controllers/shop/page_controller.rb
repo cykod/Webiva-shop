@@ -3,7 +3,7 @@ class Shop::PageController < ParagraphController
   editor_header "Shop Paragraphs"
   editor_for :product_listing, :name => 'Product Listing',  :features => ['shop_product_listing'],
                                   :inputs => { :input => [ [ :product_category_1, 'Product Category', :path ] ],
-                                              :detail => [ [ :produce_url, 'Product URL', :path ]] },
+                                              :detail => [ [ :product_url, 'Product URL', :path ]] },
                                   :outputs => [ [ :content_id, 'Content Identifier', :content ],
                                                 [ :category_id, 'Category ID', :category_id ] ]
   editor_for :product_detail, :name => 'Product Detail', :features => ['shop_product_detail'],
@@ -14,7 +14,7 @@ class Shop::PageController < ParagraphController
   editor_for :category_listing, :name => 'Category Menu',  :features => ['menu'],
                                   :inputs => [ [ :product_category_1, 'Product Category', :path ] ]
 
-  editor_for :display_cart, :name => 'Mini Shopping Cart', :features => ['display_cart']
+  editor_for :display_cart, :name => 'Mini Shopping Cart', :features => ['shop_display_cart']
 
   editor_for :category_breadcrumbs, :name => 'Category Breadcrumbs', :features => ['shop_page_category_breadcrumbs'], :inputs => [[:product_category_1, 'Product Category - Level 1', :path ] ]
   
@@ -56,6 +56,7 @@ class Shop::PageController < ParagraphController
     @products = [['--Use Page Connection--',nil]] + Shop::ShopProduct.find_select_options(:all,:order => 'name');   
     @pages = [['--Stage on Same Page--',nil]] + SiteNode.page_options()
     @list_pages = [['--Select List Page--',nil]] + SiteNode.page_options()
+ 
 
   end
   
@@ -63,7 +64,9 @@ class Shop::PageController < ParagraphController
 
   class ProductDetailOptions < HashModel
       attributes :product_id => nil, :cart_page_id => nil, :list_page_id => nil, :shop_shop_id => nil
-      page_options :list_page_id 
+      page_options :list_page_id, :cart_page_id
+
+     canonical_paragraph "Shop::ShopShop", :shop_shop_id, :list_page_id => :list_page_id
   end
 
 
@@ -78,7 +81,7 @@ class Shop::PageController < ParagraphController
   end
   
   class CategoryListingOptions < HashModel
-      default_options :base_category_id => nil, :list_page_id => nil, :depth => 3
+      attributes :base_category_id => nil, :list_page_id => nil, :depth => 3
 
       page_options :list_page_id
       integer_options :depth
@@ -95,25 +98,12 @@ class Shop::PageController < ParagraphController
   end
 
   class DisplayCartOptions < HashModel
-    default_options :full_cart_page_id => nil
-    integer_options :full_cart_page_id
+    attributes :full_cart_page_id => nil
+    page_options :full_cart_page_id
 
     validates_presence_of :full_cart_page_id
   end
 
-  def checkout
-    @options = CheckoutOptions.new(params[:checkout] || @paragraph.data)
-    return if handle_module_paragraph_update(@options)
-    @pages = [['--Please select a page--'.t,'']] + SiteNode.page_options()
-  end
-
-  class CheckoutOptions < HashModel
-    default_options :success_page_id => nil
-    integer_options :success_page_id
-
-    validates_presence_of :success_page_id
-  end
-  
   def category_breadcrumbs 
     @options = CategoryListingOptions.new(params[:category_listing] || paragraph.data)
     
@@ -124,18 +114,18 @@ class Shop::PageController < ParagraphController
   end
   
 
-  class CategoryBreadcrumbOptions < HashModel
-      default_options :base_category_id => nil, :list_page_id => nil
+  class CategoryBreadcrumbsOptions < HashModel
+      attributes :base_category_id => nil, :list_page_id => nil
 
-      integer_options :base_category_id,:list_page_id
+      page_options :list_page_id
       
       validates_presence_of :base_category_id,:list_page_id
   end
   
   class SearchBarOptions < HashModel
-      default_options :search_page_id => nil
+      attributes :search_page_id => nil
       
-      integer_options :search_page_id
+      page_options :search_page_id
       
   end
 end

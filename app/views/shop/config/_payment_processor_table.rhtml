@@ -1,8 +1,11 @@
 
 <% active_table_for :payment_processor_table, @active_table_output,
-                    :actions => [ ['Delete','delete','Are you sure you want to delete the selected payment processors?' ]] do |t| -%>
+                    :actions => [ [ 'Activate', 'activate', 'Are you sure you want activate the selected payment procesors? (only 1 processor of a type can be active at once)' ],
+                                  [ 'Deactivate','deactivate','Are you sure you want to deactivate the selected payment processors?' ] ],
+                    :more_actions => [ ['Delete','delete','Are you sure you want to delete the selected payment processors?' ]] do |t| -%>
 <tr <%= highlight_row 'payment_processor',t.id %> >
   <td align='left' nowrap='1'><%= entry_checkbox "payment_processor", t.id %></td>
+  <td><%= t.active? ?  theme_icon('table','icons/table_actions/check.gif') : '' %></td>
   <td><%= link_to t.name, :action => 'processor', :path => t %></td>
   <td><%= t.currency %></td>
   <td><%= t.payment_type.t %></td>

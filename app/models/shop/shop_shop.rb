@@ -2,12 +2,13 @@
 
 class Shop::ShopShop < DomainModel
   has_many :shop_products, :class_name => 'Shop::ShopProduct'
-  validates_presence_of :name
+  has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature'
+  validates_presence_of :name, :abr
 
-  content_node_type :shop, "Shop::ShopProduct", :content_name => :name, :url_field => :url
+  content_node_type :shop, "Shop::ShopProduct", :content_name => :name, :url_field => Proc.new { |shp| Shop::AdminController.module_options.category_in_url ? :category_url : :url }
 
   def self.create_default_shop
-    self.create(:name => 'Default Shop')
+    self.create(:name => 'Default Shop'.t,:abr => 'Def.')
   end
 
   def self.default_shop

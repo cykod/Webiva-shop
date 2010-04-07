@@ -39,12 +39,17 @@ There was an error processing your request:<br/>
 <% if @cart.shippable? -%>
   <tr>
     <td colspan='5' align='right' >
-        <%= @current_shipping ? @current_shipping[0].name : "Please add a shipping address".t %>
+        <%= @current_shipping_obj ? @current_shipping_obj[0] : "Please add a shipping address".t %>
     </td>
     <td></td>
     <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.shipping,@currency) %></td>
   </tr>
 <% end -%>
+  <tr>
+    <td colspan='4'></td>
+    <td align='right'>Tax:</td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.tax,@currency) %></td>
   <tr>
     <td colspan='4'><a href='javascript:void(0);' onclick='UserShop.updateOrder();'>Edit Order</a></td>
     <td  align='right'>Total:</td>

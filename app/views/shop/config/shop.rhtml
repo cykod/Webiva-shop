@@ -1,6 +1,7 @@
 <div class='admin_content'>
   <% admin_form_for :shop, @shop do |f| %>
-    <%= f.text_field :name %>
+    <%= f.text_field :name,:required => true %>
+    <%= f.text_field :abr,:required => true %>
     <%= f.cancel_submit_buttons %>
   <% end -%>
 </div>

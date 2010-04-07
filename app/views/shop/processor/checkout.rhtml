@@ -12,6 +12,7 @@
       <%= f.radio_buttons :address_type, [['American'.t,'american'],['European'.t,'european']] %>
       <%= f.radio_buttons :show_company, [['Yes'.t,true],['No'.t,false]] %>
       <%= f.radio_buttons :show_fax, [['Yes'.t,true],['No'.t,false]] %>
+      <%= f.select :cart_site_feature_id, SiteFeature.options('shop_full_cart') %>
  <% end -%>
  <% t.tabled_tab do %>
     <div id='cms_triggered_actions'>

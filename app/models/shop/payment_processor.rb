@@ -30,6 +30,9 @@ class Shop::PaymentProcessor
     [ 'standard', nil , '' ]
   end  
   
+  def self.remember_transactions?
+    false
+  end
   
 
 end

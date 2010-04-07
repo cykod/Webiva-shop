@@ -26,6 +26,9 @@ class Shop::AdminController < ModuleController
   register_handler :shop, :product_feature, "Shop::Features::ProfilePriceAdjustment"
   register_handler :shop, :product_feature, "Shop::Features::ProfileQuantityOption"
   register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
+
+  register_handler :structure, :wizard, "Shop::WizardController"
+ 
   
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
@@ -62,6 +65,14 @@ class Shop::AdminController < ModuleController
 
     if request.post? && @options.valid?
       Configuration.set_config_model(@options)
+      cts = ContentType.find(:all,:conditions => { :component => 'shop', :container_type => 'Shop::ShopShop' })
+      cts.each do |ct|
+        if ct.url_field == 'url' && @options.category_in_url
+          ct.update_attributes(:url_field => 'category_url')
+        elsif ct.url_field == 'category_url' && !@options.category_in_url
+          ct.update_attributes(:url_field => 'url')          
+        end
+      end
       flash[:notice] = "Updated shop options".t 
       redirect_to :controller => '/modules'
       return
@@ -79,7 +90,9 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-      attributes :shop_currency => nil, :shipping_template_id => nil
+      attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true
+
+      boolean_options :category_in_url
 
       validates_presence_of :shop_currency
       

@@ -8,7 +8,11 @@ class Shop::ConfigController < ModuleController
   cms_admin_paths "content",
     "Shop" => { :controller => "/shop/manage" },
     "Configuration" => {:controller => "/shop/config" },
-    "Shops" => { :action => "shops" }
+    "Shops" => { :action => "shops" },
+    "Carriers" => { :action => "carriers" },
+    "Regions" => { :action => "regions" },
+    "Shipping Categories" => { :action => "shipping" }
+
 
   public
 
@@ -94,12 +98,8 @@ class Shop::ConfigController < ModuleController
 
    active_table :region_table,
                 Shop::ShopRegion,
-                [ ActiveTable::IconHeader.new('',:width => '15'),
-                  ActiveTable::StringHeader.new('name', :width => 300),
-                  ActiveTable::NumberHeader.new('tax',:width=> 50),
-                  ActiveTable::StaticHeader.new('Subregions',:width => 50),
-                  ActiveTable::StaticHeader.new('Countries'),
-                ]
+                [ :check,  hdr(:string,:name,:width => 300),  hdr(:number,:tax,:width=> 100),
+                  "Subregions","Countries" ]
 
   def display_region_table(display=true)
 
@@ -111,60 +111,49 @@ class Shop::ConfigController < ModuleController
     end
 
     @active_table_output = region_table_generate params, {:order => 'name', :include => :countries }
-
-
     render :partial => 'region_table' if display
   end
 
   def regions
-     cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],"Regions" ], "content"
-
+    cms_page_path ["Content","Shop","Configuration"],"Regions"
     display_region_table(false)
   end
 
   def region
-     @region = Shop::ShopRegion.find_by_id(params[:path][0]) || Shop::ShopRegion.new
-  
-     cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],
-                     ["Regions",url_for(:action => 'index') ],
-                       @region.id ? ["Edit %s",nil,@region.name] :  "Create Region" ], "content"
-    
-     if request.post? && params[:region]
+    @region = Shop::ShopRegion.find_by_id(params[:path][0]) || Shop::ShopRegion.new
+
+    cms_page_path ["Content","Shop","Configuration","Regions"],
+      @region.id ? ["Edit %s",nil,@region.name] :  "Create Region" 
+
+    if request.post? && params[:region]
+      if params[:commit]
         countries = params[:region].delete(:countries).to_s.strip.split("|")
         country = params[:region].delete(:country)
 
-        if !params[:region][:has_subregions] == '0'
-          params[:region].delete(:country)
-        end
-
-        
         @region.attributes = params[:region]
         @region.valid?
 
-        if params[:region][:has_subregions] == '1'
-          @region.errors.add(:country,"is blank") if country.blank?
+        if params[:region][:has_subregions] == '1' && !country.blank?
           countries = [ country  ]
         else 
           @region.errors.add(:countries,"must include at least one value") if countries.blank?
         end
-
-        
-        Shop::ShopRegionCountry.find(:all,:conditions => [ "country IN(?) AND shop_region_id != ?",countries,@region.id]).each do |existing_country|
-          @region.errors.add(:countries,"can only be in one region: please remove " + existing_country.country)
-          @region.errors.add(:country,"can only be in one region: please remove " + existing_country.country)
+        countries.each do |country|
+          @region.countries.build(:country => country) unless country.blank?
         end
-        
 
-        if(@region.errors.empty?)
-          @region.save
-          @region.countries.clear
+        if(@region.errors.length == 0 && @region.valid?)
+          @region.countries = []
           countries.each do |country|
-            @region.countries.create(:country => country) unless country.blank?
-          end 
+           @region.countries.build(:country => country) unless country.blank?
+          end
+
+          @region.save
           redirect_to :action => 'regions'
         end 
+      else
+        redirect_to :action => 'regions'
+      end
         
      end
     
@@ -172,10 +161,9 @@ class Shop::ConfigController < ModuleController
 
    active_table :subregions_table,
                 Shop::ShopSubregion,
-                [ ActiveTable::IconHeader.new('',:width => '15'),
-                  ActiveTable::StringHeader.new('name', :width => 300),
-                  ActiveTable::StringHeader.new('abr', :label => 'Abbreviation'),
-                  ActiveTable::NumberHeader.new('tax',:width=> 50)
+                [ :check, :name,
+                  hdr(:string,:abr,:label => 'Abbreviation'),
+                  "Tax" 
                 ]
 
   def display_subregions_table(display=true)
@@ -185,7 +173,7 @@ class Shop::ConfigController < ModuleController
      active_table_action('subregion') do |act,subregion_ids|
       case act
       when 'delete':
-        @region.subregions.destroy(subregion_ids)
+        Shop::ShopSubregion.destroy_all(subregion_ids)
       end
     end
     if params[:subregion_create] && request.post?
@@ -199,9 +187,9 @@ class Shop::ConfigController < ModuleController
   end
 
   def subregions
-
+  
       @region = Shop::ShopRegion.find(params[:path][0])
-
+       @subregion = @region.subregions.build
      cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
                      ["Configuration",url_for(:controller => '/shop/config') ],
                      ["Regions",url_for(:action => 'regions') ],
@@ -236,13 +224,8 @@ class Shop::ConfigController < ModuleController
   end
 
   def carriers
-
-
-     cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],
-                     "Delivery Carriers" ], 'content'
-
-    display_carriers_table(false)
+     cms_page_path [ "Content","Shop","Configuration"],"Carriers" 
+     display_carriers_table(false)
   end
 
 
@@ -252,18 +235,20 @@ class Shop::ConfigController < ModuleController
 
      @carrier = Shop::ShopCarrier.find_by_id(params[:path][0]) || Shop::ShopCarrier.new
 
-     cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],
-                     ["Carriers",url_for(:action => 'carriers') ],
-                     @carrier.new_record? ? "Create Carrier" : "Edit #{@carrier.name}" ], 'content'
+     cms_page_path [ "Content","Shop","Configuration","Carriers" ],  @carrier.new_record? ? "Create Carrier" : "Edit #{@carrier.name}" 
 
     if request.post? && params[:carrier]
-      processor = params[:carrier].delete(:carrier_processor)
-      @carrier.carrier_processor = processor if @handlers.detect { |handler| handler[1] == processor }
+      if params[:commit]
+        processor = params[:carrier].delete(:carrier_processor)
+        @carrier.carrier_processor = processor if @handlers.detect { |handler| handler[1] == processor }
 
-      if @carrier.update_attributes(params[:carrier])
+        if @carrier.update_attributes(params[:carrier])
+          redirect_to :action => "carriers"
+        end
+      else
         redirect_to :action => "carriers"
       end
+
     end
 
   end
@@ -302,37 +287,34 @@ class Shop::ConfigController < ModuleController
   end
 
   def shipping
-
-
-     cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],
-                     "Shipping Categories" ], 'content'
-
-    display_shipping_table(false)
+     cms_page_path [ "Content", "Shop","Configuration"],"Shipping Categories"
+     display_shipping_table(false)
   end
 
   def shipping_category
   
       @shipping_category = Shop::ShopShippingCategory.find_by_id(params[:path][0]) || Shop::ShopShippingCategory.new
-       cms_page_info [ ["Content",url_for(:controller => '/content') ], ["Shop",url_for(:controller => '/shop/manage') ], 
-                     ["Configuration",url_for(:controller => '/shop/config') ],
-                     ["Shipping Categories",url_for(:action => 'shipping')],
-                     @shipping_category.new_record? ? 'Create Category' : ['Edit %s',nil,@shipping_category.name] ], 'content'
+      cms_page_path [ "Content", "Shop","Configuration","Shipping Categories"],
+        @shipping_category.new_record? ? 'Create Category' : ['Edit %s',nil,@shipping_category.name] 
 
     @shipping_category.attributes = params[:shipping_category] if params[:shipping_category]
      
     set_shipping_options
     
     if request.post? && params[:shipping_category]
-      @processor.validate_options(@category_options)
+      if params[:commit]
+        @processor.validate_options(@category_options)
       
-      @shipping_category.valid?
-      if @category_options && @category_options.errors.length == 0 && @shipping_category.errors.length == 0
-        @shipping_category.options= @category_options.to_h
-        if @shipping_category.save
-          redirect_to :action => "shipping"
-          return
+        @shipping_category.valid?
+        if @category_options && @category_options.errors.length == 0 && @shipping_category.errors.length == 0
+          @shipping_category.options= @category_options.to_h
+          if @shipping_category.save
+            redirect_to :action => "shipping"
+            return
+          end
         end
+      else
+       redirect_to :action => "shipping"
       end
     end
     
@@ -369,11 +351,11 @@ class Shop::ConfigController < ModuleController
   
    active_table :payment_processor_table,
                 Shop::ShopPaymentProcessor,
-                [ ActiveTable::IconHeader.new('',:width => '15'),
-                  ActiveTable::StringHeader.new('name', :label => 'Name', :width => 300),
-                  ActiveTable::StaticHeader.new('currency', :label => 'Currency', :width => 100),
-                  ActiveTable::StaticHeader.new('payment_type', :label => 'Payment Type'),
-                  ActiveTable::StaticHeader.new('payment_processor', :label => 'Processor')
+                [ :check, hdr(:boolean,:active),
+                  :name,
+                  "Currency",
+                  "Payment Type",
+                  "Processor"
                 ]
 
   def display_payment_processor_table(display=true)
@@ -383,6 +365,11 @@ class Shop::ConfigController < ModuleController
       case act
       when 'delete':
         Shop::ShopPaymentProcessor.destroy(processor_ids)
+      when 'activate':
+        Shop::ShopPaymentProcessor.find(processor_ids).map { |p| p.update_attributes(:active => true) }
+      when 'deactivate':
+        Shop::ShopPaymentProcessor.find(processor_ids).map { |p| p.update_attributes(:active => false) }
+        
       end
     end
 

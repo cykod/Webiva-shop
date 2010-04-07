@@ -139,8 +139,8 @@ class Shop::ShopOrder < DomainModel
   def pending_payment(options)
     transaction do
       self.currency = options[:cart].currency
-      self.tax = options[:tax]
-      self.shipping = options[:shipping]
+      self.tax = options[:cart].tax.to_f
+      self.shipping = options[:cart].shipping.to_f
       self.billing_address = (options[:billing_address]||{}).symbolize_keys 
       self.shop_payment_processor_id = options[:shop_payment_processor].id
       self.payment_information = (options[:payment]||{}).to_hash.symbolize_keys
@@ -160,14 +160,14 @@ class Shop::ShopOrder < DomainModel
                                 :order_item_type => product.cart_item_type,
                                 :order_item_id => product.cart_item_id,
                                 :options => product.options,
-                                :currency => options[:currency],
+                                :currency => self.currency,
                                 :unit_price => product.price(options[:cart]),
                                 :quantity => product.quantity,
                                 :subtotal => subtotal,
                                 :end_user_id => self.end_user_id )
       end
       self.subtotal = total
-      self.total = total + options[:tax].to_f + options[:shipping].to_f
+      self.total = total + self.tax.to_f + self.shipping.to_f
       self.save
     end
   end

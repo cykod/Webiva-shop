@@ -4,7 +4,7 @@
 <tr <%= highlight_row 'region',t.id %> >
   <td align='left' nowrap='1'><%= entry_checkbox "region", t.id %></td>
   <td><%= link_to t.name, :action => 'region', :path => t %></td>
-  <td align='center'><%= t.tax %>%</td>
+  <td align='center'><%= t.tax %>% <%= t.tax_calc_display %></td>
   <td align='center'>
       <% if t.has_subregions? %>
           <%= link_to t.subregions.count.to_s + " " + t.subregion_type_display, :action => 'subregions', :path => t %>

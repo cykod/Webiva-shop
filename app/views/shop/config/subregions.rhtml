@@ -20,8 +20,16 @@ SubregionEditor = {
 
 <div class='admin_content'>
 <ul class='action_panel'>
-  <li><form action='' onsubmit="return SubregionEditor.create(this);"><%= "Name".t %> <input type='text' name='subregion_create[name]' id='subregion_name' size='20'/>
- <%= "Abbreviation:".t %> <input type='text' name='subregion_create[abr]' id='subregion_abr' size='20'/> <%= "Tax Rate:".t %> <input type='text' name='subregion_create[tax]' id='subregion_tax' size='4'/>% <input type='submit' value='<%= vh "Create Subregion".t %>'/></form> </li>
+  <li>
+    <% cms_unstyled_form_for :subregion_create, @subregion, :html => { :onsubmit => "return SubregionEditor.create(this);", :class => 'admin_form' } do |f| %>
+      <%= "Name".t %> <%= f.text_field :name, :size => 20 %>
+      <%= "Abbreviation:".t %><%= f.text_field :abr, :size => 10 %> 
+      <%= "Custom Tax Rate:".t %><%= f.text_field :tax, :size => 4 %>%
+      <input type='submit' value='<%= vh "Create Subregion".t %>'/> <br/>
+      <%= "Tax On:".t %><%= f.radio_buttons :tax_calc, Shop::ShopSubregion.tax_calc_select_options %> 
+      
+    </form> </li>
+     <% end -%>
 </ul>
 
 </div>

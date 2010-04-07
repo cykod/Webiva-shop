@@ -47,7 +47,7 @@
 </p>
 
 
-<% if cart.shippable? %>
+<% if order_processor.cart.shippable? %>
 <h2><%= "Please confirm your shipping and billing addresses".t %></h2>
 <% else -%>
 <h2><%= "Please confirm your billing address".t %></h2>
@@ -55,30 +55,25 @@
 <%= form_tag('') %>
 <table>
 
-<% if cart.shippable? %>
+<% if order_processor.cart.shippable? %>
 
-<tr>
-  <td class='label' colspan='4'><%= "Shipping Address:".t %></td>
-</tr>
- <% cms_unstyled_fields_for :shipping_address,shipping_address  do |sa| %>
-   <% if shipping_address.errors.length > 0 %>
-  <tr>
-    <td colspan='4' class='errors'>
+<tr><td class='label' colspan='4'><%= "Shipping Address:".t %></td></tr>
+
+ <% cms_unstyled_fields_for :shipping_address,order_processor.shipping_address  do |sa| %>
+   <% if order_processor.shipping_address.errors.length > 0 %>
+  <tr><td colspan='4' class='errors'>
       <b><%= "We encountered the following problems with your shipping address:".t %></b><br/>
-      <% shipping_address.errors.each do |err| -%>
-        <% err[1].each do |desc| -%>
-          <% unless desc.blank? -%>
-            <%= err[0].humanize.t %> <%= desc.t %><br/>
-          <% end -%>
-        <% end -%>
-     <% end -%>
-    </div>
-  </tr>
+      <%= (order_processor.shipping_address.errors.full_messages || []).join("<br/>") %>
+  </td></tr>
   <% end -%>
   
   <%= render :partial => '/shop/processor/address_form', 
-              :locals => { :f => sa, :opts => shipping_opts, :address_type => 'shipping', :state_info => shipping_state_info,
-                           :cart => cart, :countries => countries, :same_address => false, :options => options } %>
+    :locals => { :f => sa, :opts => shipping_opts, 
+                  :address_type => "shipping", 
+                  :state_info => order_processor.state_information(:shipping),
+                  :countries => countries, 
+                  :same_address => false, 
+                  :options => options } %>
 <% end -%>
 <tr>
   <td colspan='2'>
@@ -87,49 +82,40 @@
 </tr>
 
 <% end -%>
-<% cms_unstyled_fields_for :billing_address, billing_address do |ba| -%>
-<% billing_opts = { :size => 15,:vertical => opts[:vertical], :required => true, :disabled => cart.shippable? && same_address, :class => 'textfield'  } %>
+<% cms_unstyled_fields_for :billing_address, order_processor.billing_address do |ba| -%>
+<% billing_opts = { :size => 15,:vertical => opts[:vertical], :required => true, :disabled => order_processor.shippable && order_processor.same_address, :class => 'textfield'  } %>
 
-<% if cart.shippable? %>
-<tr>
-  <td class='label' colspan='4'>
-    <%= "Billing Address".t %>
-  </td>
-</tr>
+<% if order_processor.cart.shippable? %>
+  <tr><td class='label' colspan='4'><%= "Billing Address".t %></td></tr>
 <% end -%>
 
-   <% if billing_address.errors.length > 0 %>
+   <% if order_processor.billing_address.errors.length > 0 %>
   <tr>
     <td colspan='4' class='errors'>
-      <b>We encountered the following problems with your billing address:</b><br/>
-      <% billing_address.errors.each do |err| -%>
-        <% err[1].each do |desc| -%>
-          <% unless desc.blank? -%>
-            <%= err[0].humanize %> <%= desc %><br/>
-          <% end -%>
-        <% end -%>
-     <% end -%>
-    </div>
+      <b>We encountered the following problems with your billing address:</b><bvr/>
+      <%= (order_processor.billing_address.errors.full_messages || []).join("<br/>") %>
+    </td>
   </tr>
   <% end -%>
 
  
-<% if cart.shippable? %>
+<% if order_processor.cart.shippable? %>
 <tr>
-  <td class='data' colspan='2'><label for='same_address'><input type='checkbox' id='same_address' onclick='AddressManager.updateBilling(this.checked);' name='same_address' value='1' <%= "checked='checked'" if same_address %>> <%= "same as shipping address".t %></label></td>
+  <td class='data' colspan='2'><label for='same_address'><input type='checkbox' id='same_address' onclick='AddressManager.updateBilling(this.checked);' name='same_address' value='1' <%= "checked='checked'" if order_processor.same_address %>> <%= "same as shipping address".t %></label></td>
 </tr>
 <% end -%>
 
 <%= render :partial => '/shop/processor/address_form', 
-              :locals => { :f => ba, :opts => billing_opts, :address_type => 'billing', :state_info => billing_state_info,
-                           :cart => cart, :countries => countries, :same_address => cart.shippable? && same_address, :options => options } %>
-
+  :locals => { :f => ba, :opts => billing_opts, 
+               :address_type => 'billing', 
+               :state_info => order_processor.state_information(:billing),
+               :countries => countries, 
+               :same_address => order_processor.shippable && order_processor.same_address, 
+               :options => options } %>
 </table>
 
 <% end -%>
-<h2 align='right'>
-  <input type='submit' value='<%= vh "Continue".t %>'/>
-</h2>
+<h2 align='right'><input type='submit' value='<%= vh "Continue".t %>'/></h2>
 </form>
 
 </div>

@@ -1,0 +1,9 @@
+<% cms_fields_for :order, order_processor.order do |f| -%>
+<tbody>
+  <%= f.check_boxes :gift_order, [['This order is a gift',true]], :single => true, :label => '',:onclick => '$("gift_message_display").style.display = this.checked ? "" : "none"'  %>
+</tbody>
+<tbody id='gift_message_display' <%= "style='display:none;'" unless order_processor.order.gift_order? %>>
+  <%= f.text_area :gift_message, :label => '',:description => 'Optional Gift Message',:vertical => true, :rows => 4,:style => "width:100%;" %>
+</tbody>
+<% end -%>
+

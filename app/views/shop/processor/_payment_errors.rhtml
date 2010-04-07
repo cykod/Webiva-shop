@@ -1,0 +1,13 @@
+<div align='center'>
+<%= "There was an problem processing your request:".t %><br/>
+<div align='left' class='error'>
+<% if order_processor.errors %> 
+<%  errors = order_processor.errors.is_a?(Array) ? order_processor.errors  : order_processor.errors.full_messages  %>
+  <%= errors.map(&:t).join("<br/>") %>
+<br/><br/>
+<% end -%>
+<%= message %>
+</div>
+</div>
+
+

@@ -1,51 +1,59 @@
-
-<tr>
-  <td class='field'><%= "First Name".t %>*</td>
-  <td class='field'><%= f.text_field :first_name, opts  %> </td>
-  <td class='field'><%= "Last Name".t %>* 
-  <td class='field'><%= f.text_field :last_name, opts %> </td>
-</tr>
+<% address =  order_processor.send("#{address_type}_address") %>
+<% cms_unstyled_fields_for "#{address_type}_address", address do |f| -%>
+   <% if address.errors.length > 0 %>
+    <div class='errors'> 
+      <b><%= "We encountered the following problems with your #{address_type} address:".t %></b><br/>
+      <%= (order_processor.shipping_address.errors.full_messages || []).join("<br/>") %>
+    </div>
+  <% end -%>
+<ol class='shop_form webiva_form'>
+  <% if address_type == 'billing' && order_processor.shippable %>
+  <li class='check_boxes'>
+    <fieldset><ol><li>
+<label for='same_address'><input type='checkbox' id='same_address' onclick='AddressManager.updateBilling(this.checked);' name='same_address' value='1' <%= "checked='checked'" if order_processor.same_address %>> <%= "same as shipping address".t %></label>
+        </li></ol></fieldset>
+  </li>
+  <% end -%>
+  <li class='string two_field'>
+    <label><%= "First Name".t %><em>*</em></label>
+    <%= f.text_field :first_name, opts %>
+    <label><%= "Last Name".t %><em>*</em></label>
+    <%= f.text_field :last_name, opts %>
+  </li>
 <% if options.show_company -%>
-<tr>
-  <td class='field'><%= "Company".t %>*</td>
-  <td class='field' colspan='3'><%= f.text_field :company, opts.merge(:size => 45 )  %></td>
-</tr>
+  <li class='string'>
+    <label><%= "Company".t %></label>
+    <%= f.text_field :company, opts.merge(:size => 45 )  %>
+  </li>
 <% end -%>
-<tr>
-  <td class='field'><%= "Address".t %>*</td>
-  <td class='field' colspan='3'><%= f.text_field :address, opts.merge(:size => 45 )  %></td>
-</tr>
-<tr>
-  <td class='field'><%= "Adr. Line 2".t %>*</td>
-  <td  class='field'  colspan='3'>
-    <%= f.text_field :address_2, opts.merge(:required => false, :size => 45 ) %>
-  </td>
-</tr>
+  <li class='string'>
+    <label><%= "Address".t %><em>*</em></label>
+    <%= f.text_field :address, opts.merge(:size => 45 )  %>
+  </li>
+  <li class='string'>
+    <label class='string'><%= "Adr. Line 2".t %></label>
+    <%= f.text_field :address_2, opts.merge(:size => 45 )  %>
+  </li>
 <% if countries.length == 2 %>
   <% f.object.country = countries[1][1] %>
   <%= f.hidden_field :country %>
 <% else -%>
-<tr>
-  <td class='field'>
-    <%= "Country".t %>*
-  </td>
-  <td class='field' colspan='3'>
-  <%= f.select :country, countries, {},opts.merge(:onchange => "AddressManager.update#{address_type.capitalize}Country(this.value);" ,:size => nil) %>
-  </td>
-</tr>
+  <li class='string'>
+    <label class='select'><%= "Country".t %><em>*</em></label>
+  <% if countries.is_a?(Hash) %>
+    <%= f.select :country, f.translated_countries_for_select(countries[:countries]),{},opts.merge(:onchange => "AddressManager.update#{address_type.capitalize}Country(this.value);" ,:size => nil)  %>
+  <% else -%>
+    <%= f.select :country, countries, {},opts.merge(:onchange => "AddressManager.update#{address_type.capitalize}Country(this.value);" ,:size => nil) %>
+  <% end -%>
 <% end -%>
 
-
-<tr>
-  <% if options.address_type == 'european' -%>
-  <td class='field'><%= "Zip".t %>*</td>
-  <td class='field'><%= f.text_field :zip, opts.merge(:size => 10) %></td>
-  <td class='field' align='right'><%= "City".t %>*</td>
-  <td class='field'><%= f.text_field :city, opts.merge(:size => 10) %></td>
-  <% else -%>
-  <td colspan='4'>
-    <%= "City".t %>* <%= f.text_field :city, opts.merge(:size => 10) %>
-    <span id='<%= address_type %>_state_options'>
+<li class='string plain'>
+<% if options.address_type == 'european' -%>
+  <label><%= "Zip".t %><em>*</em></label>
+  <%= f.text_field :zip, opts.merge(:size => 8) %>
+  <label><%= "City".t %><em>*</em></label>
+  <%= f.text_field :city, opts.merge(:size => 12) %>
+  <span id='<%= address_type %>_state_options'>
     <%= render :partial  => '/shop/processor/states', 
                     :locals => { :value => state_info[:selected], 
                                  :options => state_info[:options], 
@@ -53,19 +61,32 @@
                                  :address => address_type, 
                                  :same_address => same_address  } %>
     </span>
-    <%= "Zip".t %>* <%= f.text_field :zip, opts.merge(:size => 10) %>
-  </td>
-  <% end -%>
-</tr>
-
-
-<tr>
-  <td class='field'><%= "Phone".t %></td>
-  <td class='field'><%= f.text_field :phone, opts  %> </td>
-<% if options.show_fax -%>
-  <td class='field' align='right'><%= "Fax".t %>
-  <td class='field'><%= f.text_field :fax, opts %> </td>
 <% else -%>
-  <td colspan='2'></td>
+  <label class='first'><%= "City".t %><em>*</em></label>
+  <%= f.text_field :city, opts.merge(:size => 12) %>
+  <span id='<%= address_type %>_state_options'>
+    <%= render :partial  => '/shop/processor/states', 
+                    :locals => { :value => state_info[:selected], 
+                                 :options => state_info[:options], 
+                                 :subregion_name => state_info[:name], 
+                                 :address => address_type, 
+                                 :same_address => same_address  } %>
+    </span>
+    <label><%= "Zip".t %><em>*</em></label>
+    <%= f.text_field :zip, opts.merge(:size => 8) %>
 <% end -%>
-</tr>
+</li>
+  <li class='string'>
+    <label><%= "Phone".t %></label>
+    <%= f.text_field :phone, opts  %>
+  </li>
+<% if options.show_fax -%>
+  <li class='string'>
+    <label><%= "Fax".t %></label>
+    <%= f.text_field :fax, opts  %>
+  </li>
+<% end -%>
+
+
+</ol>
+<% end -%>

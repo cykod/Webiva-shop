@@ -19,13 +19,29 @@ class Shop::ShopCategory < DomainModel
 
  validates_uniqueness_of :url
 
- cached_content 
+ cached_content  :identifier => :url
 
   attr_accessor :nested_children_arr, :is_root
 
   def self.get_root_category
     
     self.find(:first,:conditions => 'parent_id=0') || self.create(:name => 'Categories'.t, :parent_id => 0,:is_root => true)
+  end
+
+  def parent_list(base_category_id = nil)
+    selected_category = self    
+    category_list = [  ] 
+    category_list << selected_category  if selected_category && selected_category.parent_id > 0
+    while category_list[0] && category_list[0].parent_id > 0
+      parent_cat = Shop::ShopCategory.find_by_id(category_list[0].parent_id)
+      if !parent_cat || parent_cat.id == base_category_id
+        break
+      else
+        category_list.unshift(parent_cat)
+      end
+    end
+    category_list.compact!
+    category_list
   end
 
   def self.generate_tree( product_id = nil)

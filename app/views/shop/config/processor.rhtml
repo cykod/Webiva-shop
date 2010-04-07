@@ -13,6 +13,7 @@ ProcessorEditor = {
 <tbody id='basic_field'>
   <%= f.text_field :name %>
   <%= f.select :currency, @currencies, {}, :onchange => 'ProcessorEditor.updateProcessors();' %>
+  <%= f.radio_buttons :active, [['Active',true],['Inactive',false]] %>
   <%= f.select :payment_type, @payment_types, {}, :onchange => 'ProcessorEditor.updateProcessors();' %>
 </tbody>
 <tbody id='processors'>

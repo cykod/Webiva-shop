@@ -2,6 +2,7 @@
 class Shop::ShopProduct < DomainModel
   
   validates_presence_of :name
+  validates_presence_of :shop_shop
   validates_uniqueness_of :url
 
   belongs_to :image_file, :class_name => 'DomainFile', :foreign_key => 'image_file_id'
@@ -12,9 +13,8 @@ class Shop::ShopProduct < DomainModel
   has_many :shop_category_products, :class_name => 'Shop::ShopCategoryProduct', :include => [ :shop_category ], :dependent => :destroy
   has_many :shop_categories, :through => :shop_category_products, :class_name => 'Shop::ShopCategory'
 
-  has_many :prices, :class_name => 'Shop::ShopProductPrice', :order => 'sale_id IS NOT NULL', :dependent => :destroy
-  has_many :regular_prices, :class_name => 'Shop::ShopProductPrice', :conditions => 'sale_id IS NULL'
-  has_many :sale_prices, :class_name => 'Shop::ShopProductPrice', :conditions => 'sale_id IS NOT NULL'
+  has_many :prices, :class_name => 'Shop::ShopProductPrice', :dependent => :destroy
+  has_many :regular_prices, :class_name => 'Shop::ShopProductPrice'
   
   has_many :shop_product_options, :class_name => 'Shop::ShopProductOption', :dependent => :destroy
 
@@ -42,6 +42,10 @@ class Shop::ShopProduct < DomainModel
     end.compact.join("\n\n")
   end
 
+  def content_description(language)
+    "Shop Product".t
+  end
+
   # return the deepest category a product belongs to - helpful for searches
   # or indexes
   def deepest_category
@@ -55,10 +59,21 @@ class Shop::ShopProduct < DomainModel
 
     return cat
   end
+
+  # returns a category/url path using the deepest category
+  def category_url
+    cat = self.deepest_category
+    if cat
+      "#{cat.url}/#{url}"
+    else
+      "-/#{url}"
+    end
+  end
   
   # Return the products features + the features of it's product class
   def full_features
-    self.features + (self.shop_product_class ? self.shop_product_class.shop_product_features : []).to_a
+    self.features + (self.shop_product_class ? self.shop_product_class.shop_product_features : []).to_a +
+       self.shop_shop.shop_product_features
   end
   
   before_validation :create_url 
@@ -412,6 +427,10 @@ class Shop::ShopProduct < DomainModel
   def cart_shippable?
     self.shippable?
   end
+
+  def cart_taxable?
+    self.taxable?
+  end
   
   def cart_post_processing(user,order_item,session)
     redirect_location = nil
@@ -459,13 +478,13 @@ class Shop::ShopProduct < DomainModel
     end
   end
   
-  def self.run_search(search_params,page=1)
+  def self.run_search(shop_shop_id,search_params,page=1)
   
     terms = search_params.split(/( |,)/).map { |elm| elm.strip }.find_all { |elm| elm!="" && elm != ',' }
     match_terms = terms.join(" ")
     
-    fields = [ "`name`", "`description`","`internal_sku`","`detailed_description`" ]
-    cond = terms.map { |elm| fields.map { |fld| "#{fld} LIKE #{self.connection.quote("%#{elm}%")}" }.join(" OR ")  }.join(" OR ")
+    fields = ["`sku`",  "`name`", "`description`","`internal_sku`","`detailed_description`" ]
+    cond = [ " ( " +  terms.map { |elm| fields.map { |fld| "#{fld} LIKE #{self.connection.quote("%#{elm}%")}" }.join(" OR ")  }.join(" OR ") + ") AND shop_shop_id=?", shop_shop_id ]
   
     Shop::ShopProduct.paginate(page,:order => "MATCH(`name`,`description`,`internal_sku`,`detailed_description`) AGAINST (" + self.connection.quote(terms) + " IN BOOLEAN MODE) DESC" ,:include => [ :prices ], :conditions => cond )
   end

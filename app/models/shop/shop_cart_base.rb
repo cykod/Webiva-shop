@@ -2,7 +2,7 @@
 
 class Shop::ShopCartBase 
 
-attr_accessor :shipping
+attr_accessor :shipping, :tax
 
   def add_message(msg)
     @messages ||= []
@@ -18,7 +18,7 @@ attr_accessor :shipping
     products.each do |product|
       cart_total += product.price(self) * product.quantity
     end
-    cart_total + self.shipping.to_f
+    cart_total + self.shipping.to_f + self.tax.to_f
   end
   
   def shippable_total
@@ -36,6 +36,16 @@ attr_accessor :shipping
     products.each do |product|
       if product.cart_item_type == 'Shop::ShopProduct' && product_ids.include?(product.cart_item_id)
         cart_total += product.price(self) * product.quantity
+      end
+    end
+    cart_total
+  end
+
+  def taxable_total
+    cart_total = 0.0
+    products.each do |product|
+      if product.item.respond_to?(:cart_taxable?)
+        cart_total += product.price(self) * product.quantity if product.item.cart_taxable?
       end
     end
     cart_total

@@ -1,1 +1,1 @@
-page.replace_html :billing_state_options, :partial => 'states', :locals => { :value => @state_info[:selected], :options => @state_info[:options], :subregion_name => @state_info[:name], :address => 'billing'  }
+page.replace_html :billing_state_options, :partial => 'states', :locals => { :value => @state_info[:selected], :options => @state_info[:options], :subregion_name => @state_info[:name], :address => 'billing', :same_address => false  }

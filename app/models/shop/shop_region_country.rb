@@ -17,7 +17,34 @@ class Shop::ShopRegionCountry < DomainModel
   end
   
   def self.locate(country)
-    self.find_by_country(country,:include => :region)
+    shop_region = self.find_by_country(country,:include => :region)
+    if !shop_region
+      shop_region = self.find_by_country("Rest of the World",:include => :region)
+    end
+    shop_region
+  end
+
+  def self.all_countries
+    self.find_by_country("Rest of the World") 
+  end
+
+  def self.country_select_options
+     Shop::ShopRegionCountry.find(:all,:order => 'country',
+                                 :conditions => [ "country != 'Rest of the World'" ],:group => "country" ).collect { |cnt| [ cnt.country.t,cnt.country ] }.sort { |a,b| a[0] <=> b[0] }
+
+  end
+
+  def calculate_tax(cart,address)
+    self.region.calculate_tax(cart,address)
+  end
+
+  def self.full_select_options
+    countries = [['--Select Country--','']] + Shop::ShopRegionCountry.country_select_options  
+    # hack to tell it to show all countries and put some on top
+    if Shop::ShopRegionCountry.all_countries 
+      countries = { :countries => countries[1..-1].map { |c| c[1] } }
+    end 
+    countries
   end
   
   
@@ -28,13 +55,16 @@ class Shop::ShopRegionCountry < DomainModel
 
       shipping.collect do |cat|
         processor = cat.carrier.processor.new(cat.options)
-        [ cat, processor.calculate_shipping(cart) ]
+        { :category => cat, 
+          :shipping =>processor.calculate_shipping(cart),
+          :processor => processor 
+        }
       end
   end
   
   def shipping_options(currency,shipping_info)
      shipping_options = shipping_info.collect do |info|
-        [ "#{info[0].name} - " + Shop::ShopProductPrice.localized_amount(info[1],currency), info[0].id ]
+        [ "#{info[:category].name} - " + Shop::ShopProductPrice.localized_amount(info[:shipping],currency), info[:category].id ]
       end  
   end
 end

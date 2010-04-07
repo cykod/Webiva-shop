@@ -1,11 +1,5 @@
 class Shop::TestPaymentProcessor < Shop::ActiveMerchantCreditCardProcessor
   
-  def initialize(processor,opts,user)
-    @processor = processor
-    @opts = opts
-    @user = user
-  end
-  
   def self.shop_payment_processor_handler_info
     info = super
     info[:name] = "Test Payment Processor"
@@ -32,9 +26,9 @@ class Shop::TestPaymentProcessor < Shop::ActiveMerchantCreditCardProcessor
   end
   
   def format_authorization(auth)
-    if @opts[:force_failure] == 'yes'
+    if @options[:force_failure] == 'yes'
       '2'
-    elsif @opts[:force_failure] == 'exception'
+    elsif @options[:force_failure] == 'exception'
       '1'
     else
       auth

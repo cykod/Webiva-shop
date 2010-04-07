@@ -19,15 +19,22 @@ class Shop::CatalogController < ModuleController
    include ActiveTable::Controller   
    active_table :product_table,
                 Shop::ShopProduct,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::StaticHeader.new('Image'),
-                  ActiveTable::StringHeader.new('shop_products.internal_sku',:label => 'Sku'),
-                  ActiveTable::StringHeader.new('shop_products.name',:label => 'Name'),
-                  ActiveTable::StringHeader.new('shop_product_prices.price',:label => 'Price'),
-                  ActiveTable::StringHeader.new('shop_product_classes.name',:label => 'Product Class'),
-                  ActiveTable::StringHeader.new('shop_categories.name',:label => 'Categories'),
-                  ActiveTable::StaticHeader.new('Features')
+                [ :check, "Image",
+                  hdr(:string,:internal_sku,:label => "Sku"),
+                  :name,
+                  hdr(:string,'shop_product_prices.price',:label => 'Price'),
+                  hdr(:string,'shop_product_classes.name',:label => 'Product Class'),
+                  hdr(:string,'shop_categories.name',:label => 'Categories'),
+                  "Features",
+                  hdr(:option,'shop_products.shop_shop_id',:options => :shop_shop_options,:label => "Shop")
                 ]
+  protected
+
+  def shop_shop_options
+    Shop::ShopShop.select_options
+  end
+
+  public
 
   def catalog_table(display=true)
   
@@ -44,7 +51,8 @@ class Shop::CatalogController < ModuleController
     end
     @currency_display = Shop::ShopProductPrice.currency_display
     
-    @active_table_output = product_table_generate params, :include => [ :prices, :image_file, :shop_product_class, :shop_category_products, :shop_categories, :shop_product_features ], :order => 'shop_products.name,shop_categories.left_index,shop_categories.name'
+    @active_table_output = product_table_generate params, :include => [ :prices, :image_file, :shop_product_class, :shop_category_products, :shop_categories, :shop_product_features, :shop_shop ],     
+      :order => 'shop_products.name,shop_categories.left_index,shop_categories.name'
     
     render :partial => 'product_table' if display
   end
@@ -90,7 +98,7 @@ class Shop::CatalogController < ModuleController
       
       if @product.valid? && !@price_error
         
-        @product.save 
+        @product.save_content(myself)
         @product.set_prices(params[:prices])
         update_categories(@product) if params[:cat]
         save_product_options(@product)

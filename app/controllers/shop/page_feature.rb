@@ -81,7 +81,7 @@ class Shop::PageFeature < ParagraphFeature
         if data[:products] 
           nil
         else
-          tag.locals.products = data[:category].find_products(:featured).collect {|cp| cp.shop_product }
+          tag.locals.products = data[:category].find_products(data[:options].shop_shop_id,:featured).collect {|cp| cp.shop_product }
           data[:category].featured_shop_category_products.size > 0 ? tag.expand : nil
         end
       end
@@ -91,7 +91,7 @@ class Shop::PageFeature < ParagraphFeature
         data[:category].unfeatured_shop_category_products.size ==  0 ? nil : tag.expand
       end
       c.define_tag 'unfeatured_products' do |tag|
-        tag.locals.products = data[:category].find_products(:unfeatured).collect {|cp| cp.shop_product }
+        tag.locals.products = data[:category].find_products(data[:options].shop_shop_id,:unfeatured).collect {|cp| cp.shop_product }
         data[:category].unfeatured_shop_category_products.size > 0 ? tag.expand : nil
       end
 
@@ -423,27 +423,27 @@ class Shop::PageFeature < ParagraphFeature
    end
   end
 
- feature :display_cart, :default_feature => <<-FEATURE
+ feature :shop_display_cart, :default_feature => <<-FEATURE
       <div class='cart'>
       <b>Shopping Cart</b><br/>
       <cms:product_count>You have <cms:value/> <cms:count value='1'>product</cms:count><cms:count not_value='1'>products</cms:count> in your cart<br/></cms:product_count>
       <cms:no_product_count>Your cart is empty<br/></cms:no_product_count>
-      <a <cms:href/>>View your cart</a>
+      <cms:cart_link>View your cart</cms:cart_link>
       </div>
   FEATURE
 
-  def display_cart_feature(data)
-    webiva_feature('display_cart') do |c|
+  def shop_display_cart_feature(data)
+    webiva_feature('shop_display_cart') do |c|
 
       c.value_tag('product_count') { |t| data[:cart].products_count > 0 ? data[:cart].products_count : nil } 
 
       c.define_tag 'product_count:count' do |tag|
         if tag.attr['value']
           value_arr = tag.attr['value'].split(',')
-          value_arr.include?(data[:cart].products_count) ? tag.expand : nil
+          value_arr.include?(data[:cart].products_count.to_s) ? tag.expand : nil
         elsif tag.attr['not_value']
           value_arr = tag.attr['not_value'].split(',')
-          value_arr.include?(data[:cart].products_count) ? nil : tag.expand 
+          value_arr.include?(data[:cart].products_count.to_s) ? nil : tag.expand 
         else
           nil
         end
@@ -453,8 +453,8 @@ class Shop::PageFeature < ParagraphFeature
           Shop::ShopProductPrice.localized_amount(data[:cart].total,data[:currency])
       end
     
-      c.define_tag 'href' do |tag|
-        "href='#{data[:full_cart_page].blank? ? '#' : data[:full_cart_page]}'"
+      c.define_link_tag 'cart' do |tag|
+        data[:full_cart_page]
       end
 
 
@@ -464,7 +464,7 @@ class Shop::PageFeature < ParagraphFeature
   
 
   feature :shop_page_category_breadcrumbs, :default_feature => <<-FEATURE   
-    <ul class='categories'>
+    <ul class='shop_categories'>
     <cms:categories>
     <cms:category>
       <li class='level_<cms:level/>'>
@@ -475,14 +475,16 @@ class Shop::PageFeature < ParagraphFeature
     </cms:categories>
     </ul>
     <cms:subcategories>
+      <ul class='shop_subcategories'>
       <cms:subcategory><li>-<cms:link><cms:title/></cms:link></li></cms:subcategory>
+      </ul>
     </cms:subcategories>
   FEATURE
   
   def shop_page_category_breadcrumbs_feature(data)
     webiva_feature(:shop_page_category_breadcrumbs) do |c|
       c.loop_tag('category') { |t| data[:categories] }
-        c.link_tag('category:') { |t| data[:page_url] + "/" + t.locals.category.id.to_s }
+        c.link_tag('category:') { |t| data[:page_url] + "/" + t.locals.category.url.to_s }
         c.value_tag('category:title') { |t| t.locals.category.name }
         c.value_tag('category:level') { |t| t.locals.index+1 }
         c.value_tag('category:description') { |t| t.locals.category.description }
@@ -498,5 +500,18 @@ class Shop::PageFeature < ParagraphFeature
     end
   end  
      
+  feature :shop_page_search_bar, :default_feature => <<-FEATURE
+    <cms:search>
+    Search: <cms:field/><cms:button>Search</cms:button>
+    </cms:search>
+  FEATURE
+
+  def shop_page_search_bar_feature(data)
+    webiva_feature(:shop_page_search_bar) do |c|
+      c.define_tag('search') { |t| "<form action='?' method='post'  >" + t.expand + "</form>" }
+        c.define_tag('field') { |t| tag(:input,t.attr.merge({:type => 'text', :class => 'text_field', :name => 'run_search', :value => vh(data[:search]) })) }
+        c.define_button_tag('button')
+    end
+  end
 
 end

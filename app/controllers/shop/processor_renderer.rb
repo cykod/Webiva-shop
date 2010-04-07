@@ -11,6 +11,15 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     cart_item.quantity_hash
   end
  
+  # override myself so we don't need an account
+  def myself
+    super_myself = controller.send(:myself)
+    if !super_myself.id && session[:shop_user_id] 
+      return @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
+    else
+      super_myself
+    end
+  end
 
   def full_cart
   
@@ -38,47 +47,40 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     
     @cart.validate_cart!
 
-    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id }
-    feature_output = full_cart_feature(data)
+    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id, :site_feature_id =>  options.cart_site_feature_id }
+    feature_output = shop_full_cart_feature(data)
     render_paragraph :text => feature_output
   end  
   
 
   def checkout
 
-    # Check which page we are on 
+    # Find out if we're on a subpage
     checkout_connection,checkout_link = page_connection()
 
-    page = verify_page(checkout_link)
+    # Get the current page we're on (validating that we're not further along than we should be)
+    @page_name = setup_page(checkout_link)
 
+    # add in any automatic coupons to the cart
+    @order_processor.add_automatic_coupons    
+    
     # Check that we have a valid cart
-    cart = get_cart
-    Shop::ShopCoupon.automatic_coupons(cart).each { |coupon| cart.add_product(coupon,1,nil) }
-    
-    cart.validate_cart!
-    
-    if cart.products_count == 0 && !editor? && page != 'success'
-      return invalid_cart_page
-    end
-
+    return invalid_cart_page if !@order_processor.valid_cart? && !editor? && @page_name  != 'success'
 
     require_js('prototype.js');
 
-    get_module
-    data = { :cart=> get_cart, :checkout_page => nil, :currency => @mod.currency, :static => true}
-
-    session[:shop_continue_shopping_url_link] = nil
-    @feature_output = full_cart_feature(data) unless page == 'payment'
+    @feature_output = render_cart() unless @page_name == 'payment'
     
     @options = paragraph_options(:checkout)
 
-    case page
-    when 'success': success_page()
-    when 'processing': processing_page()
-    when 'payment': payment_page()
-    when 'address': address_page()
-    when 'login': login_page()
-    else 
+    @feature_data = { :page => @page_name, :order_processor => @order_processor,
+                      :feature_output => @feature_output, :options => @options }
+
+    # Dispatch to the correct page
+    valid_pages = %w(success processing payment address login)
+    if valid_pages.include?(@page_name)
+      self.send("#{@page_name}_page")
+    else
       render_paragraph :text => 'Invalid Checkout Page:'.t  + page.to_s
     end
   end
@@ -87,46 +89,20 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
   # Perform state machine checking and kick 
   # page back to the current page
-  def verify_page(page)
+  def setup_page(page)
     session[:shop] ||= {}
-    
     @cart = get_cart
-
-    page = 'address' if page.blank? || !%w(success processing payment address login).include?(page)
-    
-    if(page == 'success')
-       page = 'processing' if session[:shop][:stage] != 'success'
-    end
-
-    if(page == 'processing')
-       page = 'payment' if session[:shop][:stage] != 'processing'
-    end
-    
-    if(page == 'payment')
-      session[:shop][:stage] = 'payment'
-      if @cart.shippable?
-        page = 'address' if !myself.billing_address || !myself.shipping_address
-      else
-        page = 'address' if !myself.billing_address
-      end
-    end
-
-    if(page == 'address')
-      if !myself.id || !myself.registered?
-        page = 'login'
-      end
-    end
-
-    page
+    @order_processor = OrderProcessor.new(myself,session[:shop],@cart)
+    @order_processor.verify_page(page)    
   end
 
+  # Display a message showing the cart is currently empty
   def invalid_cart_page
     render_paragraph :text => 'Your cart is currently empty'.t
 
   end
 
   def login_page
-    @end_user = EndUser.new()
     @login = EndUser.new(params[:login])
     
 
@@ -134,301 +110,144 @@ class Shop::ProcessorRenderer < ParagraphRenderer
       if params[:login]
         user = EndUser.login_by_email(params[:login][:email],params[:login][:password])
         if user
-          session[:user_id] = user.id
-          session[:user_model] = user.class.to_s
-          myself
-          redirect_paragraph site_node.node_path + "/address"
-          return
+          process_login(user)
+          return redirect_paragraph site_node.node_path + "/address"
         else
           @invalid_login = true
         end
 
       elsif params[:register]
-        # White list only a subset of the user fields
-        values = {}
-        %w(email password password_confirmation first_name last_name).each { |fld| values[fld] = params[:register][fld] }
-        @end_user.attributes = values
-
-        @end_user.registered = true
-        @end_user.user_level = 3
-        @end_user.user_class_id = UserClass.default_user_class_id
-
-        all_valid = true 
-        @end_user.valid?
-        @end_user.validate_registration({ :first_name => 'required', :last_name => 'required'} )
-        all_valid = false unless @end_user.errors.empty?
-      
-        if all_valid
+        @end_user = @order_processor.register_order_user(params[:register])
+        if @end_user.errors.empty?
           @end_user.save
-          session[:user_model] = 'EndUser'
-          session[:user_id] = @end_user.id
+          if @end_user.registered?
+            process_login(@end_user,false)
+          else
+            # if it's a temp user - put it in the session
+            session[:shop_user_id] = @end_user.id
+          end
           redirect_paragraph site_node.node_path + "/address"
           return
         end
       end
     end
-    render_paragraph :partial => '/shop/processor/login', :locals => {:user => @end_user, :login => @login, :invalid_login => @invalid_login, :feature_output => @feature_output }
+    @end_user ||= EndUser.new
+ 
+    @feature_data.merge!({ :user => @end_user, :login => @login,
+                        :invalid_login => @invalid_login })
 
+    render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
   def address_page
-    default_address = (myself.address &&  !myself.address.address.blank?) ? myself.address : ( (myself.work_address && !myself.work_address.blank? ) ? myself.work_address : EndUserAddress.new() )
-  
-    shipping_address = (myself.shipping_address && !myself.shipping_address.address.blank?) ? myself.shipping_address  : default_address.clone
-    billing_address = (myself.billing_address && !myself.billing_address.address.blank?) ? myself.billing_address : default_address.clone
-
-    cart = get_cart 
-    shippable = cart.shippable?
-
-
-    @same_address = params[:same_address]
+     
+    @order_processor.user_same_address(!params[:same_address].blank?,request.post?)
 
     if request.post? && (params[:shipping_address] || params[:billing_address])
-      
-      shipping_address.attributes = params[:shipping_address]
-
-      billing_address.attributes = @same_address ? params[:shipping_address] : params[:billing_address]
-
-      shipping_address.end_user_id= myself.id # end_user_id is attr_protected
-      billing_address.end_user_id = myself.id
-
-      shipping_address.validate_registration(:shipping,true,@options.address_type == 'american' ? 'us' : 'eu')  if shippable
-      billing_address.validate_registration(:billing,true,@options.address_type == 'american' ? 'us' : 'eu') unless @same_address
-      
-      Shop::ShopRegion.validate_country_and_state(shipping_address)  if shippable
-      Shop::ShopRegion.validate_country_and_state(billing_address) unless @same_address
-      
-      if shipping_address.errors.empty? && billing_address.errors.empty?
-        shipping_address.save if shippable
-        billing_address.save
-        myself.update_attributes(:billing_address_id => billing_address.id, :shipping_address_id => shipping_address.id)
-        session[:shop] ||= {}
-        session[:shop][:address] = { :shipping => shipping_address.attributes.clone.symbolize_keys!, 
-                                     :billing => billing_address.attributes.clone.symbolize_keys! }
+      if @order_processor.update_addresses(params[:shipping_address],
+                                        params[:billing_address],
+                                        @options.address_type == 'american' ? 'us' : 'eu')
         redirect_paragraph site_node.node_path + "/payment"
         return
       end
     end
-    
-    countries = [['--Select Country--','']] + Shop::ShopRegionCountry.find(:all,:order => 'country').collect { |cnt| [ cnt.country.t,cnt.country ] }.sort { |a,b| a[0] <=> b[0] }
 
-    shipping_address.first_name = myself.first_name if shipping_address.first_name.blank?
-    shipping_address.last_name= myself.last_name if shipping_address.last_name.blank?
-    billing_address.first_name = myself.first_name if billing_address.first_name.blank?
-    billing_address.last_name= myself.last_name if billing_address.last_name.blank?
-    
-    if !request.post? && shipping_address.compare(billing_address)
-      @same_address = true
-    end
-    
-    shipping_selected_country = Shop::ShopRegionCountry.find_by_country(shipping_address.country)
-    shipping_state_info = shipping_selected_country ? shipping_selected_country.generate_state_info(shipping_address.state) : {}
+    countries = Shop::ShopRegionCountry.full_select_options
 
-    billing_selected_country = Shop::ShopRegionCountry.find_by_country(billing_address.country)
-    billing_state_info = billing_selected_country ? billing_selected_country.generate_state_info(billing_address.state) : {}
-
-    render_paragraph :partial => '/shop/processor/address', :locals => { :shipping_address => shipping_address, :billing_address => billing_address, :same_address => @same_address, :countries => countries, :shipping_state_info => shipping_state_info, :options => @options,
-        :billing_state_info => billing_state_info, :feature_output => @feature_output, :cart => cart}
-
+    @feature_data.merge!({:countries => countries})
+    render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
+
   def payment_page
+    @order_processor.set_order_address
 
-    session[:shop] ||= {}
-    unless session[:shop][:address]
-      session[:shop][:address] = { :shipping => myself.shipping_address ? myself.shipping_address.attributes.clone.symbolize_keys! : {},
-                            :billing => myself.billing_address.attributes.clone.symbolize_keys! }
-    end
-    unless session[:shop][:order]
-      # Save the cart in the session
-    end
-    
-    get_module
-
-    cart = get_cart 
-    shippable = cart.shippable?
-
-    currency = @mod.currency
-    
-    if shippable
-      # Get shipping options - find the region we are shipping to
-      country = Shop::ShopRegionCountry.locate(session[:shop][:address][:shipping][:country]) 
-      
-      if !country
-        redirect_paragraph site_node.node_path + "/address"
-        return
-      end
-      
-      shipping_info = country.shipping_details(cart)
-      shipping_options = country.shipping_options(currency,shipping_info)
-    else
-      shipping_options = []
-    end
-    
-    payment_processors = Shop::ShopPaymentProcessor.find(:all,:conditions => ['currency = ?',currency])
-      
-    # for each payment processor
-      # make sure they accept payment in the designated regions
-
-    if session[:shop][:order_id] # @payment[:order_id] && session[:shop][:order_id] == @payment[:order_id].to_i
-      @order = Shop::ShopOrder.find(:first, :conditions => ['id=? AND end_user_id=?  AND state IN("pending","payment_declined")', session[:shop][:order_id],myself.id ])
-    end
-      
-    @payment = params[:payment] || (@order ? @order.payment_information : {}) || {}
-    
+    @payment_params = params[:payment]
     if flash[:shop_message]
-      @payment = session[:shop][:payment_info] if session[:shop][:payment_info]
+      @payment_params = session[:shop][:payment_info] if session[:shop][:payment_info]
     end
-    
-    @payment[:shipping_category] ||= shipping_info[0][0].id if shipping_info && shipping_info[0] && shipping_info[0][0].id
-    @payment[:shipping_category] = @payment[:shipping_category].to_i
-    
-    if shipping_info
-      current_shipping = shipping_info.detect { |elm| elm[0].id == @payment[:shipping_category] }
-      cart.shipping = current_shipping[1] if current_shipping
-    else
-      cart.shipping = 0.0
+
+    if !@order_processor.validate_payment(params[:payment] ? true : false,@payment_params,params[:order]) 
+      redirect_paragraph site_node.node_path + "/address"
+      return
     end
-    
-    cart_data = { :cart=> cart, :checkout_page => nil, :currency => currency, :static => true}    
-    @feature_output = full_cart_feature(cart_data)
-    
+
     if request.post? && params[:payment] && !(params[:update].to_i > 0)
-    
-      
-      unless @order
-        @order = Shop::ShopOrder.create(:end_user_id => myself.id)
-        session[:shop][:order_id] = @order.id
-      end
-      
-      @order.attributes = params[:order].slice(:gift_order,:gift_message) if params[:order]
-      
-      session[:shop][:payment_info] = @payment
-      
-      
-      # Validate the total is the same as we sent out
-        # if not add error -> Your cart has been updated, please verify it's contents
-      
-      # Validate that we have a shipping category
-      tax = 0.0 # calculate_tax
-      shipping = cart.shipping # calculate_shipping
-
-      # Find the ShopPaymentProcessor
-      shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])
-      
-      unless shop_processor.test?
-        errors = shop_processor.validate_payment_options(myself,@payment[@payment[:selected_processor_id]],session[:shop][:address][:billing])
-      end
-      
-      if(errors)
-        # Show errors
-        # raise errors.inspect
-      else
-        # Save order information to the order
-
-        @order.pending_payment( :currency => currency,
-                                :tax => tax,
-                                :shipping => shipping,
-                                :shipping_address => session[:shop][:address][:shipping],
-                                :billing_address => session[:shop][:address][:billing],
-                                :shop_payment_processor => shop_processor,
-                                :shop_shipping_category_id => @payment[:shipping_category],
-                                :user => myself,
-                                :cart => cart,
-                                :payment => @payment[@payment[:selected_processor_id]]
-                              )
-        
-      
-        # Set Refresh Header
+      if @order_processor.process_payment 
+          # Set Refresh Header which will actually process the transaction
         headers['Refresh'] = '1; URL=' + site_node.node_path + "/processing"
-
         session[:shop][:stage] = 'processing'
-        
         # Render a processing paragraph
-        render_paragraph :partial => "/shop/processor/processing"
+        @feature_data[:page] = 'processing' 
+        render_paragraph :text => shop_checkout_feature(@feature_data)
         return 
       end
-    else 
-      @order = Shop::ShopOrder.new unless @order
     end
 
-
-
-    render_paragraph :partial => '/shop/processor/payment', 
-        :locals => { 
-            :options => @options,
-            :shipping_address => EndUserAddress.new(session[:shop][:address][:shipping]), 
-            :billing_address => EndUserAddress.new(session[:shop][:address][:billing]), 
-            :cart => cart, 
-            :shipping_options => shipping_options, 
-            :payment => @payment, 
-            :currency => currency,
-            :payment_processors => payment_processors, 
-            :message => flash[:shop_message], 
-            :order => @order,
-            :address_page => site_node.node_path + "/address",
-            :feature_output => @feature_output, 
-            :shippable => cart.shippable?, 
-            :errors => errors }
-
+    render_cart # render the cart now, after we have everything calced
+    @feature_data.merge!(
+          :cart_feature => @feature_output,
+          :message => flash[:shop_message],
+          :address_page =>  site_node.node_path + "/address",
+          :user => myself
+    )
+    render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
   def processing_page
-  
-    if session[:shop][:order_id]
-       page_redirect = nil
-       @order = Shop::ShopOrder.find(:first,:conditions => ['id = ? AND end_user_id = ? AND state IN("pending","payment_declined")',session[:shop][:order_id],myself.id])
-       transaction = @order.authorize_payment(:remote_ip => request.remote_ip )  if @order
-        if @order && transaction.success?
-        
-        
-            get_cart.clear
-            opts = @order.post_process(myself,session)
-            if opts.is_a?(Hash) && opts[:redirect]
-              page_redirect = opts[:redirect] 
-            end
-            session[:shop][:stage] = 'success'
-            session[:shop][:order_id] = nil
+ 
+    if @order_processor.active_order?
+      if @order = @order_processor.process_transaction(request.remote_ip)
+        get_cart.clear
 
-            email_data =   { :ORDER_ID => @order.id, :ORDER_HTML => @order.format_order_html, :ORDER_TEXT => @order.format_order_text }
-            if @receipt_template = MailTemplate.find_by_id(@options.receipt_template_id.to_i)
-              @receipt_template.deliver_to_user(myself,email_data)
-            end
-            
-          if !editor? && paragraph.update_action_count > 0
-              email_data.delete(:ORDER_TEXT)
-              paragraph.run_triggered_actions(email_data,'action',myself)
-            end
-            
-            myself.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
-            
-            if page_redirect
-              redirect_paragraph page_redirect
-            else
-              if @options.success_page_url
-                redirect_paragraph @options.success_page_url
-              else
-                redirect_paragraph site_node.node_path + "/success"
-              end
-            end
-        else
-          flash[:shop_message] = transaction.message if @order
-
-          redirect_paragraph site_node.node_path + "/payment"
+        opts = @order.post_process(myself,session)
+        if opts.is_a?(Hash) && opts[:redirect]
+          page_redirect = opts[:redirect] 
         end
+
+        email_data = @order_processor.email_data
+        if @receipt_template = MailTemplate.find_by_id(@options.receipt_template_id.to_i)
+          @receipt_template.deliver_to_user(myself,email_data)
+        end
+        email_data.delete(:ORDER_TEXT)
+
+        paragraph.run_triggered_actions(email_data,'action',myself)
+
+        myself.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
+
+        if page_redirect
+          redirect_paragraph page_redirect
+        else
+          if @options.success_page_url
+            redirect_paragraph @options.success_page_url
+          else
+            redirect_paragraph site_node.node_path + "/success"
+          end
+        end
+      else
+        flash[:shop_message] = @order_processor.transaction_message
+        redirect_paragraph site_node.node_path + "/payment"
+      end
     else
       redirect_paragraph site_node.node_path + "/payment"
     end
-  
-
-
   end
 
   def success_page
-    render_paragraph :partial => '/shop/processor/success'
+    render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
   include Shop::CartUtility # Get Cart Functionality
+
+  def render_cart
+    get_module
+    data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true}
+
+    session[:shop_continue_shopping_url_link] = nil
+    @feature_output = shop_full_cart_feature(data) unless @page == 'payment'
+
+  end
+
 
   
   def handle_shop_action(act)

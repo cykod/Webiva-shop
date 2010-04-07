@@ -1,0 +1,10 @@
+.shop_checkout { width: 550px; }
+.shop_checkout h4 { font-size:16px; font-weight:bold; padding-bottom:10px; clear:both; }
+
+.webiva_form_button { text-align:right; margin-top:1.5em;}
+
+ol.shop_form .string input { border:1px solid #999999;} 
+
+.shop_checkout .error { display:block; color:#cc0000; font-weight:bold;}
+
+.shop_order_address { float:left; padding-right:20px; }

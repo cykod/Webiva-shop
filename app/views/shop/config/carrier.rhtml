@@ -4,7 +4,7 @@
 
   <%= f.text_field :name %>
   <%= f.select :carrier_processor, @handlers %>
-  <%= f.submit_cancel_tags @carrier.new_record? ? 'Create' : 'Edit', 'Cancel', {}, url_for(:action => 'carriers') %>
+  <%= f.cancel_submit_buttons "Cancel", @carrier.new_record? ? 'Create' : 'Edit' %>
 
 <% end -%>
 

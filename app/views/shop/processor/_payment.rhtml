@@ -1,29 +1,17 @@
 <%= feature_output %>
 <div class='cms_form checkout checkout_payment'>
 
-<% if message || (errors && errors.length > 0) -%>
-<div align='center'>
-<%= "There was an problem processing your request:".t %><br/>
-<div align='left' class='error'>
-<% if errors && errors.length > 0 %>
-<%= errors.full_messages.map(&:t).join("<br/>") %>
-<br/><br/>
-<% end -%>
-<%= message %>
-</div>
-</div>
-
+<% if message || (order_processor.errors && order_processor.errors.length > 0) -%>
+  <%= render :partial => '/shop/processor/payment_errors', :locals => { :order_processor => order_processor, :message => message } %>
 <% end -%>
 
 <p>
-<%= "<b>%s</b>, please confirm your order and enter your payment information." / myself.name %><br/><br/>
+<%= "<b>%s</b>, please confirm your order and enter your payment information." / user.name %><br/><br/>
 </p>
 <%= form_tag('',:id => 'submit_form') %>
 <input type='hidden' name='update' id='shopping_form_update' value='0' />
 
-
-<% if shippable %>
-
+<% if order_processor.shippable %>
 <h2><%= "Order Addresses".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h2>
 <table>
 <tr>
@@ -31,64 +19,48 @@
   <td class='label' style='padding-left:20px;'><%= "Bill To:".t %></td>
 </tr>
 <tr>
-  <td><%= shipping_address.display("<br/>",:address_type => options.address_type) %></td>
-  <td style='padding-left:20px;'><%= billing_address.display("<br/>",:address_type => options.address_type) %></td>
+  <td><%= order_processor.shipping_address.display("<br/>",:address_type => options.address_type) %></td>
+  <td style='padding-left:20px;'><%= order_processor.billing_address.display("<br/>",:address_type => options.address_type) %></td>
 </tr>
 </table>
 
 <% else -%>
 
 <h2><%= "Bill To".t %> (<a href='<%= url_for address_page %>'><%= "Edit".t %></a>)</h2>
-<%= billing_address.display("<br/>",:address_type => options.address_type) %>
+<%= order_processor.billing_address.display("<br/>",:address_type => options.address_type) %>
 <br/>
 
 <% end -%>
 
 <% if options.show_gift -%>
 <h2><%= "Gift Options".t %> </h2>
-<% cms_fields_for :order, order do |f| -%>
-<tbody>
-  <%= f.check_boxes :gift_order, [['This order is a gift',true]], :single => true, :label => '',:onclick => '$("gift_message_display").style.display = this.checked ? "" : "none"'  %>
-</tbody>
-<tbody id='gift_message_display' <%= "style='display:none;'" unless order.gift_order? %>>
-  <%= f.text_area :gift_message, :label => '',:description => 'Optional Gift Message',:vertical => true, :rows => 4,:style => "width:100%;" %>
-</tbody>
-<% end -%>
 <% end -%>
 
-<% if shippable && shipping_options.length == 0 %>
+<% if order_processor.shippable && order_processor.shipping_options.length == 0 %>
 <br/>
 <div class='error'>
  <%= "There are no Shipping Carriers available to ship your order, please try again later.".t %>
 </div>
-<% elsif payment_processors.length == 0 %>
+<% elsif order_processor.payment_processors.length == 0 %>
 <br/>
 <div class='error'>
  <%= "There are no Payment processors available to process your order, please try again later.".t %>
 </div>
 <% else -%>
-<% if shippable %>
+<% if order_processor.shippable %>
   <h2><%= "Shipping Options".t %></h2>
-  <table>
-  <% shipping_options.each_with_index do |opt,index| %>
-  <tr>
-    <td><label for='shipping_<%= opt[1] %>'><input id='shipping_<%= opt[1] %>' type='radio' name='payment[shipping_category]' <%=  "checked='checked'" if payment[:shipping_category] == opt[1]  %> value="<%= opt[1] %>" onclick='document.getElementById("shopping_form_update").value=1; document.getElementById("submit_form").submit();' > <%= opt[0] %></label></td>
-  </tr>
-  <% end -%>
-  </table>
+  <%= render :partial => '/shop/processor/shipping_options', :locals => { :order_processor => order_processor } %>
 <% end -%>
 
-<% if payment_processors.length > 1 %>
-<h2><%= "Payment Options".t %></h2>
-<% else -%>
-<h2><%= "Payment".t %></h2>
-<% end -%>
-
-<%= render :partial => '/shop/processor/payment_processors', :locals => { :payment_processors => payment_processors, :admin => false, :payment => payment, :user => myself } %>
-
+<h2><%= order_processor.payment_processors.length > 1  ? "Payment Options".t : "Payment".t %></h2>
+<%= render :partial => '/shop/processor/payment_processors',
+     :locals => { :payment_processors => order_processor.payment_processors,
+                  :admin => false, 
+                  :payment => order_processor.payment, 
+                  :user => order_processor.user } %>
 
 <h2 align='right'>
-<input type='submit' value='<%= vh "Place Order".t %>'/>
+<input type='submit' name='submit_order' value='<%= vh "Place Order".t %>'/>
 </h2>
 <% end -%>
 

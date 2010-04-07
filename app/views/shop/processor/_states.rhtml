@@ -1,9 +1,9 @@
 <%= subregion_name.blank? ? 'State'.t : subregion_name %>*
 <% if options %>
-  <select id="<%= address %>_address_state_select" name="<%= address %>_address[state]">
+  <select id="<%= address %>_address_state_select" name="<%= address %>_address[state]" <%= "disabled='disabled'" if same_address %> />
       <%= options_for_select options, value %>
   </select>
 <% else -%>  
-  <input id="<%= address %>_address_state" name="<%= address %>_address[state]" required="true" size="15" type="text" value="<%= value %>" vertical="true" class='textfield' <%= "disabled='disabled'" if same_address %> />
+  <input id="<%= address %>_address_state" name="<%= address %>_address[state]" required="true" size="6" type="text" value="<%= value %>" vertical="true" class='textfield' <%= "disabled='disabled'" if same_address %> />
 <% end -%>
 

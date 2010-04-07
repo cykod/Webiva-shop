@@ -1,0 +1,8 @@
+
+  <table>
+  <% order_processor.shipping_options.each_with_index do |opt,index| %>
+  <tr>
+    <td><label for='shipping_<%= opt[1] %>'><input id='shipping_<%= opt[1] %>' type='radio' name='payment[shipping_category]' <%=  "checked='checked'" if order_processor.shipping_category == opt[1]  %> value="<%= opt[1] %>" onclick='document.getElementById("shopping_form_update").value=1; document.getElementById("submit_form").submit();' > <%= opt[0] %></label></td>
+  </tr>
+  <% end -%>
+  </table>

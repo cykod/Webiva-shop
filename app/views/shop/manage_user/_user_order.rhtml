@@ -50,6 +50,12 @@ Select Product: <select id='product_to_add'><%= options_for_select Shop::ShopPro
 <% end -%>
   <tr>
     <td colspan='4'></td>
+    <td align='right'>Tax:</td>
+    <td></td>
+    <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.tax,@currency) %></td>
+  </tr>
+  <tr>
+    <td colspan='4'></td>
     <td  align='right'>Total:</td>
     <td></td>
     <td align='right'><%= Shop::ShopProductPrice.localized_amount(@cart.total,@currency) %></td>

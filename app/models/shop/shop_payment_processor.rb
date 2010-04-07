@@ -3,7 +3,7 @@ class Shop::ShopPaymentProcessor < DomainModel
   
   validates_presence_of :payment_type, :processor_handler, :name
   validates_uniqueness_of :name
-  validates_uniqueness_of :payment_type, :scope => :currency
+  validates_uniqueness_of :payment_type, :scope => [ :currency, :active], :if => Proc.new { |pp| pp.active? }
   
   attr_protected :processor_handler
   

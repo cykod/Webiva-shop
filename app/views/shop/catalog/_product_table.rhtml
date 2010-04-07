@@ -19,6 +19,7 @@
    <% featured_products = t.shop_category_products.index_by(&:shop_category_id) %>
   <td><%= t.shop_categories.collect { |cat| featured_products[cat.id].featured? ? "<b>#{h(cat.name)}</b>" : h(cat.name) }.join(", ") %> </td>
   <td><%= t.shop_product_features.collect { |feature| feature.description }.join(", ") %></td>
+  <td><%= t.shop_shop.abr %></td>
 </tr>
 
 

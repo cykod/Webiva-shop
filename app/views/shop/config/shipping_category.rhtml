@@ -22,7 +22,7 @@
  <%= render :partial => 'shipping_category_options', :locals => { :category => @shipping_category } %>
  </table></td></tr>
 </tbody>
-  <%= f.submit_cancel_tags @shipping_category.new_record? ? 'Create' : 'Edit','Cancel',{},url_for(:action => 'shipping') %>
+<%= f.cancel_submit_buttons "Cancel", @shipping_category.new_record? ? 'Create' : 'Edit' %>
 <% end -%>
 
 </div>

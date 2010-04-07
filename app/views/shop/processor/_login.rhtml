@@ -45,17 +45,18 @@
   <% end -%>
   <tr>
     <td colspan='2' class='label'>
-      New users please register below:
+      No account? Please use the form below:
     </td>
   </tr>
   <%= f.text_field :first_name, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
   <%= f.text_field :last_name, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
   <%= f.text_field :email, :vertical => true, :required => true, :size => 50, :class => 'textfield' %></td>
-  <%= f.password_field :password, :vertical => true, :required => true, :size => 30, :class => 'textfield' %>
-  <%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :required => true, :size => 30, :class => 'textfield'%>
+  <%= f.header "Create an account by entering a password (optional)" %>
+  <%= f.password_field :password, :vertical => true, :size => 30, :class => 'textfield' %>
+  <%= f.password_field :password_confirmation, :vertical => true, :label => 'Confirm', :size => 30, :class => 'textfield'%>
   </tr>
     <td colspan='2' align='right'>
-      <%= f.submit_tag 'Register', :class => 'submittag' %>
+      <%= f.submit_tag 'Continue', :class => 'submittag' %>
     </td>
   </tr>
 <% end -%>  

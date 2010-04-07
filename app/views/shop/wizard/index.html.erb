@@ -1,0 +1,30 @@
+<div class='admin_content'>
+
+<% admin_form_for :wizard, @shop_wizard do |f|  -%>
+  <%= f.header "Wizard options", :description => 'The Shop wizard will add the necessary pages to add a full-featured e-commerce shop to your site.\n It will also check your shop configuration and can optionally add any missing options to allow you to test your shop right away.' %>
+  <%= f.select :shop_id, Shop::ShopShop.select_options_with_nil('Shop'), :label => 'Shop to Add', :required => true -%>
+  <%= f.add_page_selector :add_to, :description => 'this wizard will add /cart, /checkout and /success pages\nunderneath the shop page', :label => 'Shop page', :required => true -%>
+  <%= f.check_boxes :opts, [['Add a cart to the sidebar','cart'],
+                               ['Add Categories to the sidebar','categories']],
+      :label => 'Options', :separator => '<br/>'-%>
+      <% if @processor_count == 0 %>
+        <%= f.header "Missing Payment Processor",:description => 'You have no active payment processors defined, would you like the wizard to add a test payment processor to the system?'  %>
+        <%= f.check_boxes :add_processor, [['Add a test payment processor to your site',true]], :single => true %>
+      <% end -%> 
+      <% if @region_count == 0 %>
+        <%= f.header "Missing Regions",:description => 'You have no delivery regions defined, would you like the wizard to add a country to the system?'  %>
+        <%= f.check_boxes :add_region, [['Add a delivery country to your site',true]], :single => true %>
+        <%= f.select :add_country,  f.translated_countries_for_select(["United States"]) %>
+      <% end -%>
+      <% if @carrier_count == 0 %>
+        <%= f.header "Missing Carriers & Shipping",:description => 'You have no delivery carriers or shipping options add to the system,\n would you like the wizard to add in default carrier and a shipping option to a defined region?'  %>
+        <%= f.check_boxes :add_delivery, [['Add a delivery carrier and standard shipping to your site',true]], :single => true %>
+        <%= f.text_field :shipping_cost, :description => "Shipping cost per item (you can reconfigure the amount and calculation method)", :size => 10,:label => "Shipping Cost (#{Shop::AdminController.module_options.currency})" %>
+      <% end -%>
+
+
+  <%= f.spacer -%>
+  <%= f.cancel_submit_buttons 'Cancel', 'Add to Site' -%>
+
+<% end -%>
+</div>
