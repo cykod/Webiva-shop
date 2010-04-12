@@ -7,12 +7,10 @@ shared_examples_for "User Shopping Cart" do
 
   before(:each) do
     @shirt_cost = 14.95
-    @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
-    @shirt.set_prices('USD' => @shirt_cost)
+    @shirt = Shop::ShopProduct.create(:name => 'A Shirt', :price_values => {'USD' => @shirt_cost})
     
     @coat_cost = 18.88
-    @coat =  Shop::ShopProduct.create(:name => 'A Coat')
-    @coat.set_prices('USD' => @coat_cost)
+    @coat =  Shop::ShopProduct.create(:name => 'A Coat', :price_values => { 'USD' => @coat_cost})
   end
 
 

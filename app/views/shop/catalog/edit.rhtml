@@ -218,11 +218,8 @@ ProductEditor = {
   <table>
 <%= f.text_field :name, :required => true %>
 <%= f.text_field :name_2, :label => 'Name (Line 2)' %>
-<% if @price_error %>
-<td></td><td class='error'>Please enter valid prices for all currencies</td></tr><tr>
-<% end -%>
-<% f.custom_field 'Price', :valign => 'baseline' do  %>  
-  <%= render :partial => 'currency_inputs', :locals => { :field_name => 'prices',:prices => @prices, :separator => "<br/>" } %>
+<% f.custom_field :price_values, :valign => 'baseline' do  %>  
+  <%= render :partial => 'currency_inputs', :locals => { :field_name => 'price_values',:prices => @product.price_values, :separator => "<br/>" } %>
 <% end -%>
 <%= f.text_field :url, :description => 'Leave blank to create automatically',:label => 'Product url' %>
 <%= f.filemanager_image :image_file_id, :label => 'Primary Image' %>

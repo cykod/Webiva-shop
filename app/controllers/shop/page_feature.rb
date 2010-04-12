@@ -11,6 +11,10 @@ class Shop::PageFeature < ParagraphFeature
        <li><cms:img border='1' size='preview' />
            <span class='product_name'><cms:name/></span> &nbsp; 
            <span class='produce_price'><cms:price/></span>
+           <p class='product_description'>
+              <cms:description/>
+           </p>
+           <span class='product_buttons'><cms:add_to_cart><cms:quantity/><cms:button/></cms:add_to_cart></span>
            <cms:link>Details &raquo;</cms:link>
        </li>
       </cms:product>
@@ -22,6 +26,7 @@ class Shop::PageFeature < ParagraphFeature
        <li><cms:img border='1' size='preview' />
            <span class='product_name'><cms:name/></span> &nbsp; 
            <span class='produce_price'><cms:price/></span>
+           <span class='product_buttons'><cms:add_to_cart/></span>
            <cms:link>Details &raquo;</cms:link>
        </li>
     </cms:product>
@@ -203,7 +208,6 @@ class Shop::PageFeature < ParagraphFeature
           <cms:category><h4><cms:list_page_link><cms:value/></cms:list_page_link></h4></cms:category>
           <h1><cms:name/></h1>
           <cms:no_options> <cms:price/> </cms:no_options>
-          <cms:quantities/>
           <cms:options/>Quantity:<cms:quantity/><cms:add_to_cart>Add To Cart</cms:add_to_cart>
           <cms:description/>
           <cms:detailed_description>

@@ -64,52 +64,33 @@ class Shop::CatalogController < ModuleController
   end
   
   def edit
-    @product = Shop::ShopProduct.find(:first,:conditions => ['id=?',params[:path][0]]) || Shop::ShopProduct.new
+    @product = Shop::ShopProduct.find_by_id(params[:path][0]) || Shop::ShopProduct.new
  
     cms_page_path ["Content","Shop", "Catalog" ],   @product.id ? [  'Edit %s',nil,@product.name ] : 'Create Product' 
-    
-    require_js('cms_form_editor.js')
-#     @header = "<script src='/javascripts/cms_form_editor.js' type='text/javascript'></script>"
 
     @product_classes =[['--Select Class--','']] + Shop::ShopProductClass.find_select_options(:all,:order => 'name')
     
     @active_currencies = get_currencies
     @available_features = [['--Select a feature to add--','']] + get_handler_options(:shop,:product_feature)
 
-    @prices = @product.get_prices
-    
     if request.post? && params[:product]
-      captions= params[:product].delete(:caption)
-
-      @product.set_captions(captions)
       @product.attributes = params[:product]
-      
-
-      (params[:prices]||{}).each do |currency,price|
-        if price.to_f <= 0.0 || !@active_currencies.include?(currency)
-          @price_error = true
-        end
-        @prices[currency] = price
-      end
 
       # Assign features by putting them in order from the sorted feature_order array
       # Each features options are in a hash indexed by its idx (not id) - as new features don't have any id's       
       @product.features = params[:features_order].split(",").collect { |idx| params[:feature][idx.strip] || {} } if params[:features_order] 
       
-      if @product.valid? && !@price_error
-        
+      if @product.valid?
         @product.save_content(myself)
-        @product.set_prices(params[:prices])
         update_categories(@product) if params[:cat]
         save_product_options(@product)
-
-        DataCache.expire_content("ShopProduct")
 
         redirect_to :action => 'index'
       end
     end
     
     @product_categories = Shop::ShopCategory.generate_tree(@product.id)
+    require_js('cms_form_editor.js')
   end
   
   
@@ -121,12 +102,12 @@ class Shop::CatalogController < ModuleController
     @product_class = Shop::ShopProductClass.find_by_id(params[:product_class_id])
     render :partial => 'options', :locals => { :shop_product_class => @product_class }
   end
+
   
   def add_feature
     @product = Shop::ShopProduct.find_by_id(params[:product_id]) || Shop::ShopProduct.new
     
     @info = get_handler_info(:shop,:product_feature,params[:feature_handler])
-    
     if @info 
       @active_currencies = get_currencies
       @feature = @product.shop_product_features.build()

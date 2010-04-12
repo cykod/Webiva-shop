@@ -1,9 +1,5 @@
 require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
 
-
-require 'shop/shop_order'
-
-
 require  File.expand_path(File.dirname(__FILE__)) + '/shop_order_process_spec'
 
 describe Shop::BillLaterPaymentProcessor do

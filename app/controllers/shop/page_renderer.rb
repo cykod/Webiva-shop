@@ -15,18 +15,6 @@ class Shop::PageRenderer < ParagraphRenderer
   features '/shop/page_feature'
   features '/editor/menu_feature'
 
-  def self.get_module
-    mod = SiteModule.get_module('shop')
-    
-    mod.options ||= {}
-    mod.options[:field] ||= []
-    mod.options[:options] ||= {}
-    
-    mod
-  end
-
- 
-
   def product_listing
 
     options = paragraph_options(:product_listing)

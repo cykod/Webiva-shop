@@ -4,6 +4,8 @@ class Shop::ShopProduct < DomainModel
   validates_presence_of :name
   validates_presence_of :shop_shop
   validates_uniqueness_of :url
+  validate :price_validation
+  after_update :resave_prices
 
   belongs_to :image_file, :class_name => 'DomainFile', :foreign_key => 'image_file_id'
   belongs_to :download_file, :class_name => 'DomainFile', :foreign_key => 'download_file_id'
@@ -92,8 +94,8 @@ class Shop::ShopProduct < DomainModel
     end
   end
   
-  def set_captions(captions)
-    @captions = captions
+  def captions=(caps)
+    @captions = caps
   end
 
   def files_ids=(ids)
@@ -153,6 +155,21 @@ class Shop::ShopProduct < DomainModel
       pf
     end
     
+  end
+
+  def price_validation
+    Shop::ShopProduct.active_currencies.each do |cur|
+      price = self.regular_prices.detect { |prc| prc.currency == cur }
+      if !price || price.price.blank?
+        self.errors.add(:price_values,"is missing #{cur}")
+      end
+    end
+  end
+
+  def resave_prices
+    self.regular_prices.each do |prc|
+      prc.save if prc.changed?
+    end
   end
   
   def validate
@@ -214,24 +231,30 @@ class Shop::ShopProduct < DomainModel
       end
     end
   end
+  
+  def self.active_currencies
+     @mod_opts ||= Shop::AdminController.module_options
+     [@mod_opts.shop_currency || 'USD' ]
+  end
 
-  # Set the prices of the product - input format: { 'USD' => '14.95','EU' => '12' }
-  def set_prices(price_arr)
-    price_arr ||= []
-    price_arr.each do |new_currency,new_price|
+
+  def price_values=(price_hsh)
+    price_hsh ||= {}
+    price_hsh.each do |new_currency,new_price|
       price = self.regular_prices.detect { |prc| prc.currency == new_currency } || self.regular_prices.build(:currency => new_currency)
       price.price = new_price
-      price.save
     end
+
   end
 
   # returns a hash of non-sale prices of the product
-  def get_prices
+  def price_values
     price_hash = {}
+    Shop::ShopProduct.active_currencies.each { |cur| price_hash[cur] = nil }
     self.regular_prices.each { |price| price_hash[price.currency] = price.price }
     price_hash
   end
-
+ 
   def get_price(currency,user=nil)
     price = self.prices.detect { |pr| pr.currency = currency }
     
@@ -248,10 +271,12 @@ class Shop::ShopProduct < DomainModel
     return price
   end
   
-  def get_unit_cost(currency,user=nil)
+  def unit_cost(currency,user=nil)
     prc = get_price(currency,user)
     prc.price if prc
   end
+
+  alias_method :get_unit_cost, :unit_cost
 
   def localized_price(currency,quantity=1,user=nil)
     price = get_price(currency,user)

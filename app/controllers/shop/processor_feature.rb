@@ -153,7 +153,7 @@ def shop_full_cart_feature(data)
   <div class='webiva_form shop_form shop_login_form'>
    <ol class='shop_form webiva_form'>
     <li><cms:email_label/> <cms:email/></li>
-    <li><cms:password_label/><cms:password/><li>
+    <li><cms:password_label/><cms:password/></li>
     <li><cms:login_button/></li>
    </ol>
   </div>
@@ -250,7 +250,7 @@ FEATURE
     c.value_tag('name') { |t| myself.name }
 
     c.expansion_tag('login_page') { |c| data[:page] == 'login' }
-       c.form_error_tag('login_page:login_form:errors')
+       c.value_tag('login_page:login_form:errors') { |t| data[:invalid_login] ? "Please verify your login credentials".t : nil }
        c.form_for_tag('login_page:login_form',:login) { |t| data[:login] }
          c.field_tag('login_page:login_form:email')
          c.field_tag('login_page:login_form:password',:control => 'password_field')

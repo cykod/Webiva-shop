@@ -238,19 +238,21 @@ class Shop::ShopOrder < DomainModel
   end
   
   def capture_payment
-   self.reload(:lock => true)
-   processor = self.shop_payment_processor
-   transaction do
-      authorization = find_authorization
-      capture = Shop::ShopOrderTransaction.capture(self.end_user,processor,authorization.reference,currency,total )
-      transactions.push(capture)
-      if capture.success?
-        payment_captured!
-      else
-        transaction_declined!
-      end
+    self.reload(:lock => true)
+    if self.state == 'authorized' 
+      processor = self.shop_payment_processor
+      transaction do
+        authorization = find_authorization
+        capture = Shop::ShopOrderTransaction.capture(self.end_user,processor,authorization.reference,currency,total )
+        transactions.push(capture)
+        if capture.success?
+          payment_captured!
+        else
+          transaction_declined!
+        end
 
-      return capture
+        return capture
+      end
     end
     return false
   end
@@ -308,17 +310,19 @@ class Shop::ShopOrder < DomainModel
       self.reload(:lock => true)
       processor = self.shop_payment_processor
       authorization = find_payment
-      transaction do 
-        refund_transaction = Shop::ShopOrderTransaction.refund(self.end_user,processor,authorization.reference,currency,amount)
-        transactions.push(refund_transaction)
-        if refund_transaction.success?
-          # Determine the type of refund
-          is_partial_refund = amount < total
-          # Update the order - adjust the totals
-          self.update_attributes(:total => (total - amount) , :refund => (refund + amount))
-          is_partial_refund ? partial_refund! : full_refund!
+      if authorization
+        transaction do 
+          refund_transaction = Shop::ShopOrderTransaction.refund(self.end_user,processor,authorization.reference,currency,amount)
+          transactions.push(refund_transaction)
+          if refund_transaction.success?
+            # Determine the type of refund
+            is_partial_refund = amount < total
+            # Update the order - adjust the totals
+            self.update_attributes(:total => (total - amount) , :refund => (refund + amount))
+            is_partial_refund ? partial_refund! : full_refund!
+          end
+          return refund_transaction
         end
-        return refund_transaction
       end
     end
     return false

@@ -9,7 +9,9 @@ describe Shop::PageRenderer, :type => :controller do
 
   integrate_views
 
-  reset_domain_tables  :shop_shops, :shop_products, :shop_categories, :shop_category_products, :shop_cart_products,:site_version, :site_nodes
+  before do
+    test_activate_module(:shop,:currency => "USD")
+  end
 
   describe "Product List" do
 
@@ -59,9 +61,10 @@ describe Shop::PageRenderer, :type => :controller do
         @category = Factory.create(:shop_category)
         @category2 = Factory.create(:shop_category)
         @products[0..2].each { |prd| prd.add_category(@category) }
-        @products[3..-1].each { |prd| prd.add_category(@category2) }
+        @products[3..-1].each { |prd| prd.add_category(@category2,true) }
       end
 
+  
       it "should not render anything if there's an invalid category" do
         @rnd = product_listing_renderer(:base_category_id => 0, :input => [ :product_category_1, 'SOMETHING'])
         renderer_get @rnd 
@@ -122,8 +125,15 @@ describe Shop::PageRenderer, :type => :controller do
     end
 
     def product_detail_renderer(opts={},conns={})
-      opts.merge!(:shop_shop_id => Shop::ShopShop.default_shop.id )
+      @page =  SiteVersion.default.root_node.add_subpage('shop_list_page')
+      opts.merge!(:shop_shop_id => Shop::ShopShop.default_shop.id, :list_page_id => @page.id )
       build_renderer('/shop', '/shop/page/product_detail', opts, conns)
+    end
+
+    it "should properly render the feature" do
+      @rnd = product_detail_renderer({},{ :input => [:product_id, @products[0].url] })
+      renderer_get @rnd
+      response.should include_text(@products[0].name)
     end
 
     it "should display an individual product from url" do 
@@ -133,11 +143,26 @@ describe Shop::PageRenderer, :type => :controller do
       @rnd.should assign_to_feature(:product,@products[0])
     end
 
+    it "should render nothing if we have a category link but no product" do
+      @product = Factory.create(:shop_product,:description =>"Lorem mcipsum")
+      @rnd = product_detail_renderer({},{ :category => [:product_category_1, "category"] })
+      renderer_get @rnd
+      response.should have_text(' ')
+    end
+
     it "should display an individual product from paragraph options" do 
       @rnd = product_detail_renderer({:product_id => @products[1].id})
       @rnd.should_render_feature(:shop_product_detail)
       renderer_get @rnd
       @rnd.should assign_to_feature(:product,@products[1])
+    end
+
+    it "should display the product name and description" do 
+      @product = Factory.create(:shop_product,:description =>"Lorem mcipsum")
+      @rnd = product_detail_renderer({},{ :input => [:product_id, @product.url] })
+      renderer_get @rnd
+      response.should include_text(@product.name)
+      response.should include_text(@product.description)
     end
 
 
@@ -235,6 +260,12 @@ describe Shop::PageRenderer, :type => :controller do
        renderer_get @rnd
     end
 
+    it "should say configure paragraph without a category" do 
+        @rnd = category_listing_renderer(:base_category_id => nil)
+        renderer_get @rnd 
+        response.should include_text("Configure Paragraph")
+      end
+
     it "should include links to each category" do
       @rnd = category_listing_renderer(:list_page_id => @page.id)
       renderer_get @rnd
@@ -270,6 +301,12 @@ describe Shop::PageRenderer, :type => :controller do
       response.should_not have_tag("a[href=/shop_list/#{@category.url}][class=selected]")
     end
 
+    it "should say configure paragraph without a category" do 
+      @rnd =  category_breadcrumbs_renderer(:base_category_id => nil)
+      renderer_get @rnd 
+      response.should include_text("Configure Paragraph")
+    end
+
     it "should render the category_breadcrumbs feature" do
       @rnd = category_breadcrumbs_renderer({ :list_page_id => @page.id })
       @rnd.should_render_feature(:shop_page_category_breadcrumbs)
@@ -297,6 +334,13 @@ describe Shop::PageRenderer, :type => :controller do
       @rnd = search_bar_renderer(:search_page_id => @page.id)
       @rnd.should_render_feature(:shop_page_search_bar)
       renderer_get @rnd
+    end
+
+    it "should display search" do 
+      @page =  SiteVersion.default.root_node.add_subpage('shop_list')
+      @rnd = search_bar_renderer(:search_page_id => @page.id)
+      renderer_get @rnd
+      response.should include_text("Search:")
     end
 
     it "should redirect on search" do

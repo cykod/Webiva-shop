@@ -10,13 +10,13 @@ class Shop::ManageController < ModuleController
    include ActiveTable::Controller   
    active_table :order_table,
                 Shop::ShopOrder,
-                [ ActiveTable::IconHeader.new('', :width=>10),
-                  ActiveTable::NumberHeader.new('shop_orders.id',:label=>'Order #'),
-                  ActiveTable::StringHeader.new('shop_orders.name', :label => 'Ordered By'),
-                  ActiveTable::DateRangeHeader.new('ordered_at',:datetime => true),
-                  ActiveTable::DateRangeHeader.new('shipped_at', :datetime => true),
-                  ActiveTable::OptionHeader.new('state',:options => :order_states),
-                  ActiveTable::NumberHeader.new('total'),
+                [ :check,
+                  hdr(:number,'shop_orders.id',:label=>'Order #'),
+                  hdr(:string,'shop_orders.name', :label => 'Ordered By'),
+                  hdr(:date_range,'ordered_at'),
+                  hdr(:date_range,'shipped_at'),
+                  hdr(:option,'state',:options => :order_states),
+                  hdr(:number,:total),
                   'Action'
                 ]
                 
@@ -127,7 +127,7 @@ class Shop::ManageController < ModuleController
       cap = @order.admin_capture_payment(myself,@notes)
       if cap && cap.success?
         if @ship_order
-          @order.admin_ship_order(myself,'[Automatic: Capture & Ship]'.t,nil,params[:shipment])
+          @order.admin_ship_order(myself,'[Automatic: Capture & Ship]'.t,nil,params[:shipment] || {})
           @order.reload
           flash.now[:order_info] = sprintf("Order %s has been captured and marked as shipped".t,@order.number)
         else
@@ -175,17 +175,15 @@ class Shop::ManageController < ModuleController
      @order = Shop::ShopOrder.find(params[:order_id])
      @notes = params[:notes]
      if request.post? && params['void']
-      if @order.state == 'authorized'
-        voided = @order.admin_void_order(myself,@notes)
-        @order.reload
-        if voided && voided.success?
-          flash.now[:order_info] = sprintf("Order %s has been voided".t,@order.number)
-          @successful = true
-        else
-          @message = voided ? voided.message : 'Transaction could not be completed at this time'.t
-        end
-      end
-      @transaction_partial = 'void_order'
+       voided = @order.admin_void_order(myself,@notes)
+       @order.reload
+       if voided && voided.success?
+         flash.now[:order_info] = sprintf("Order %s has been voided".t,@order.number)
+         @successful = true
+       else
+         @message = voided ? voided.message : 'Transaction could not be completed at this time'.t
+       end
+       @transaction_partial = 'void_order'
       render :partial => 'update_order'
       return
     end
@@ -211,16 +209,16 @@ class Shop::ManageController < ModuleController
     
     if request.post? && params[:refund]
       if @valid_refund 
-        if @full_refund
-          @refund_amount = @order.total
-        end
+        @refund_amount = @order.total if @full_refund 
         refunded = @order.admin_refund_order(@refund_amount,myself,@notes)
         if refunded && refunded.success?
           flash.now[:order_info] = sprintf("Order %s has been refunded".t,@order.number)
           @successful = true
-        else
-          @message = refunded ? refunded.message : 'Transaction could not be completed at this time'.t
+          @valid_refund=true
         end
+      end
+      if !@valid_refund
+        @message = refunded ? refunded.message : 'Transaction could not be completed at this time'.t
       end
       @transaction_partial = 'refund_order'
       render :partial => 'update_order'

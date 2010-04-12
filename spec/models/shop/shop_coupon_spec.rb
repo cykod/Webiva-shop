@@ -7,19 +7,17 @@ require  File.expand_path(File.dirname(__FILE__)) + '/shop_order_process_spec'
 describe Shop::ShopCoupon do
    include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality
 
- reset_domain_tables :shop_product, :shop_order, :shop_order_items, :shop_payment_processors, 
+ reset_domain_tables :shop_products, :shop_orders, :shop_order_items, :shop_payment_processors, :shop_product_prices,
                       :end_user,:end_user_address, :shop_cart_products, :shop_coupon, :end_user_tags
 
 
   before(:each) do
     @shirt_cost = 14.95
-    @shirt = Shop::ShopProduct.create(:name => 'A Shirt')
-    @shirt.set_prices('USD' => @shirt_cost)
+    @shirt = Shop::ShopProduct.create(:name => 'A Shirt', :price_values => {'USD' => @shirt_cost})
     
     @coat_cost = 18.88
-    @coat =  Shop::ShopProduct.create(:name => 'A Coat')
-    @coat.set_prices('USD' => @coat_cost)
-  
+    @coat =  Shop::ShopProduct.create(:name => 'A Coat', :price_values => { 'USD' => @coat_cost})
+
     @cart_session = []
     @cart = Shop::ShopSessionCart.new(@cart_session,'USD')
 

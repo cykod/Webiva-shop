@@ -133,7 +133,7 @@ class Shop::OrderProcessor
   end
   
   def set_order_address(force=false)
-    if(force || !adr[:billing])
+    if(force || !adr(:billing))
       @order_state[:address] = {  :shipping => shipping_address.attributes.clone.symbolize_keys!, 
                             :billing => billing_address.attributes.clone.symbolize_keys! }
 
@@ -156,11 +156,11 @@ class Shop::OrderProcessor
     
     if !@order 
       @order_state[:order_id] = nil
-      @order = Shop::ShopOrder.new()
+      @order = Shop::ShopOrder.new(:end_user_id => user.id)
     end
 
-    @order.attributes = order_info.slice(:gift_order,:gift_message)  if order_info
-    
+    @order.attributes = order_info.symbolize_keys.slice(:gift_order,:gift_message)  if order_info
+
     if @shippable && @shipping_info
       @payment[:shipping_category] ||= @shipping_info[0][:category].id if @shipping_info && @shipping_info[0]
       @payment[:shipping_category] = @payment[:shipping_category].to_i
@@ -184,15 +184,16 @@ class Shop::OrderProcessor
     
   
   def process_payment
-    if !@order || !@order.id
-      @order = Shop::ShopOrder.create(:end_user_id => user.id)
+    if !@order  || !@order.id
+      @order ||= Shop::ShopOrder.new(:end_user_id => user.id)
+      @order.save
       @order_state[:order_id] = @order.id
 
     end
 
     @order_state[:payment_info] = @payment
 
-    if @order_state[:total] != @cart.total
+    if @order_state[:total] && @order_state[:total] != @cart.total
        @errors = [ "Your cart has been updated, please reverify your total" ]
        return false
     end
@@ -259,7 +260,6 @@ class Shop::OrderProcessor
   end
 
   def calculate_destination
-
     if @shippable
       # Get shipping options - find the region we are shipping to
       @country = Shop::ShopRegionCountry.locate(adr[:country])

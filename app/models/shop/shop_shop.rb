@@ -8,7 +8,7 @@ class Shop::ShopShop < DomainModel
   content_node_type :shop, "Shop::ShopProduct", :content_name => :name, :url_field => Proc.new { |shp| Shop::AdminController.module_options.category_in_url ? :category_url : :url }
 
   def self.create_default_shop
-    self.create(:name => 'Default Shop'.t,:abr => 'Def.')
+    self.create(:name => 'Default Shop'.t,:abr => 'Shop')
   end
 
   def self.default_shop

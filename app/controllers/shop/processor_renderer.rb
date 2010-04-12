@@ -4,6 +4,8 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   paragraph :checkout
   
   features '/shop/processor_feature'
+
+  include Shop::CartUtility # Get Cart Functionality
   
   # Generate a unit hash of a cart item's options
   # for use in the cart form
@@ -92,7 +94,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   def setup_page(page)
     session[:shop] ||= {}
     @cart = get_cart
-    @order_processor = OrderProcessor.new(myself,session[:shop],@cart)
+    @order_processor = Shop::OrderProcessor.new(myself,session[:shop],@cart)
     @order_processor.verify_page(page)    
   end
 
@@ -195,7 +197,6 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   end
 
   def processing_page
- 
     if @order_processor.active_order?
       if @order = @order_processor.process_transaction(request.remote_ip)
         get_cart.clear
@@ -237,7 +238,6 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
-  include Shop::CartUtility # Get Cart Functionality
 
   def render_cart
     get_module
