@@ -1,0 +1,15 @@
+<% table_for orders, ["#", "Who", "When", "Status", "Total"], :class =>  'mini_table', :width => '100%' do |t| -%>
+  <tr>
+    <td><%= link_to( h(t.id),  { :path => [ t.id ], :controller => 'shop/manage', :action => "order" } )%></td>
+    <td><%= t.end_user.name if t.end_user %> </td>
+    <td><%= v t.ordered_at.localize(DEFAULT_DATE_FORMAT) if t.ordered_at %></td>
+    <td><%= t.state %> </td>
+    <td><%= t.total %> </td>
+  </tr>
+
+    <tr>
+      <td colspan="5" style="font-size:85%;"> Displayed Statuses <br/>
+        <%= options.state.to_sentence.gsub(/_/," ").gsub(/\b\w/){$&.upcase}.gsub(/^, /,'') %> </td>
+    </tr>
+
+<% end -%>

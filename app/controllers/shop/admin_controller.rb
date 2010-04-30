@@ -29,7 +29,7 @@ class Shop::AdminController < ModuleController
 
   register_handler :structure, :wizard, "Shop::WizardController"
  
-  
+  register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
   register_handler :members, :view,  "Shop::ManageUserController"
@@ -39,11 +39,11 @@ class Shop::AdminController < ModuleController
   content_model :shop
 
   protected
-    def self.get_shop_info
-        [
-        {:name => "Shop",:url => { :controller => '/shop/manage' } ,:permission => 'shop_manage', :icon => 'icons/content/shop.gif' }
-        ]
-    end
+  def self.get_shop_info
+    [
+      {:name => "Shop",:url => { :controller => '/shop/manage' } ,:permission => 'shop_manage', :icon => 'icons/content/shop.gif' }
+    ]
+  end
 
   public
 
@@ -52,10 +52,10 @@ class Shop::AdminController < ModuleController
   end
 
   def options
-  
+
     cms_page_info [ ["Options",url_for(:controller => '/options') ], ["Modules",url_for(:controller => "/modules")], "Shop Module Options "], "options"
     get_module
-    
+
     if Shop::ShopShop.count == 0
       Shop::ShopShop.create_default_shop
       Shop::ShopCategory.get_root_category
@@ -79,7 +79,7 @@ class Shop::AdminController < ModuleController
     end
 
     @currencies = get_currencies
-    
+
 
     options = @mod.options 
   end
@@ -90,19 +90,19 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-      attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true
+    attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true
 
-      boolean_options :category_in_url
+    boolean_options :category_in_url
 
-      validates_presence_of :shop_currency
-      
-      def currency
-        self.shop_currency
-      end
-      
-      def currencies
-        [ self.shop_currency ]
-      end
+    validates_presence_of :shop_currency
+
+    def currency
+      self.shop_currency
+    end
+
+    def currencies
+      [ self.shop_currency ]
+    end
   end
- 
+
 end
