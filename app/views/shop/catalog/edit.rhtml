@@ -219,7 +219,7 @@ ProductEditor = {
 <%= f.text_field :name, :required => true %>
 <%= f.text_field :name_2, :label => 'Name (Line 2)' %>
 <% f.custom_field :price_values, :valign => 'baseline' do  %>  
-  <%= render :partial => 'currency_inputs', :locals => { :field_name => 'price_values',:prices => @product.price_values, :separator => "<br/>" } %>
+  <%= render :partial => 'currency_inputs', :locals => { :field_name => 'product[price_values]',:prices => @product.price_values, :separator => "<br/>" } %>
 <% end -%>
 <%= f.text_field :url, :description => 'Leave blank to create automatically',:label => 'Product url' %>
 <%= f.filemanager_image :image_file_id, :label => 'Primary Image' %>
