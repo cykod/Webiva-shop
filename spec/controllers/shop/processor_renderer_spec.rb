@@ -9,7 +9,8 @@ describe Shop::ProcessorRenderer, :type => :controller do
 
   integrate_views
 
-  reset_domain_tables  :shop_shops, :shop_products, :shop_categories, :shop_category_products, :shop_cart_products,:site_version, :site_nodes, :shop_orders, :configurations,:end_users,:end_user_addresses, :shop_regions, :shop_region_countries, :shop_payment_processors, :shop_shipping_categories, :shop_carriers
+#  reset_domain_tables  :shop_shops, :shop_products, :shop_categories, :shop_category_products, :shop_cart_products,:site_version, :site_nodes, :shop_orders, :configurations,:end_users,:end_user_addresses, :shop_regions, :shop_region_countries, :shop_payment_processors, :shop_shipping_categories, :shop_carriers
+  transaction_reset
 
    let(:payment_info) do 
              {
@@ -349,6 +350,8 @@ describe Shop::ProcessorRenderer, :type => :controller do
       describe "Processing and Success Pages" do
         before do
           @user = mock_user
+          @myself.create_billing_address(address_data)
+          @myself.create_shipping_address(address_data)
         end
 
         def pending_order(payment_override={})

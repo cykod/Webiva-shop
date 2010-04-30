@@ -4,7 +4,8 @@ add_factory_girl_path(File.join(File.expand_path(File.dirname(__FILE__)),"..",".
 
 describe Shop::CatalogController do 
 
-  reset_domain_tables :shop_products,:shop_product_classes,:shop_product_options, :shop_product_features, :shop_product_files, :shop_product_options, :shop_product_prices 
+   transaction_reset
+#  reset_domain_tables :shop_products,:shop_product_classes,:shop_product_options, :shop_product_features, :shop_product_files, :shop_product_options, :shop_product_prices 
 
   integrate_views
 

@@ -6,7 +6,8 @@ require 'pp'
 
 describe Shop::ManageController do 
 
-  reset_domain_tables :end_users, :shop_orders, :shop_order_transactions, :shop_order_items, :shop_order_actions, :shop_payment_processors
+#  reset_domain_tables :end_users, :shop_orders, :shop_order_transactions, :shop_order_items, :shop_order_actions, :shop_payment_processors
+ transaction_reset
 
   integrate_views
 
@@ -28,7 +29,6 @@ describe Shop::ManageController do
     mock_editor
     @payment_processor = payment_processor # used by shop_rder
     @orders = 5.times.map { Factory.create(:shop_order, :shop_payment_processor_id => @payment_processor.id) }
-
   end
 
   it "should display the index page" do
