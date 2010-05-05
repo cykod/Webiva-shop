@@ -1,0 +1,14 @@
+<span style="font-size:85%;"> Displayed Statuses <br/>
+  <%= options.state.to_sentence.gsub(/_/," ").gsub(/\b\w/){$&.upcase}.gsub(/^, /,'') %> </span>
+
+<% table_for orders, ["", "Who", "When", "Status", "Total"], :class =>  'mini_table', :width => '100%' do |t| -%>
+  <tr>
+    <td><%= link_to( h("##{t.id}"),  { :path => [ t.id ], :controller => 'shop/manage', :action => "order" } )%></td>
+    <td><%= link_to( h(t.end_user.name), { :path => [t.end_user.id], :controller => '/members', :action => 'view' })if t.end_user %> </td>
+    <td><%= v t.ordered_at.localize(DEFAULT_DATE_FORMAT) if t.ordered_at %></td>
+    <td><%= t.state_display %> </td>
+    <td align="right"><%= t.display_total %> </td>
+  </tr>
+
+<% end -%>
+
