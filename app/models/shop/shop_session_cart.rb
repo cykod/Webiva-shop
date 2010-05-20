@@ -10,6 +10,10 @@ class Shop::ShopSessionCart < Shop::ShopCartBase
     @user = user || EndUser.new
     @currency = currency
   end
+
+  def clear
+     cart_storage = [ ]
+  end
   
    attr_accessor :shipping
 

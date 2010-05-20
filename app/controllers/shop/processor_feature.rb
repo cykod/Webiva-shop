@@ -147,7 +147,7 @@ def shop_full_cart_feature(data)
 <div class='shop_checkout'>
 <cms:login_page>
 <cms:cart/>
-<h4>Please login to register to continue checking out</h4>
+<h4>Please login or register to continue checking out</h4>
   <cms:login_form>
   <cms:errors/>
   <div class='webiva_form shop_form shop_login_form'>

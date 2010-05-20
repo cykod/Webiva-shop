@@ -17,6 +17,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   def myself
     super_myself = controller.send(:myself)
     if !super_myself.id && session[:shop_user_id] 
+      @shop_user_only = true
       return @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
     else
       super_myself
@@ -76,7 +77,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     @options = paragraph_options(:checkout)
 
     @feature_data = { :page => @page_name, :order_processor => @order_processor,
-                      :feature_output => @feature_output, :options => @options }
+                      :cart_feature => @feature_output, :options => @options }
 
     # Dispatch to the correct page
     valid_pages = %w(success processing payment address login)
@@ -215,6 +216,9 @@ class Shop::ProcessorRenderer < ParagraphRenderer
         paragraph.run_triggered_actions(email_data,'action',myself)
 
         myself.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
+
+        session[:shop_user_id] = nil
+        session[:shopping_cart] = []
 
         if page_redirect
           redirect_paragraph page_redirect

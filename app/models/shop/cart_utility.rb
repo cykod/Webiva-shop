@@ -9,7 +9,7 @@ module Shop::CartUtility
 
   def get_cart
     get_module
-    if myself.id
+    if myself.id && !@shop_user_only
       cart = Shop::ShopUserCart.new(myself,@mod.currency)
 
       if session[:shopping_cart]
