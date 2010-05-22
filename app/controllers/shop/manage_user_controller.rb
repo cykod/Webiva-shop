@@ -134,7 +134,7 @@ class Shop::ManageUserController < ModuleController
 
 
   def get_order_processor
-    @order_processor = OrderProcessor.new(@user,session[:shop_user_checkout][@cart_id],@cart)
+    @order_processor = Shop::OrderProcessor.new(@user,session[:shop_user_checkout][@cart_id],@cart)
   end
   
   def shipping_options
