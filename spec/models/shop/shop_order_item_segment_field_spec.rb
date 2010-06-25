@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + "/../../../../../../spec/spec_helper"
 
 describe Shop::ShopOrderItemSegmentField do
-  reset_domain_tables :end_users, :shop_orders, :user_segments, :user_segment_caches
+  reset_domain_tables :end_users, :shop_order_items, :user_segments, :user_segment_caches
 
   before do
     DataCache.reset_local_cache
