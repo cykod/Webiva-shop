@@ -32,7 +32,7 @@ class Shop::ShopOrderItemSegmentField < UserSegment::FieldHandler
   end
 
   register_field :num_shop_order_items, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Shop Order Items', :display_method => 'count', :sort_method => 'count', :sortable => true
-  register_field :shop_order_item, Shop::ShopOrderItemSegmentField::OrderItemType, :field => [:order_item_id, :order_item_type]
+  register_field :shop_order_item, Shop::ShopOrderItemSegmentField::OrderItemType, :field => [:order_item_id, :order_item_type], :display_field => 'item_name'
 
   def self.sort_scope(order_by, direction)
     info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]

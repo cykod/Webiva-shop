@@ -1,5 +1,6 @@
 
 class Shop::ShopOrderSegmentField < UserSegment::FieldHandler
+  extend ActionView::Helpers::NumberHelper
 
   def self.user_segment_fields_handler_info
     {
@@ -60,6 +61,8 @@ class Shop::ShopOrderSegmentField < UserSegment::FieldHandler
   end
 
   def self.field_output(user, handler_data, field)
-    UserSegment::FieldType.field_output(user, handler_data, field)
+    value = UserSegment::FieldType.field_output(user, handler_data, field)
+    value = self.number_to_currency(value) if field.to_s =~ /total/
+    value
   end
 end
