@@ -7,7 +7,7 @@ class Shop::UserController < ParagraphController
   editor_for :orders, :name => "User Orders List", :feature => :shop_user_orders
   editor_for :order_detail, :name => "User Order Detail", :feature => :shop_user_order_detail, :inputs => [[ :page, 'Order ID', :path ]]
 
-  class OrderOptions < HashModel
+  class OrdersOptions < HashModel
     attributes :detail_page_id => nil
     
     page_options :detail_page_id

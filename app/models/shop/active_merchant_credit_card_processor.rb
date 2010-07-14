@@ -118,7 +118,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
     
     reference = nil
     if parameters[:type] == 'reference'
-      order = Shop::ShopOrder.remember_transaction(@processor,@user, :admin => request_options[:admin])
+      order = Shop::ShopOrder.remember_transaction(@processor,@user, :admin => request_options[:admin],:transaction => true)
       reference = order.payment_reference if order
     else
       credit_card = ActiveMerchant::Billing::CreditCard.new({ 

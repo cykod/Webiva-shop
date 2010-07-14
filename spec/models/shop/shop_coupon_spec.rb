@@ -8,7 +8,7 @@ describe Shop::ShopCoupon do
    include ShopOrderProcessHelper # Get some help from the shop_order_process_spec functionality
 
  reset_domain_tables :shop_products, :shop_orders, :shop_order_items, :shop_payment_processors, :shop_product_prices,
-                      :end_user,:end_user_address, :shop_cart_products, :shop_coupon, :end_user_tags
+                      :end_users,:end_user_address, :shop_cart_products, :shop_coupon, :end_user_tags
 
 
   before(:each) do
@@ -131,15 +131,16 @@ describe Shop::ShopCoupon do
     @cart.add_product(@shirt,3)
     @cart.add_product(@coat,12)
     
-    @coupon = coupon_factory(:discount_type => 'percentage',:discount_percentage => 10.00,:active => true, :one_time => true,:tag => 'CouponTag')
+    @coupon = coupon_factory(:discount_type => 'percentage',:discount_percentage => 10.00,:active => true, :one_time => true,:tag => 'Coupontag')
     @cart.add_product(@coupon,1)
 
     @cart.validate_cart!
     @cart.products_count.should == 2
     
-    @user.tag_names_add('CouponTag')
+    @user.tag_names_add('Coupontag')
+
     @user.reload
-    
+
     @cart = Shop::ShopUserCart.new(@user,'USD')
     @cart.add_product(@shirt,3)
     @cart.add_product(@coat,12)

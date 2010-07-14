@@ -356,14 +356,12 @@ class Shop::ShopOrder < DomainModel
   
   def self.remember_transaction(processor,user,options)
     if options[:admin]
-      remember = '"remember","admin_remember"'
+      remember = '"remember","admin_remember"' + (options[:transaction] ? ',"reference","admin_reference"' : '')
     else
-      remember = '"remember"'
+      remember = '"remember"' + (options[:transaction] ? ',"reference"' : '')
     end
     self.find(:first,:conditions => [ 'shop_payment_processor_id = ? AND payment_type IN (' + remember + ') AND end_user_id = ? AND `state` IN ("authorized","paid","shipped","partially_refunded","full_refunded")',
                                       processor.id,user.id ], :order => 'ordered_at DESC')
-  
-  
   end
   
   
