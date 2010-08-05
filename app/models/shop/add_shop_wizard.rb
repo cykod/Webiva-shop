@@ -13,12 +13,13 @@ class Shop::AddShopWizard < WizardModel
   :add_to_id=>nil,
   :add_to_subpage => 'shop',
   :add_to_existing => nil,
-  :opts => ['cart','categories'],
+  :opts => ['cart','categories','dummy_products'],
   :add_processor => nil,
   :add_region => nil,
   :add_country => nil,
   :add_delivery => nil,
-  :shipping_cost => 5.00
+  :shipping_cost => 5.00,
+  :add_dummy_products => true
 
   boolean_options :add_processor, :add_region, :add_delivery
   float_options :shipping_cost
@@ -37,6 +38,10 @@ class Shop::AddShopWizard < WizardModel
        (!self.add_to_existing.blank? && self.add_to_node.node_type == 'R')
       self.errors.add(:add_to, "must have a subpage selected or add\n to existing must be checked")
     end
+  end
+
+  def shop
+    @shop ||= Shop::ShopShop.find(self.shop_id) if self.shop_id
   end
 
   def set_defaults(params)
@@ -148,6 +153,32 @@ class Shop::AddShopWizard < WizardModel
                                                 :shipping_calculation => "items" })
       end
     end
+
+    if self.opts.include?('dummy_products') && self.shop.shop_products.count == 0
+      (0..2).each do |idx|
+        self.create_dummy_product
+      end
+    end
+  end
+
+  def shop_folder
+    @shop_folder ||= DomainFile.find(:first,:conditions => "name = 'Shop' and parent_id = #{DomainFile.root_folder.id}") || DomainFile.create(:name => 'Shop', :parent_id => DomainFile.root_folder.id, :file_type => 'fld')
+  end
+
+  def dummy_product_image
+    return @dummy_product_image if @dummy_product_image
+
+    @dummy_product_image = DomainFile.find(:first, :conditions => {:parent_id => self.shop_folder.id, :file_type => 'img', :name => 'fake_product.gif'})
+    unless @dummy_product_image
+      File.open("#{RAILS_ROOT}/vendor/modules/shop/public/images/fake_product.gif", "r") do |fd|
+        @dummy_product_image = DomainFile.create :filename => fd, :parent_id => self.shop_folder.id, :process_immediately => true
+      end
+    end
+    @dummy_product_image
+  end
+
+  def create_dummy_product
+    self.shop.shop_products.create :name => DummyText.words(1).split(' ')[0..2].join(' '), :price_values => {'USD' => 10.00}, :description => DummyText.paragraph, :image_file_id => self.dummy_product_image.id
   end
 end
 

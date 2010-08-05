@@ -4,7 +4,8 @@
   <%= f.select :shop_id, Shop::ShopShop.select_options_with_nil('Shop'), :label => 'Shop to Add', :required => true -%>
   <%= f.add_page_selector :add_to, :description => 'this wizard will add /cart, /checkout and /success pages\nunderneath the shop page', :label => 'Shop page', :required => true -%>
   <%= f.check_boxes :opts, [['Add a cart to the sidebar','cart'],
-                               ['Add Categories to the sidebar','categories']],
+                            ['Add Categories to the sidebar','categories'],
+                            ['Add Dummy Products to shop','dummy_products']],
       :label => 'Options', :separator => '<br/>'-%>
       <% if Shop::ShopPaymentProcessor.count(:conditions => { :active => true}) == 0 %>
         <%= f.header "Missing Payment Processor",:description => 'You have no active payment processors defined, would you like the wizard to add a test payment processor to the system?'  %>
