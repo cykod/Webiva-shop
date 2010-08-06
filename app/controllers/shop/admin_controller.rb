@@ -27,9 +27,9 @@ class Shop::AdminController < ModuleController
   register_handler :shop, :product_feature, "Shop::Features::ProfileQuantityOption"
   register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
 
-  register_handler :structure, :wizard, "Shop::WizardController"
   register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :webiva, :widget, "Shop::ShopRevenueWidget"
+  register_handler :structure, :wizard, "Shop::AddShopWizard"
  
   register_handler :user_segment, :fields, 'Shop::ShopOrderSegmentField'
   register_handler :user_segment, :fields, 'Shop::ShopOrderItemSegmentField'

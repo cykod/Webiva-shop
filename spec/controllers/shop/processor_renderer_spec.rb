@@ -9,8 +9,7 @@ describe Shop::ProcessorRenderer, :type => :controller do
 
   integrate_views
 
-#  reset_domain_tables  :shop_shops, :shop_products, :shop_categories, :shop_category_products, :shop_cart_products,:site_version, :site_nodes, :shop_orders, :configurations,:end_users,:end_user_addresses, :shop_regions, :shop_region_countries, :shop_payment_processors, :shop_shipping_categories, :shop_carriers
-  transaction_reset
+  reset_domain_tables  :shop_shops, :shop_products, :shop_categories, :shop_category_products, :shop_cart_products,:site_version, :site_nodes, :shop_orders, :configurations,:end_users,:end_user_addresses, :shop_regions, :shop_region_countries, :shop_payment_processors, :shop_shipping_categories, :shop_carriers
 
    let(:payment_info) do 
              {
