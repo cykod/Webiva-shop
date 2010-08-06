@@ -29,7 +29,13 @@ class Shop::ShopPaymentProcessor < DomainModel
     get_instance(transaction.end_user).payment_record(transaction,payment,options)
   end
   
+  def offsite?
+    get_instance(nil).offsite?
+  end
 
+  def offsite_redirect_url(order, remote_ip, return_url, cancel_url)
+    get_instance(order.end_user).offsite_redirect_url(order, remote_ip, return_url, cancel_url)
+  end
 
   def test?
     get_instance(nil).test?

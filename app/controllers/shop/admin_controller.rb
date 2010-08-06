@@ -17,6 +17,7 @@ class Shop::AdminController < ModuleController
 
   register_handler :shop, :payment_processor, "Shop::TestPaymentProcessor"
   register_handler :shop, :payment_processor, "Shop::PaypalPaymentProcessor"
+  register_handler :shop, :payment_processor, "Shop::PaypalExpressPaymentProcessor"
   register_handler :shop, :payment_processor, "Shop::AuthorizeNetPaymentProcessor"
   register_handler :shop, :payment_processor, "Shop::PayflowProPaymentProcessor"
 

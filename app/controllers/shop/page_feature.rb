@@ -109,7 +109,7 @@ class Shop::PageFeature < ParagraphFeature
         if tag.single?
           button = tag.attr['button'] || 'Add to Cart'
           <<-HTML
-            #{form_tag('')}
+            <form action="" method="post"><CMS:AUTHENTICITY_TOKEN/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='add_to_cart'/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[product]' value='#{tag.locals.product.id}'/>
                <input type='submit' name='go' value='#{vh button}' />
@@ -117,7 +117,7 @@ class Shop::PageFeature < ParagraphFeature
           HTML
         else
           <<-HTML
-            #{form_tag('')}
+            <form action="" method="post"><CMS:AUTHENTICITY_TOKEN/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='add_to_cart'/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[product]' value='#{tag.locals.product.id}'/>
                #{tag.expand}
@@ -228,7 +228,7 @@ class Shop::PageFeature < ParagraphFeature
         tag.locals.product = data[:product]
         if data[:product]
           <<-HTML
-            #{form_tag('')}
+            <form action="" method="post"><CMS:AUTHENTICITY_TOKEN/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='add_to_cart'/>
                <input type='hidden' name='shop#{data[:paragraph_id]}[product]' value='#{data[:product].id}'/>
                #{tag.expand}

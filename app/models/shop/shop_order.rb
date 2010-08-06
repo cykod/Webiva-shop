@@ -208,7 +208,15 @@ class Shop::ShopOrder < DomainModel
       authorization
     end
   end
-  
+
+  def offsite?
+    self.shop_payment_processor.offsite?
+  end
+
+  def offsite_redirect_url(remote_ip, return_url, cancel_url)
+    self.shop_payment_processor.offsite_redirect_url(self, remote_ip, return_url, cancel_url)
+  end
+
   def admin_note(end_user,notes)
     self.shop_order_actions.create(:end_user => end_user, :order_action => 'note', :note => notes)
   end
@@ -438,7 +446,6 @@ class Shop::ShopOrder < DomainModel
     columns,data = order_table_data("\n")
     Util::TextFormatter.text_table(columns,data)
   end
-  
   
   ###### 
   # Protected Helper Functions

@@ -226,8 +226,16 @@ class Shop::OrderProcessor
     end
   end
 
-  def process_transaction(remote_ip)
-    transaction = @order.authorize_payment(:remote_ip => remote_ip )  
+  def offsite?
+    @order.offsite?
+  end
+
+  def offsite_redirect_url(remote_ip, return_url, cancel_url)
+    @order.offsite_redirect_url remote_ip, return_url, cancel_url
+  end
+
+  def process_transaction(remote_ip, params=nil)
+    transaction = @order.authorize_payment(:remote_ip => remote_ip, :parameters => params)
     if transaction.success?
       @order_state[:stage] = 'success'
       @order_state[:order_id] = nil
