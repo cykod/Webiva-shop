@@ -204,7 +204,7 @@ class Shop::OrderProcessor
     return false if !@shop_processor
 
     unless @shop_processor.test?
-      errors = shop_processor.validate_payment_options(@user,@payment[@payment[:selected_processor_id]],adr(:billing))
+      errors = @shop_processor.validate_payment_options(@user,@payment[@payment[:selected_processor_id]],adr(:billing))
     end
 
     if(errors)
