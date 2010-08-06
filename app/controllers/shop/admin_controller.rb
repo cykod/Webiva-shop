@@ -28,10 +28,8 @@ class Shop::AdminController < ModuleController
   register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
 
   register_handler :structure, :wizard, "Shop::WizardController"
-
   register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :webiva, :widget, "Shop::ShopRevenueWidget"
-
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
   register_handler :members, :view,  "Shop::ManageUserController"
