@@ -30,9 +30,20 @@ class Shop::AdminController < ModuleController
   register_handler :structure, :wizard, "Shop::WizardController"
   register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :webiva, :widget, "Shop::ShopRevenueWidget"
+ 
+  register_handler :user_segment, :fields, 'Shop::ShopOrderSegmentField'
+  register_handler :user_segment, :fields, 'Shop::ShopOrderItemSegmentField'
+
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
   register_handler :members, :view,  "Shop::ManageUserController"
+
+  register_action '/shop/processor/purchase',
+    :description => 'Shop Purchase',
+    :controller => '/shop/manage',
+    :action => 'edit',
+    :level => 5,
+    :path => :target
 
   content_node_type "Shop Product", "Shop::ShopProduct",  :search => true
 

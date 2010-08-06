@@ -213,6 +213,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
         end
         email_data.delete(:ORDER_TEXT)
 
+        paragraph_action(myself.action('/shop/processor/purchase', :target => @order))
         paragraph.run_triggered_actions(email_data,'action',myself)
 
         myself.tag_names_add(@options.add_tags) unless @options.add_tags.blank?
