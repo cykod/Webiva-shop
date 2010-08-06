@@ -1,0 +1,64 @@
+<script>
+  RevChart = {
+    
+    loadGraphData: function() {
+      var labels = <%= array_or_string_for_javascript(dates) %>;
+      var data = [ <%= totals.join ',' %>]; 
+      
+      RevChart.drawChart(labels,data);
+    },
+
+    drawChart: function(labels, data) {
+      var raph = Raphael("holder");
+      var chartY = 0;
+      var chartX = 20;
+      var height = 280;
+      var width = 250;
+
+
+      var fin = function () {
+        this.flag = this.flag || raph.g.popup(this.bar.x, this.bar.y, this.bar.value || "0").insertBefore(this);
+        this.flag.show();
+      };
+      var fout = function () {
+        if( this.flag )
+        this.flag.hide();
+      };
+
+      var max_orders = Math.max.apply(Math, data);
+      max_orders += 10 - (max_orders % 10);
+      var labelDim = raph.g.textBox(max_orders.toString());
+      chartX += labelDim.width;
+      
+      raph.g.txtattr.font = "12px Arial, sans-serif";
+      raph.g.text(chartX+(width/2), chartY + height + chartY/2, 'This Week' );
+      raph.g.text(10, chartY + height/2, 'Sales Volume').rotate(270);
+      
+      var chart = raph.g.barchart(chartX, chartY, width, height, data, {to: max_orders});
+      
+      chart.hover(fin, fout);
+      
+      raph.g.txtattr.font = "10px 'Arial, sans-serif";
+      chart.xlabels(labels ,true);
+      chart.ylabels();
+
+
+      for (var i = 0; i < chart.bars[0].length; i++) {
+        var bar = chart.bars[0][i];
+        if (bar.value >= 100) {
+          bar.attr("fill","#6DAC00");
+          bar.attr("stroke", "#6DAC00");
+          } else if (bar.value >= 200) {
+          bar.attr("fill","#000000");
+          bar.attr("stroke", "#000000");
+
+        }
+      }
+    }
+  }
+  window.onload = function() {
+    RevChart.loadGraphData();
+  }
+</script>
+
+<div id="holder" style="width:300px;"></div>
