@@ -5,7 +5,7 @@ class Shop::ShopOrdersWidget < Dashboard::WidgetBase
 
   def orders
 
-   set_icon 'shop.gif'
+   set_icon 'shop_icon.png'
     set_title_link url_for(:controller => 'shop/manage')
 
     @orders = Shop::ShopOrder.find(:all, :include => [:end_user], :conditions => ['state IN (?)',options.state], :limit => options.count)

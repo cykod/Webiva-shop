@@ -85,6 +85,8 @@ class Shop::ShopProduct < DomainModel
   def copy_product
     new_prd = self.clone
     new_prd.url = nil
+    new_prd.created_at = nil
+    new_prd.updated_at = nil
     new_prd.price_values = self.price_values
     new_prd.name = self.name + " (COPY)".t
     new_prd.save

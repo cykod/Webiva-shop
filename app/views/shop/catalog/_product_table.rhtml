@@ -20,6 +20,8 @@
   <td><%= t.shop_categories.collect { |cat| featured_products[cat.id].featured? ? "<b>#{h(cat.name)}</b>" : h(cat.name) }.join(", ") %> </td>
   <td><%= t.shop_product_features.collect { |feature| feature.description }.join(", ") %></td>
   <td><%= t.shop_shop.abr if t.shop_shop %></td>
+  <td align='center'><%= t.created_at.to_s(:short) %></td>
+  <td align='center'><%= t.updated_at.to_s(:short) %></td>
 </tr>
 
 

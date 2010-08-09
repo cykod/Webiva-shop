@@ -6,7 +6,7 @@ class Shop::ShopRevenueWidget < Dashboard::WidgetBase
   def revenue
 
     set_title_link url_for(:controller => 'shop/manage')
-    set_icon 'shop.gif'
+    set_icon 'shop_icon.png'
     require_js 'raphael/raphael-min.js'
     require_js 'raphael/g.raphael.js'
 

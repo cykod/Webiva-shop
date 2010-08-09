@@ -26,7 +26,9 @@ class Shop::CatalogController < ModuleController
                   hdr(:string,'shop_product_classes.name',:label => 'Product Class'),
                   hdr(:string,'shop_categories.name',:label => 'Categories'),
                   "Features",
-                  hdr(:option,'shop_products.shop_shop_id',:options => :shop_shop_options,:label => "Shop")
+                  hdr(:option,'shop_products.shop_shop_id',:options => :shop_shop_options,:label => "Shop"),
+                  :created_at,
+                  :updated_at
                 ]
   protected
 
