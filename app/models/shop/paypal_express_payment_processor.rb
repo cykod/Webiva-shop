@@ -4,7 +4,7 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
     { 
       :currencies => ['USD'],
       :type => 'Paypal',
-      :name => "Paypal Express Payments Processor"
+      :name => "Paypal Express Payment Processor"
     }
   end
 
@@ -45,7 +45,11 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
   def test?
     @options[:test_server] != 'live'
   end
-  
+
+  def can_authorize_payment?
+    false
+  end
+
   def offsite?
     true
   end
@@ -64,7 +68,15 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
     gw.redirect_url_for response.token
   end
 
-  def authorize(parameters,currency,amount,user_info,request_options = {})
+  def payment_record(transaction,payment_info,options = {})
+    [ 'standard', transaction.params['transaction_id'], '' ]
+  end
+
+  def format_authorization(auth)
+    auth
+  end
+
+  def purchase(parameters,currency,amount,user_info,request_options = {})
     gw = get_gateway
     
     if currency != 'USD'
@@ -98,17 +110,22 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
     )
   end
 
-  def payment_record(transaction,payment_info,options = {})
-    [ 'standard', transaction.params['transaction_id'], '' ]
-  end  
-  
   def capture(authorization,currency,amount)
+    raise Shop::ShopOrderTransaction::TransactionError.new('Capture not supported')
   end
-  
+
   def credit(authorization,currency,amount)
+    return standard_transaction(currency) do |gw|
+      response = gw.credit(amount * 100,format_authorization(authorization))
+    end
   end
 
   def void(authorization)
+    raise Shop::ShopOrderTransaction::TransactionError.new('Void not supported')
+  end
+
+  def authorize(parameters,currency,amount,user_info,request_options = {})
+    raise Shop::ShopOrderTransaction::TransactionError.new('Authorize not supported')
   end
 
   def paypal_purchase_options(order)
@@ -150,5 +167,30 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
       :header_border_color => '', # color 6 hex digits
       :background_color => '' # color 6 hex digits
     }
+  end
+
+  protected
+  
+  def standard_transaction(currency = nil,&block)
+    gw = get_gateway
+    
+    if currency && currency != 'USD'
+      return Shop::ShopOrderTransaction::TransactionResponse.new(false,nil,'Invalid Currency',{},gw.test?)
+    end 
+    
+    begin 
+      response = yield(gw)
+    rescue ActiveMerchant::ActiveMerchantError => e
+      raise Shop::ShopOrderTransaction::TransactionError.new(e.message)
+    end
+    
+    Shop::ShopOrderTransaction::TransactionResponse.new(
+                response.success?,
+                response.authorization,
+                response.message,
+                response.params,
+                response.test?
+              )
+  
   end
 end

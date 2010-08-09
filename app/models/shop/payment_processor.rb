@@ -38,6 +38,10 @@ class Shop::PaymentProcessor
     false
   end
 
+  def can_authorize_payment?
+    true
+  end
+
   def offsite_redirect_url(order, return_url, cancel_url)
     nil
   end

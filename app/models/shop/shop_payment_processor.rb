@@ -40,4 +40,8 @@ class Shop::ShopPaymentProcessor < DomainModel
   def test?
     get_instance(nil).test?
   end
+
+  def can_authorize_payment?
+    get_instance(nil).can_authorize_payment?
+  end
 end

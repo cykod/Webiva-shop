@@ -73,6 +73,14 @@ class Shop::ShopOrder < DomainModel
                 :to => :authorized
   end
   
+  event :payment_completed do
+    transitions :from => :pending,
+                :to => :paid
+                
+    transitions :from => :payment_declined,
+                :to => :paid
+  end
+  
   event :payment_voided do
     transitions :from => :authorized,
                 :to => :voided
@@ -189,9 +197,18 @@ class Shop::ShopOrder < DomainModel
         :last_name => self.billing_address[:last_name] || self.end_user.last_name,
         :email => self.end_user.email,
         :user_id => self.end_user_id    }
-      authorization = Shop::ShopOrderTransaction.authorize(
-            self.end_user,processor,payment_information,currency,total,user_info,request_options
-            )
+
+      authorization = nil
+      if processor.can_authorize_payment?
+        authorization = Shop::ShopOrderTransaction.authorize(
+              self.end_user,processor,payment_information,currency,total,user_info,request_options
+              )
+      else
+        authorization = Shop::ShopOrderTransaction.purchase(
+              self.end_user,processor,payment_information,currency,total,user_info,request_options
+              )
+      end
+
       transactions.push(authorization)
       
       self.payment_type, self.payment_identifier, self.payment_reference = processor.payment_record(authorization,self.payment_information,:admin => request_options[:admin])
@@ -200,7 +217,12 @@ class Shop::ShopOrder < DomainModel
         self.order_items.each do |item|
           item.update_attributes(:processed => true)
         end
-        payment_authorized!
+
+        if authorization.action == 'payment'
+          payment_completed!
+        else
+          payment_authorized!
+        end
       else
         transaction_declined!
       end
