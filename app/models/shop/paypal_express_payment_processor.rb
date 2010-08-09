@@ -13,11 +13,17 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
   end
   
   class ProcessorOptions < HashModel
-   attributes :login => nil, :password => nil, :test_server => 'test', :signature => nil,
+    attributes :login => nil, :password => nil, :test_server => 'test', :signature => nil,
       :page_style => nil, :header_image_id => nil, :header_background_color => nil,
       :header_border_color => nil, :background_color => nil
 
-   validates_presence_of :login, :password,:signature
+    domain_file_options :header_image_id
+
+    validates_presence_of :login, :password,:signature
+
+    validates_format_of :header_background_color, :with => /^[0-9a-fA-F]{6}$/, :allow_blank => true
+    validates_format_of :header_border_color, :with => /^[0-9a-fA-F]{6}$/, :allow_blank => true
+    validates_format_of :background_color, :with => /^[0-9a-fA-F]{6}$/, :allow_blank => true
   end
     
   def get_gateway 
@@ -159,13 +165,14 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
   end
 
   def paypal_customize_payment_page
+    gw_options = self.class.get_options @options
     # found this in active_merchant/billing/gateways/paypal_express.rb build_setup_request()
     {
-      :page_style => '', # name
-      :header_image => '', # url
-      :header_background_color => '', # color 6 hex digits
-      :header_border_color => '', # color 6 hex digits
-      :background_color => '' # color 6 hex digits
+      :page_style => @options[:page_style], # name
+      :header_image => gw_options.header_image ? gw_options.header_image.full_url.sub(/^http:/, 'https:') : '', # url
+      :header_background_color => @options[:header_background_color], # color 6 hex digits
+      :header_border_color => @options[:header_border_color], # color 6 hex digits
+      :background_color => @options[:background_color] # color 6 hex digits
     }
   end
 
