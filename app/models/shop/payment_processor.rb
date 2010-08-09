@@ -4,7 +4,7 @@ class Shop::PaymentProcessor
 
   def initialize(processor,options,user)
     @processor = processor
-    @opts = options || {}
+    @options = options || {}
     @user = user
   end
   
@@ -34,5 +34,15 @@ class Shop::PaymentProcessor
     false
   end
   
+  def offsite?
+    false
+  end
 
+  def can_authorize_payment?
+    true
+  end
+
+  def offsite_redirect_url(order, return_url, cancel_url)
+    nil
+  end
 end

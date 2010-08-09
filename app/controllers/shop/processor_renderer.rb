@@ -176,14 +176,24 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     end
 
     if request.post? && params[:payment] && !(params[:update].to_i > 0)
-      if @order_processor.process_payment 
-          # Set Refresh Header which will actually process the transaction
-        headers['Refresh'] = '1; URL=' + site_node.node_path + "/processing"
+      if @order_processor.process_payment
         session[:shop][:stage] = 'processing'
-        # Render a processing paragraph
-        @feature_data[:page] = 'processing' 
-        render_paragraph :text => shop_checkout_feature(@feature_data)
-        return 
+
+        if @order_processor.offsite?
+          begin
+            redirect_paragraph @order_processor.offsite_redirect_url request.remote_ip, Configuration.domain_link(site_node.node_path + "/processing"), Configuration.domain_link(site_node.node_path + "/payment")
+            return
+          rescue Shop::ShopOrderTransaction::TransactionError => e
+            flash[:shop_message] = e.message
+          end
+        else
+          # Set Refresh Header which will actually process the transaction
+          headers['Refresh'] = '1; URL=' + site_node.node_path + "/processing"
+          # Render a processing paragraph
+          @feature_data[:page] = 'processing' 
+          render_paragraph :text => shop_checkout_feature(@feature_data)
+          return
+        end
       end
     end
 
@@ -199,7 +209,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
   def processing_page
     if @order_processor.active_order?
-      if @order = @order_processor.process_transaction(request.remote_ip)
+      if @order = @order_processor.process_transaction(request.remote_ip, params)
         get_cart.clear
 
         opts = @order.post_process(myself,session)

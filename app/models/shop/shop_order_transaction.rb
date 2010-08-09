@@ -16,9 +16,14 @@ class Shop::ShopOrderTransaction < DomainModel
   serialize :params
   
   def self.authorize(user,processor,parameters,currency,amount,user_info = {},request_options = {}) 
-  
     process(user,processor,'authorization',currency,amount) do
       processor.get_instance(user).authorize(parameters,currency,amount,user_info,request_options)
+    end
+  end
+  
+  def self.purchase(user,processor,parameters,currency,amount,user_info = {},request_options = {}) 
+    process(user,processor,'payment',currency,amount) do
+      processor.get_instance(user).purchase(parameters,currency,amount,user_info,request_options)
     end
   end
   

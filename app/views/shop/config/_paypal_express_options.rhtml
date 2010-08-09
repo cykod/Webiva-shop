@@ -1,0 +1,9 @@
+<%= f.text_field  :login, :required => true %>
+<%= f.text_field :password, :required => true %>
+<%= f.radio_buttons :test_server , [ ['Yes'.t,'test'],['No'.t,'live' ] ] %>
+<%= f.text_field :page_style, :description => 'Custom Payment Page Style' %>
+<%= f.filemanager_image :header_image_id %>
+<%= f.text_field :header_background_color, :description => 'Hex color 6 chars' %>
+<%= f.text_field :header_border_color, :description => 'Hex color 6 chars' %>
+<%= f.text_field :background_color, :description => 'Hex color 6 chars' %>
+<%= f.text_field :signature %>
