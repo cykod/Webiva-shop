@@ -84,14 +84,17 @@ class Shop::ShopProduct < DomainModel
   
   def copy_product
     new_prd = self.clone
+    new_prd.url = nil
+    new_prd.price_values = self.price_values
     new_prd.name = self.name + " (COPY)".t
     new_prd.save
-    
     
     # Clone all the has manys
     %w(shop_category_products prices shop_product_options shop_product_translations shop_product_files shop_product_features).each do |rel|
       new_prd.send("#{rel}=", self.send(rel).collect { |itm| new_itm = itm.clone; new_itm.shop_product_id=new_prd.id; new_itm })
     end
+
+    new_prd
   end
   
   def captions=(caps)
