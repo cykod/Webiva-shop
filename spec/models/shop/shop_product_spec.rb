@@ -30,6 +30,14 @@ describe Shop::ShopProduct do
   prd4.url.should == 'my-test-product-436'
  end
 
+  it "should be able to copy another product" do
+    prd =  Shop::ShopProduct.create(:name => 'My Test Product',:sku => '434', :price_values => { "USD" => "0.00" }  )
+    new_prd = nil
+    assert_difference 'Shop::ShopProduct.count', 1 do
+      new_prd = prd.copy_product
+    end
+    new_prd.url.should == 'my-test-product-copy'
+  end
 end
 
 
