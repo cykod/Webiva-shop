@@ -263,13 +263,13 @@ ProductEditor = {
             <tr>
               <td valign='top' width='50%'>
                  <div>
-                <%= link_to '+Add Additional Images'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+                <%= link_to '+Add Additional Images'.t, { :controller => '/file', :action => 'popup' , :select => 'all', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
                   <%= render :partial => 'files', :locals => { :files =>  @product.images_product_files, :field => "images" } %>
                 </div>
               </td>
               <td valign='top' width='50%'>
                  <div>
-                <%= link_to '+Add Media &amp; Files'.t, { :controller => '/file', :action => 'popup' , :select => 'file', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
+                <%= link_to '+Add Media &amp; Files'.t, { :controller => '/file', :action => 'popup' , :select => 'all', :callback => 'ProductEditor.attachFile', :thumb_size => 'thumb' }, :popup => ['file_manager', 'height=400,width=600,resizable=yes,scrollbars=yes' ] %>
                   <%= render :partial => 'files', :locals => { :files =>  @product.files_product_files, :field => "files" } %>
                 </div>
               </td>
