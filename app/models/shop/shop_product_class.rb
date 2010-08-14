@@ -28,6 +28,12 @@ class Shop::ShopProductClass < DomainModel
       var
     end
   end
+
+
+  def after_save
+   DataCache.expire_content("Shop::ShopProduct")
+  end
+
   
   def update_variations(variation_hash)
     deleted_variation_ids = self.shop_variation_ids

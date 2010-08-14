@@ -7,4 +7,6 @@ class Shop::ShopVariationOption < DomainModel
   serialize :prices
   
   has_many :product_options, :class_name => 'Shop::ShopProductOption'
+
+
 end

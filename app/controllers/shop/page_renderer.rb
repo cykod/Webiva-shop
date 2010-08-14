@@ -287,6 +287,10 @@ class Shop::PageRenderer < ParagraphRenderer
         prd = Shop::ShopProduct.find_by_id(act[:product],:conditions => { :shop_shop_id => options.shop_shop_id })
         return false unless prd
         product_options = { :variations => {}}
+        if prd.option_variations.length > 0 
+          # TODO: Redirect to Detail page with message
+          return false unless act[:variation]
+        end
         prd.option_variations.each do |variation|
           option_id = act[:variation][variation.id.to_s]
           option = variation.options.find_by_id(option_id)

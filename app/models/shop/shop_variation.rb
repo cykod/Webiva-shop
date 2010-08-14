@@ -2,6 +2,8 @@
 class Shop::ShopVariation < DomainModel
 
   belongs_to :shop_class
+
+  validates_presence_of :name
   
   has_many :options,:class_name => "Shop::ShopVariationOption", :dependent => :destroy, :order => 'option_index'
 

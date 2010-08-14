@@ -6,6 +6,10 @@ class Shop::ShopProductOption < DomainModel
   belongs_to :image, :class_name => 'DomainFile',:foreign_key => 'image_id'
 
   serialize :prices
+
+  def prices=(val)
+    self.write_attribute(:prices,val.to_hash)
+  end
   
  def images
     return @images if @images

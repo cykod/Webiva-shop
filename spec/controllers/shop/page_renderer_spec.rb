@@ -9,7 +9,8 @@ describe Shop::PageRenderer, :type => :controller do
 
   integrate_views
 
- reset_domain_tables :shop_products,:shop_product_classes,:shop_product_options, :shop_product_features, :shop_product_files, :shop_product_options, :shop_product_prices 
+# reset_domain_tables :shop_products,:shop_product_classes,:shop_product_options, :shop_product_features, :shop_product_files, :shop_product_options, :shop_product_prices 
+  transaction_reset
 
   before do
     test_activate_module(:shop,:currency => "USD")
@@ -47,7 +48,7 @@ describe Shop::PageRenderer, :type => :controller do
     end
 
     it "should display a the products on the page" do
-      @rnd = product_listing_renderer(:base_category_id => Shop::ShopCategory.get_root_category.id)
+      @rnd = product_listing_renderer(:base_category_id => Shop::ShopCategory.get_root_category.id, :per_page => 50)
       renderer_get @rnd
       response.should include_text(@products[3].name)
     end

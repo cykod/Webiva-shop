@@ -323,12 +323,12 @@ class Shop::ShopProduct < DomainModel
      if variation.variation_type == 'option'
        opts.collect do |opt|
         prd_opt = prd_opts[opt.id]
-        if(prd_opt && prd_opt)
+        if(prd_opt && prd_opt.override?)
           price = prd_opt.prices[currency].to_f
         else
           price = opt.prices[currency].to_f
         end
-        [ opt.name, price,opt.id, prd_opt.in_stock? ]
+        [ opt.name, price,opt.id, prd_opt ? prd_opt.in_stock? : true ]
        end
      else
        last_amount = 0

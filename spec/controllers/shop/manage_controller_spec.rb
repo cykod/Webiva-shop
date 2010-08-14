@@ -6,8 +6,8 @@ require 'pp'
 
 describe Shop::ManageController do 
 
-#  reset_domain_tables :end_users, :shop_orders, :shop_order_transactions, :shop_order_items, :shop_order_actions, :shop_payment_processors
- transaction_reset
+  reset_domain_tables :end_users, :shop_orders, :shop_order_transactions, :shop_order_items, :shop_order_actions, :shop_payment_processors
+# transaction_reset
 
   integrate_views
 
