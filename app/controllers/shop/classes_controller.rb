@@ -71,7 +71,6 @@ class Shop::ClassesController < ModuleController
     @active_currencies = get_currencies
    
     @cls.attributes = params[:cls]
-    raise @variations.inspect
     if request.post? && @cls.valid? && @cls.update_variations(@variations)
       @cls.save
       
