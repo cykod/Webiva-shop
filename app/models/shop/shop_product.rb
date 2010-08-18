@@ -99,7 +99,7 @@ class Shop::ShopProduct < DomainModel
     new_prd
   end
   
-  def captions=(caps)
+  def caption=(caps)
     @captions = caps
   end
 
