@@ -286,7 +286,7 @@ class Shop::PageFeature < ParagraphFeature
         if cls
           cls.shop_variations.length > 0 ? nil : tag.expand
         else
-          nil
+          tag.expand 
         end
         
       end
