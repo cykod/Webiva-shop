@@ -207,7 +207,7 @@ class Shop::PageFeature < ParagraphFeature
           <cms:img align='left' border='10' size='small' shadow='1' />
           <cms:category><h4><cms:list_page_link><cms:value/></cms:list_page_link></h4></cms:category>
           <h1><cms:name/></h1>
-          <cms:no_options> <cms:price/> </cms:no_options>
+          <cms:show_price> <cms:price/> </cms:show_price>
           <cms:options/>Quantity:<cms:quantity/><cms:add_to_cart>Add To Cart</cms:add_to_cart>
           <cms:description/>
           <cms:detailed_description>
@@ -290,6 +290,16 @@ class Shop::PageFeature < ParagraphFeature
         end
         
       end
+
+      c.define_tag 'show_price' do |tag|
+        cls = data[:product].shop_product_class
+        
+        if cls
+          cls.shop_variations.length == 1 ? nil : tag.expand
+        else
+          tag.expand 
+        end
+      end
       
       c.define_tag 'options' do |tag|
         cls = data[:product].shop_product_class
@@ -314,12 +324,15 @@ class Shop::PageFeature < ParagraphFeature
                   else
                     if cls.shop_variations.length == 1
                       opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1] + unit_cost,data[:currency])
-                      "<option value='#{opt[2]}'>#{h opt[0]} - #{opt_price_localized}</option>"
+                      "<option value='#{opt[2]}'>#{h opt[0]}   #{opt_price_localized}</option>"
                     else
                       opt_price_localized = Shop::ShopProductPrice.localized_amount(opt[1],data[:currency])
-                      modifier = opt[1] > 0 ? "+" : "-"
-                      "<option value='#{opt[2]}'>#{h opt[0]} - #{modifier}#{opt_price_localized}</option>"
-                    
+                      modifier = opt[1] > 0 ? "+" : ""
+                      if opt[1] == 0
+                        "<option value='#{opt[2]}'>#{h opt[0]}</option>"
+                      else
+                        "<option value='#{opt[2]}'>#{h opt[0]}   #{modifier}#{opt_price_localized}</option>"
+                      end
                     end
                   end
                 else 
