@@ -10,6 +10,7 @@ describe Shop::PageRenderer, :type => :controller do
   integrate_views
 
 # reset_domain_tables :shop_products,:shop_product_classes,:shop_product_options, :shop_product_features, :shop_product_files, :shop_product_options, :shop_product_prices 
+  reset_domain_tables :shop_products # MyISAM has no transactions
   transaction_reset
 
   before do
