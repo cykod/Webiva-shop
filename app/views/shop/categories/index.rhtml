@@ -4,7 +4,7 @@
 <div class='add_node_group'>
   <div class='add_node_header'><%= "Elements".t %> <i><%= "(drag to add)".t %></i></div>
   <div class='add_nodes'  id='add_nodes'>
-        <div class='add_node_elem' id='add_page' > <a href='javascript:void(0);'  title='<%= vh "Add a new category to the shop".t %>'> <%= theme_image_tag('icons/page.gif') %> <%= "New Category".t %></a></div>
+        <div class='add_node_elem' id='add_page' > <a href='javascript:void(0);'  title='<%= vh "Add a new category to the shop".t %>'><span class="site_node page_node"></span> <%= "New Category".t %></a></div>
   </div>
 </div>
 
@@ -16,33 +16,22 @@
 
 <div class='admin_content'> 
 
+<div class='tree_container' id='site_structure'>
+  <h2>
+    Categories
+  </h2>
+  <div class='tree_container_body'>
+    <div style='display:relative;'>
+      <%= render :partial => 'category', :locals => { :cat => @root_category, :last =>  true }  %>
+    </div>
+  </div>
+</div>
 
-<table width='100%' id='columned_table' cellpadding='0' cellspacing='0'>
-<thead>
-  <tr>
-	<th id='columned_tree_header' ><%= "Categories".t %></th>
-	<td id='columned_tree_spacer' >&nbsp;</td>
-	<th id='columned_tree_detail_header'>&nbsp;</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-	<td class='columned_elem' style='overflow:hidden' valign='top'>
-           <div style='display:relative;'>
-                <%= render :partial => 'category', :locals => { :cat => @root_category, :last =>  true }  %>
-           </div>
-	</td>
-	<td class='columned_spacer'></td>
-	<td class='columned_elem' valign='top'>
-            <div id='element_info'>
-                &nbsp;
-            </div>
-	
-	</td>
-</tr>
-</tbody>
-</table>
+<div id='element_info' class='tree_detail' style='display:none;'>
+  &nbsp;
+</div>
 
+ 
 <div class='ajax_loader' style='display:none;'></div>
 
 </div>

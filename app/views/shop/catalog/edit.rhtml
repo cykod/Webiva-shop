@@ -239,6 +239,8 @@ ProductEditor = {
 </tr>   
 <tr>
   <td colspan='3' align='left'>
+    <br/>
+    <div class='tab_container'>
     <% ajax_tabs ['Details','Categories','Additional Media','Options','Features'],'Details' do |t| -%>
         <% t.tab do -%>
         <table style='width:100%'>
@@ -287,6 +289,7 @@ ProductEditor = {
         <%= render :partial => 'features' %>
       <% end -%>
     <% end -%>
+   </div>
   </td>
 </tr>
 <%= f.submit_tag @product.id ? 'Update Product' : 'Create Product' %>

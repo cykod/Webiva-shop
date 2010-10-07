@@ -12,7 +12,7 @@
 <% if cat.parent_id == 0  %>
 <%= theme_image_tag("icons/menu/white.gif") -%>  
 <% elsif cat.nested_children.length > 0 -%>
-<%= theme_image_tag("icons/menu/last_open.gif", :class => "line_icon", :id => "toggle_#{cat.id}", :onclick => "CategoryEditor.toggleVisible(this);") -%>
+  <%= theme_image_tag("icons/menu/last_open.gif", :class => "line_icon", :id => "toggle_#{cat.id}", :onclick => "CategoryEditor.toggleVisible(this);") -%>
 <% else -%>
 <%= theme_image_tag("icons/menu/last.gif", :id => "toggle_#{cat.id}",  :class => "line_icon") -%>
 <% end -%>
@@ -20,16 +20,14 @@
 <% if cat.parent_id > 0  %>
 <span class='node_line' id='category_line_<%= category_id %>'>
     <span class="mod_node" >
-    <%= theme_image_tag "icons/page.gif", :class => "category_handle_icon", :id => "category_handle_#{category_id}" , :onclick => "CategoryEditor.selectNode('node',#{category_id});",
-              :ondblclick => "CategoryEditor.nodeAdd(#{category_id},'node')"  %>
+    <%= tag "span",  :class => "category_handle_icon site_node page_node", :id => "category_handle_#{category_id}" , :onclick => "CategoryEditor.selectNode('node',#{category_id});",
+    :ondblclick => "CategoryEditor.nodeAdd(#{category_id},'node')"  %></span>
     </span>
 <a href='javascript:void(0);' class='node_title'  id='category_title_<%= category_id %>' ondblclick="CategoryEditor.editPageTitle(<%= category_id %>)" onclick="<%= "CategoryEditor.selectNode('node',#{category_id});" %>"><%= cat.name %></a>
 <span class='node_title_edit' id='category_title_edit_<%= category_id %>' style='display:none;'></span>
 <% else -%>
 <span class='node_line' id='category_line_<%= category_id %>'>
-    <span class="mod_node" >
-    <%= theme_image_tag "icons/domain.gif", :class => "category_handle_icon", :id => "category_handle_#{category_id}"  %>
-    </span>
+  <%= tag('span', :class => "site_node domain_node category_handle_icon", :id => "category_handle_#{category_id}")  %></span>
 <span class='node_base_title'  id='category_title_<%= category_id %>' ><%= cat.name %></span>
 <% end -%>	
 
