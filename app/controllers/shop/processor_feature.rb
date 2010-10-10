@@ -50,7 +50,7 @@ FEATURE
       
  
 def shop_full_cart_feature(data)
-   webiva_feature('shop_full_cart',data) do |c|
+  webiva_feature('shop_full_cart',data) do |c|
       c.value_tag('user') { |t| myself.id ? myself.name : nil }
       c.expansion_tag('anonymous') { |t| !myself.id }
       c.expansion_tag('cart') { |t| data[:cart].products_count > 0 }
@@ -309,7 +309,17 @@ FEATURE
         nil
       end
     end
-       c.value_tag('payment_page:message') { |t| data[:message] }
+       c.value_tag('payment_page:message') { |t| 
+         if data[:message]  
+           "There was a problem processing your transaction. (#{data[:message]})"
+         elsif data[:order_processor].errors
+           if  data[:order_processor].errors.is_a?(Array)
+             data[:order_processor].errors.join(", ")
+           else
+             data[:order_processor].errors.full_messages.join(", ")
+           end
+         end
+       }
     
        c.link_tag('payment_page:edit') { |t| data[:address_page] }
 

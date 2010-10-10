@@ -193,10 +193,10 @@ class Shop::OrderProcessor
 
     @order_state[:payment_info] = @payment
 
-    if @order_state[:total] && @order_state[:total] != @cart.total
-       @errors = [ "Your cart has been updated, please reverify your total" ]
-       return false
-    end
+#    if @order_state[:total] && @order_state[:total] != @cart.total
+#       @errors = [ "Your cart has been updated, please reverify your total" ]
+#       return false
+#    end
 
     # Find the ShopPaymentProcessor
     @shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])

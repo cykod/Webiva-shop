@@ -204,6 +204,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
           :address_page =>  site_node.node_path + "/address",
           :user => myself
     )
+
     render_paragraph :text => shop_checkout_feature(@feature_data)
   end
 
