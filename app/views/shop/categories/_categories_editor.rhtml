@@ -135,6 +135,7 @@ var CategoryEditor = {
       params += "&node_type=" + node_type;
       params += "&category_id=" + node_id;
 		
+      $('element_info').show();
   		$('element_info').innerHTML = '<div class="ajax_loader"></div>';
   		new Ajax.Updater('element_info',
   						url,

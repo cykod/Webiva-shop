@@ -23,7 +23,7 @@ class Shop::CategoriesController < ModuleController
   def edit_category_title
     @category = Shop::ShopCategory.find(params[:category_id])
 
-    @category.update_attribute(:name,params[:title])
+    @category.update_attributes(:name => params[:title])
 
     render :nothing => true
   end

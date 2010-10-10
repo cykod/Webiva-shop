@@ -1,14 +1,17 @@
 
 
-<div align='right'>
-  <a href='javascript:void(0);' onclick='CategoryEditor.nodeDelete(<%= @category.id %>,"<%= jh "Are you sure you want to delete this category?" .t %>");'><%= "Delete Category".t %></a>
-</div>  
+<ul class='page_detail_buttons'>
+  <li>  <a href='javascript:void(0);' onclick='CategoryEditor.nodeDelete(<%= @category.id %>,"<%= jh "Are you sure you want to delete this category?" .t %>");'><%= theme_icon('action','icons/header_actions/delete_page.png') %></a>
+ </li>
+</ul>
 
-
-<b><%= "Category:".t %> <%= @category.name %></b>
+<h1 class='inpage'><%= "Category:".t %> <%= @category.name %></h1>
+<div class='tree_detail_body'>
 <% cms_form_for :category, @category, :html => { :onsubmit => "CategoryEditor.updateCategory(#{@category.id}); return false;", :class => 'admin_form', :id => 'category_info' } do |f| -%>
+  <%= f.text_field :url,:vertical=>true, :description => 'Leave blank to auto-generate' %>
   <%= f.text_area :description, :rows => '10',:cols => 50, :vertical => true  -%>
   <%= f.submit_tag 'Update' %>
 
 <% end -%>
 
+</div>

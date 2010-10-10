@@ -14,10 +14,11 @@ class Shop::ShopCategory < DomainModel
 
   has_many :unfeatured_shop_category_products, :class_name => 'Shop::ShopCategoryProduct', :conditions => 'shop_category_products.featured = 0'
 
- before_validation :create_url
+ before_validation_on_update :create_url
  before_create :find_parent 
 
- validates_uniqueness_of :url
+ validates_uniqueness_of :url, :allow_nil => true
+ validates_urlness_of :url 
 
  cached_content  :identifier => :url
 

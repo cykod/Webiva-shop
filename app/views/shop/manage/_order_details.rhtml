@@ -1,36 +1,33 @@
+<% action_panel do |p| -%>
+  <% p.custom do %>
+ <% if @order.state == 'authorized' %>
+      <input class='button_link' type='submit' onclick='OrderProcessor.captureOrder(0); return false;' value='<%= vh "Capture Payment".t %>'/>
+      <input  class='button_link'  type='submit' onclick='OrderProcessor.captureOrder(1); return false;' value='<%= vh "Order Shipped".t %>'/>
+<% elsif @order.state == 'paid' %>
+      <input  class='button_link'  type='submit' onclick='OrderProcessor.shipOrder(); return false;' value='<%= vh "Order Shipped".t %>'/>
+<% end -%>
+ <% end -%>
+
+<% if  @order.shop_payment_processor %>
+  <% p.custom :right => true do %>
+  <% if @order.state == 'authorized' %>
+        <input  class='button_link'  type='submit' onclick='OrderProcessor.voidOrder();' value='<%= vh "Void Order".t %>'/>
+  <% end -%>
+  <% if @order.refundable? %>
+        <input  class='button_link'  type='submit' onclick='OrderProcessor.refundOrder(1); return false;' value='<%= vh "Full Refund".t %>'/>
+        $<input type='text' size='10' id='partial_refund_amount' value=''/> <input  class='button_link'  type='submit' onclick='OrderProcessor.refundOrder(0,$("partial_refund_amount").value); return false;'  value='<%= vh "Partial Refund".t %>'/>
+  <% end -%>
+<% end -%>
+<% end -%>
+
+<% end -%>
+
 <% if flash[:order_info] %>
+  <hr/>
 <div class='flash_notice'>
   <%= flash[:order_info] %>
 </div>
 <% end -%>
-<div class='admin_content' >
-<table width='100%'>
-  <tr>
-    <td>
-<% if @order.state == 'authorized' %>
-      <input type='submit' onclick='OrderProcessor.captureOrder(0); return false;' value='<%= vh "Capture Payment".t %>'/>
-      <input type='submit' onclick='OrderProcessor.captureOrder(1); return false;' value='<%= vh "Order Shipped".t %>'/>
-<% elsif @order.state == 'paid' %>
-      <input type='submit' onclick='OrderProcessor.shipOrder(); return false;' value='<%= vh "Order Shipped".t %>'/>
-<% end -%>
-    
-    </td>
-    <td align='right'>
-<% if  @order.shop_payment_processor %>
-  <% if @order.state == 'authorized' %>
-        <input type='submit' onclick='OrderProcessor.voidOrder();' value='<%= vh "Void Order".t %>'/>
-  <% end -%>
-  <% if @order.refundable? %>
-        <input type='submit' onclick='OrderProcessor.refundOrder(1); return false;' value='<%= vh "Full Refund".t %>'/>
-        $<input type='text' size='10' id='partial_refund_amount' value=''/> <input type='submit' onclick='OrderProcessor.refundOrder(0,$("partial_refund_amount").value); return false;'  value='<%= vh "Partial Refund".t %>'/>
-  <% end -%>
-<% end -%>
-    </td>
-
-</table>
-
-</div>
-<hr/>
 
 <div class='admin_content'>
 
@@ -56,20 +53,25 @@
   <% end -%>
 </div>
 <% end -%>
-
-<div style='clear:both;'></div>
-
-<table cellpadding='10' class='admin_table'>
+<div style='float:left; padding-left:10px;'>
+<table cellpadding='10' class='active_table'>
+  <tr><th>Ship To:</th>
+      <th>Bill To:</th>
+  </tr>
   <tr>
-    <td><b>Ship To:</b><br/><%= simple_format(@order.display_shipping_address) %></td>
-    <td><b>Bill To:</b><br/><%= simple_format(@order.display_billing_address) %></td>
+    <td><%= simple_format(@order.display_shipping_address) %></td>
+    <td><%= simple_format(@order.display_billing_address) %></td>
   </tr>
 </table>
+</div>
 
+
+<div style='clear:both;'></div>
+<div class='tab_container'>
 <% ajax_tabs [ 'Items Ordered','Transactions','Admin Actions / Notes'], 'Items Ordered' do |t| -%>
 <% t.tab do -%>
 
-<table class='admin_table'>
+<table class='active_table'>
   <tr>
     <th><%= "Sku".t %></th>
     <th><%= "Item".t %></th>
@@ -114,7 +116,7 @@
 <% end -%>
 <% t.tab do -%>
 
-<table class='admin_table'>
+<table class='active_table'>
 <tr>
   <th>Transaction</th>
   <th>Amount</th>
@@ -141,7 +143,8 @@
  <%= f.text_area :note, :cols => 50, :rows => 3 %><br/> <%= f.submit_tag 'Add a Note' %>
 <% end -%>
 
-<table class='admin_table'>
+<% if @order.shop_order_actions.length > 0 %>
+<table class='active_table'>
 <tr>
   <th>Date</th>
   <th>Action</th>
@@ -159,7 +162,9 @@
   <% end -%>
 </table>
 <% end -%>
+<% end-%>
 
 
 <% end -%>
+</div>
 </div>
