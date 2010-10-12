@@ -144,7 +144,7 @@ class Shop::ManageUserController < ModuleController
 
       @shipping_options = @order_processor.shipping_options
       @current_shipping = @order_processor.shipping_category
-      @current_shipping_obj = @shipping_options.detect { |itm| itm[1] == @current_shipping }
+      @current_shipping_obj = @shipping_options.detect { |itm| itm[1] == @current_shipping } if @shipping_options
     else
       @shipping_options = [['Please add a shipping address to charge shipping',nil]]
     end

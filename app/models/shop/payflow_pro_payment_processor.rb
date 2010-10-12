@@ -7,6 +7,8 @@ class Shop::PayflowProPaymentProcessor < Shop::ActiveMerchantCreditCardProcessor
     info
   end
 
+  def self.remember_transactions?; true; end
+
 
   def self.get_options(hsh)
      Shop::PayflowProPaymentProcessor::ProcessorOptions.new(hsh)
