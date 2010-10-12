@@ -58,12 +58,17 @@ def shop_full_cart_feature(data)
       c.expansion_tag('static') { |tag| data[:static] }
       
       c.define_tag 'cart:products' do |tag|
+        if data[:static]
+          tag.expand
+        else
       <<-EOTAG
             #{form_tag('')}
                <input type='hidden' name='shop#{data[:paragraph_id]}[action]' value='update_quantities'/>
           #{tag.expand}
           </form>
         EOTAG
+
+        end
       end
       c.define_tag('cart:product') { |tag| c.each_local_value(data[:cart].products,tag,'cart_item') }
           c.value_tag('cart:product:name') { |tag|  tag.locals.cart_item.name }
