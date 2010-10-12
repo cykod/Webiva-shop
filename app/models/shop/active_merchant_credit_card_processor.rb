@@ -41,8 +41,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
 
   def get_transaction_options(transaction,options = {})
     opts = Shop::ActiveMerchantCreditCardProcessor::PaymentOptions.new(transaction)
-    
-    
+
     order = Shop::ShopOrder.remember_transaction(@processor,@user, :admin => options[:admin])
     
     opts.reference_card = order.payment_identifier if order
@@ -61,7 +60,7 @@ class Shop::ActiveMerchantCreditCardProcessor < Shop::PaymentProcessor
   def validate_payment_options(opts,user_info)
     opts = get_transaction_options(opts)
     return opts.errors unless opts.valid?
-    
+
     if opts.type == 'reference'
       #    
     else
