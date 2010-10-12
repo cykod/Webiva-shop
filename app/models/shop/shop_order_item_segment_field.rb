@@ -10,29 +10,29 @@ class Shop::ShopOrderItemSegmentField < UserSegment::FieldHandler
 
   class OrderItemType < UserSegment::FieldType
     def self.select_options
-      Shop::ShopOrderItem.find(:all, :select => 'item_name, order_item_id, order_item_type, count(*) as num_items', :group => 'order_item_id, order_item_type', :limit => 100, :order => 'num_items DESC').collect { |item| [item.item_name, "#{item.order_item_id}_#{item.order_item_type.underscore}"] }.sort { |a,b| a[0] <=> b[0] }
+      Shop::ShopOrderItem.find(:all, :select => 'item_name, order_item_id, count(*) as num_items', :conditions => {:order_item_type => 'Shop::ShopProduct'}, :group => 'order_item_id', :limit => 1000, :order => 'num_items DESC').collect { |item| [item.item_name, item.order_item_id] }.sort { |a,b| a[0] <=> b[0] }
     end
 
     register_operation :is, [['Item', :model, {:class => Shop::ShopOrderItemSegmentField::OrderItemType}]]
 
     def self.is(cls, group_field, field, item)
-      item_id = item.split('_')[0].to_i
-      item_type = item.split('_')[1..-1].join('_').classify
-      cls.scoped(:conditions => ["#{field[0]} = ? and #{field[1]} = ?", item_id, item_type])
+      item_id = item
+      item_type = 'Shop::ShopProduct'
+      cls.scoped(:conditions => ["#{field} = ? and order_item_type = ?", item_id, item_type])
     end
 
     register_operation :sum, [['Item', :model, {:class => Shop::ShopOrderItemSegmentField::OrderItemType}], ['Operator', :option, {:options => UserSegment::CoreType.number_type_operators}], ['Value', :integer]], :complex => true
 
     def self.sum(cls, group_field, field, item, operator, value)
-      item_id = item.split('_')[0].to_i
-      item_type = item.split('_')[1..-1].join('_').classify
+      item_id = item
+      item_type = 'Shop::ShopProduct'
 
-      cls.scoped(:conditions => ["#{field[0]} = ? and #{field[1]} = ?", item_id, item_type], :select => "#{group_field}, SUM(quantity) as quantity_sum", :group => group_field, :having => "quantity_sum #{operator} #{value}")
+      cls.scoped(:conditions => ["#{field} = ? and order_item_type = ?", item_id, item_type], :select => "#{group_field}, SUM(quantity) as quantity_sum", :group => group_field, :having => "quantity_sum #{operator} #{value}")
     end
   end
 
   register_field :num_shop_order_items, UserSegment::CoreType::CountType, :field => :end_user_id, :name => '# Shop Order Items', :display_method => 'count', :sort_method => 'count', :sortable => true
-  register_field :shop_order_item, Shop::ShopOrderItemSegmentField::OrderItemType, :field => [:order_item_id, :order_item_type], :display_field => 'item_name'
+  register_field :shop_order_item, Shop::ShopOrderItemSegmentField::OrderItemType, :field => :order_item_id, :display_field => 'item_name'
 
   def self.sort_scope(order_by, direction)
     info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]
