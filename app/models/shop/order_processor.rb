@@ -236,7 +236,7 @@ class Shop::OrderProcessor
   end
 
   def process_transaction(remote_ip, params=nil)
-    transaction = @order.authorize_payment(:remote_ip => remote_ip, :parameters => params)
+    transaction = @order.authorize_payment(:remote_ip => remote_ip, :parameters => params, :admin => self.admin_order)
     if transaction.success?
       @order_state[:stage] = 'success'
       @order_state[:order_id] = nil
