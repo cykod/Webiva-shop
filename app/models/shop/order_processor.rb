@@ -3,6 +3,7 @@ class Shop::OrderProcessor
   
   attr_reader :user,:cart,:shippable,:errors,:order
   attr_reader :shipping_options,:payment_processors,:payment,:transaction_message
+  attr_accessor :admin_order
 
   def initialize(user,order_session_info,cart)
     @user = user
@@ -71,7 +72,7 @@ class Shop::OrderProcessor
   end
 
   def billing_address
-    @billing_addrsss ||= adr(:billing) ?  user.build_billing_address(adr(:billing)) : user.current_billing_address
+    @billing_address ||= adr(:billing) ?  user.build_billing_address(adr(:billing)) : user.current_billing_address
   end
 
   def user_same_address(same_adr,posted_data)
@@ -94,12 +95,12 @@ class Shop::OrderProcessor
    
     if @shippable 
       shipping_address.validate_registration(:shipping,true,address_type) 
-      Shop::ShopRegion.validate_country_and_state(shipping_address) 
+      Shop::ShopRegion.validate_country_and_state(shipping_address) unless self.admin_order
     end
 
     unless @same_address
       billing_address.validate_registration(:billing,true,address_type) 
-      Shop::ShopRegion.validate_country_and_state(billing_address)
+      Shop::ShopRegion.validate_country_and_state(billing_address) unless self.admin_order
     end
 
     if shipping_address.errors.empty? && billing_address.errors.empty?
@@ -146,7 +147,7 @@ class Shop::OrderProcessor
     @payment = payment_info || {}
 
     calculate_destination
-    return false if !@country
+    return false if !@country && !self.admin_order
 
     @payment_processors = Shop::ShopPaymentProcessor.find(:all,:conditions => ['currency = ?',@cart.currency])
       
@@ -264,7 +265,9 @@ class Shop::OrderProcessor
   end
 
   def calculate_tax
-    cart.tax = @country.calculate_tax(cart, self.shippable ? self.shipping_address : self.billing_address)
+    if @country
+      cart.tax = @country.calculate_tax(cart, self.shippable ? self.shipping_address : self.billing_address)
+    end
   end
 
   def calculate_destination

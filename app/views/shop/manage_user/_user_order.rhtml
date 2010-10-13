@@ -37,7 +37,7 @@ Select Product: <select id='product_to_add'><%= options_for_select Shop::ShopPro
     </td>
   </tr>
 <% end -%>
-<% if @cart.shippable? -%>
+<% if @cart.shippable? && @shipping_options -%>
   <tr>
     <td colspan='5' align='right' onchange='UserShop.updateOrder();'>
       <select name='shipping_id'>
