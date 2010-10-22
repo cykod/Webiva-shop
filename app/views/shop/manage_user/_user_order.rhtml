@@ -41,7 +41,7 @@ Select Product: <select id='product_to_add'><%= options_for_select Shop::ShopPro
   <tr>
     <td colspan='5' align='right' onchange='UserShop.updateOrder();'>
       <select name='shipping_id'>
-        <%= options_for_select @shipping_options, @shipping_id %>
+        <%= options_for_select @shipping_options, @order_processor.shipping_category %>
       </select>
     </td>
     <td></td>

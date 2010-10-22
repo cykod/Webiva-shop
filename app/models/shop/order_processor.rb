@@ -255,9 +255,11 @@ class Shop::OrderProcessor
 
   end
   
-  def calculate_shipping(shipping_category_id)
+  def calculate_shipping(shipping_category_id = nil)
     if @shipping_info
-      current_shipping = @shipping_info.detect { |elm| elm[:category].id == shipping_category_id }
+      @payment ||= {}
+      @payment[:shipping_category] = shipping_category_id.to_i
+      current_shipping = @shipping_info.detect { |elm| elm[:category].id == @payment[:shipping_category] }
       cart.shipping = current_shipping[:shipping] if current_shipping
     else
       cart.shipping = 0.0

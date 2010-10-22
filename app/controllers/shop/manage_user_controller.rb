@@ -142,6 +142,7 @@ class Shop::ManageUserController < ModuleController
     @order_processor.set_order_address(true)
     if @order_processor.shippable 
       @order_processor.validate_payment(false,params[:payment],params[:order])
+      @order_processor.calculate_shipping(params[:shipping_id]) if params[:shipping_id]
 
       @shipping_options = @order_processor.shipping_options
       @current_shipping = @order_processor.shipping_category
