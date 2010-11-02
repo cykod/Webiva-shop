@@ -225,6 +225,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
         email_data.delete(:ORDER_TEXT)
 
         self.elevate_user_level(myself, EndUser::UserLevel::CONVERSION) if myself.id
+        self.set_user_value @order.total
 
         paragraph_action(myself.action('/shop/processor/purchase', :target => @order))
         paragraph.run_triggered_actions(email_data,'action',myself)
