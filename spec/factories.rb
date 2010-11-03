@@ -17,6 +17,7 @@ end
 Factory.define :shop_category, :class => Shop::ShopCategory do |c|
   c.sequence(:name) { |n| "Shop Category #{n}" }
   c.parent_id { |cat| Shop::ShopCategory.get_root_category.id }
+  c.url { |cat| cat.create_url }
 end
 
 Factory.define :shop_region_country, :class => Shop::ShopRegionCountry do |c|

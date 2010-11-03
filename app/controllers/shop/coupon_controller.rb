@@ -17,12 +17,24 @@ class Shop::CouponController < ModuleController
               hdr(:date_range,'shop_coupons.created_at'), hdr(:boolean,'shop_coupons.active') ]
   
   def display_coupon_table(display = true)
+
+    active_table_action("coupon") do |act,cids| 
+      coupons = Shop::ShopCoupon.find(cids)
+      case act
+      when "delete": coupons.map(&:destroy)
+      when "activate": coupons.map(&:activate!)
+      when "deactivate": coupons.map(&:deactivate!)
+      end
+    end
+
     @tbl = coupon_table_generate params, :order => 'shop_coupons.created_at DESC'
     render :partial => 'coupon_table' if display
   end
   
   def index
     cms_page_path ['Content','Shop'],'Coupons' 
+
+
     display_coupon_table(false)
   end
   
