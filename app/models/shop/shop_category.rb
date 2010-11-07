@@ -18,7 +18,6 @@ class Shop::ShopCategory < DomainModel
  before_create :find_parent 
 
  validates_uniqueness_of :url, :allow_nil => true
- validates_urlness_of :url 
 
  cached_content  :identifier => :url
 
@@ -26,7 +25,7 @@ class Shop::ShopCategory < DomainModel
 
   def self.get_root_category
     
-    self.find(:first,:conditions => 'parent_id=0') || self.create(:name => 'Categories'.t, :parent_id => 0,:is_root => true)
+    self.find(:first,:conditions => 'parent_id=0') || self.create(:name => 'Categories'.t, :parent_id => 0,:is_root => true,:url => 'categories' )
   end
 
   def parent_list(base_category_id = nil)
