@@ -85,7 +85,17 @@ class Shop::ShopCoupon < DomainModel
       end
     end
   end
+
+  def activate!
+    self.update_attributes(:active => true) if !self.active
+  end
   
+
+  def deactivate!
+    self.update_attributes(:active => false) if self.active
+  end
+  
+
   def cart_limit(options,cart)
     # Coupon must be active and not expired
     unless self.active? && (!self.expires_at || self.expires_at > Time.now)
