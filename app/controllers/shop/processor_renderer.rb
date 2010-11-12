@@ -18,7 +18,9 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     super_myself = controller.send(:myself)
     if !super_myself.id && session[:shop_user_id] 
       @shop_user_only = true
-      return @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
+      @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
+      self.visiting_end_user_id = @shop_myself.id if @shop_myself
+      return @shop_myself
     else
       super_myself
     end
