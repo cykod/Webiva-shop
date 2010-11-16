@@ -38,6 +38,8 @@ class Shop::ShopProduct < DomainModel
 
   belongs_to :shop_shop, :class_name => 'Shop::ShopShop'
 
+  def identifier; self.url; end
+
   def content_node_body(language)
     %w(sku internal_sku name name_2 description detailed_description brand url).map do |fld|
       self.send(fld)

@@ -121,6 +121,7 @@ class Shop::PageRenderer < ParagraphRenderer
       if product
         cache[:product_id] = product.id
         cache[:product_name] = product.name
+        cache[:content_node_id] = product.content_node.id
       end
 
       @mod = get_module
@@ -154,6 +155,7 @@ class Shop::PageRenderer < ParagraphRenderer
     if result.product_id
       set_page_connection(:content_id, [ 'Shop::ShopProduct',result.product_id ] )
       set_page_connection(:product_id, result.product_id )
+      set_content_node(result.content_node_id)
     end
 
     set_title(result.product_name) if result.product_name
