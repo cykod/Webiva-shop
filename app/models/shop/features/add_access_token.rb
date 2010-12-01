@@ -53,6 +53,6 @@ class Shop::Features::AddAccessToken < Shop::ProductFeature
   def self.description(opts)
     opts = self.options(opts)
     valid_for = opts.period.to_i > 0 ? sprintf(" for %d days", opts.period.to_i) : ''
-    sprintf("Add Access Token (%s)%s",opts.access_token.name, valid_for);
+    opts.access_token ? sprintf("Add Access Token (%s)%s",opts.access_token.name, valid_for) : 'Access Token NOT FOUND!'
   end
 end
