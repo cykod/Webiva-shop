@@ -27,6 +27,7 @@ class Shop::AdminController < ModuleController
   register_handler :shop, :product_feature, "Shop::Features::ProfilePriceAdjustment"
   register_handler :shop, :product_feature, "Shop::Features::ProfileQuantityOption"
   register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
+  register_handler :shop, :product_feature, "Shop::Features::AddAccessToken"
 
   register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :webiva, :widget, "Shop::ShopRevenueWidget"
