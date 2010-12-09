@@ -165,19 +165,30 @@ class Shop::AddShopWizard < WizardModel
     @shop_folder ||= DomainFile.find(:first,:conditions => "name = 'Shop' and parent_id = #{DomainFile.root_folder.id}") || DomainFile.create(:name => 'Shop', :parent_id => DomainFile.root_folder.id, :file_type => 'fld')
   end
 
-  def dummy_product_image
-    return @dummy_product_image if @dummy_product_image
-
-    @dummy_product_image = DomainFile.find(:first, :conditions => {:parent_id => self.shop_folder.id, :file_type => 'img', :name => 'fake_product.gif'})
-    unless @dummy_product_image
-      File.open("#{RAILS_ROOT}/vendor/modules/shop/public/images/fake_product.gif", "r") do |fd|
-        @dummy_product_image = DomainFile.create :filename => fd, :parent_id => self.shop_folder.id, :process_immediately => true
+  def create_dummy_products
+    return if @products
+    @products = []
+    (1..3).each do |idx|
+      product = DomainFile.find(:first, :conditions => {:parent_id => self.shop_folder.id, :file_type => 'img', :name => "no#{idx}_product.png"})
+      if product
+        @products << product
+      else
+        File.open("#{RAILS_ROOT}/vendor/modules/shop/public/images/no#{idx}_product.png", "r") do |fd|
+          @products << DomainFile.create(:filename => fd, :parent_id => self.shop_folder.id, :process_immediately => true)
+        end
       end
     end
-    @dummy_product_image
+  end
+
+  def dummy_product_image
+    @shop_product_idx ||= -1
+    @shop_product_idx+=1
+    @shop_product_idx = @shop_product_idx % 3
+    @products[@shop_product_idx]
   end
 
   def create_dummy_product
+    create_dummy_products
     self.shop.shop_products.create :name => DummyText.words(1).split(' ')[0..2].join(' '), :price_values => {'USD' => 10.00}, :description => DummyText.paragraph, :image_file_id => self.dummy_product_image.id
   end
 end
