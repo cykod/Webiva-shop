@@ -73,6 +73,14 @@ class Shop::ShopProductClass < DomainModel
     
   end
 
+  def validate
+    ok = self.features.to_a.inject(true) do |ok,feature|
+      ok && feature.options.valid?
+    end
+    
+    errors.add(:features,'are invalid')  if !ok
+  end
+
   def features
     @features_cache || self.shop_product_features
   end
