@@ -13,14 +13,14 @@
   <% end -%>
 
   <% t.tab do -%>
-  <%= render :partial => 'features' %>
+  <%= render :partial => '/shop/catalog/features', :locals => {:item => @cls} %>
   <% end -%>
 
   <% end -%>
 
   <div style='padding:10px 10px 0 0; text-align:right;'>
-  <button><%= h "Submit Changes".t %></button>
   <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
+  <button><%= h "Submit Changes".t %></button>
   </div>
 
   </div>

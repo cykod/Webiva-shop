@@ -174,7 +174,7 @@ CategoryEditor = {
         </div>
       <% end -%>
       <% t.tab do -%>
-        <%= render :partial => 'features' %>
+        <%= render :partial => 'features', :locals => {:item => @product} %>
       <% end -%>
     <% end -%>
    </div>
