@@ -10,7 +10,7 @@ class Shop::ShopProductClass < DomainModel
   has_many :quantity_variations , :class_name => 'Shop::ShopVariation', :conditions => "variation_type = 'quantity'"
 
 
-  has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature'
+  has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature', :dependent => :destroy
   
   def before_destroy
     self.shop_products.each do |prd|
