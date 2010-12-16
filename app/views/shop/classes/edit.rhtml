@@ -10,10 +10,6 @@
 
   <% t.tab do -%>
   <%= render :partial => 'options' %>
-  <div style='margin-top:20px; width:450px; text-align:right;' >
-  <button><%= h "Submit Changes".t %></button>
-  <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
-  </div>
   <% end -%>
 
   <% t.tab do -%>
@@ -21,7 +17,14 @@
   <% end -%>
 
   <% end -%>
+
+  <div style='padding:10px 10px 0 0; text-align:right;'>
+  <button><%= h "Submit Changes".t %></button>
+  <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
   </div>
+
+  </div>
+
 <% end -%>
 <% end -%>
 </div>
