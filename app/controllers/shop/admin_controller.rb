@@ -40,6 +40,8 @@ class Shop::AdminController < ModuleController
 
   register_handler :members, :view,  "Shop::ManageUserController"
 
+  register_handler :editor, :auth_user_register_feature, 'Shop::UserRegisterExtension'
+
   register_action '/shop/processor/purchase',
     :description => 'Shop Purchase',
     :controller => '/shop/manage',
