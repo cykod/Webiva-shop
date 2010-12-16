@@ -28,6 +28,17 @@ class Shop::UserRegisterExtension < Handlers::ParagraphFormExtension
   # After everything has been validated 
   # Perform the actual form submission
   def post_process(user)
+    address = user.default_address
+    adr = {
+      :first_name => user.first_name,
+      :last_name => user.last_name,
+      :address => address.address,
+      :city => address.city,
+      :state => address.state,
+      :zip => address.zip,
+      :country => address.country
+    }
+
     order = Shop::ShopOrder.create(:end_user_id => user.id,
                                    :name => user.name,
                                    :ordered_at => Time.now,
@@ -36,7 +47,9 @@ class Shop::UserRegisterExtension < Handlers::ParagraphFormExtension
                                    :subtotal => 0.0,
                                    :total => 0.0,
                                    :tax => 0.0,
-                                   :shipping => 0.0)
+                                   :shipping => 0.0,
+                                   :shipping_address => adr,
+                                   :billing_address =>  adr)
     order.update_attribute(:state,'paid')
 
     order.order_items.create(:item_name => @options.shop_product.name,
