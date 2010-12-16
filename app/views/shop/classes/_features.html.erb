@@ -1,0 +1,15 @@
+Product Features<br/>
+<input type='hidden' id='features_order' name='features_order' value=''/>
+Add a feature: <select name='add_feature' id='add_feature'><%= options_for_select @available_features %></select><button onclick='ProductEditor.addFeature($("add_feature").value); return false;' >Add Feature</button>
+<br/><br/>
+
+<div id='features'>
+
+<% @cls.features.each_with_index do |feature,idx| -%>
+  <%= render :partial => 'feature', :locals => { :feature => feature, :idx => idx } %>
+<% end -%>
+</div>
+
+<script>
+  ProductEditor.recreateFeatureSortables();
+</script>

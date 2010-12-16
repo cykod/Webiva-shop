@@ -69,8 +69,10 @@ class Shop::ClassesController < ModuleController
     end 
     
     @active_currencies = get_currencies
-   
+    @available_features = [['--Select a feature to add--','']] + get_handler_options(:shop,:product_feature)
+
     @cls.attributes = params[:cls]
+    @cls.features = params[:features_order].split(",").collect { |idx| params[:feature][idx.strip] || {} } if params[:features_order] 
     if request.post? && @cls.valid? && @cls.update_variations(@variations)
       @cls.save
       
