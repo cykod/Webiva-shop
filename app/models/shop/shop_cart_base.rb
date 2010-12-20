@@ -79,7 +79,7 @@ attr_accessor :shipping, :tax
   def full_price
     cart_total = 0.0
     products.each do |product|
-      if product.cart_item_type != 'Shop::ShopCoupon'
+      if ! product.coupon?
         prc = product.price(self)
         if prc > 0
           cart_total +=  prc * product.quantity
@@ -92,7 +92,7 @@ attr_accessor :shipping, :tax
   def real_items
     cart_total = 0
     products.each do |product|
-      cart_total += 1 if product.cart_item_type != 'Shop::ShopCoupon'
+      cart_total += 1 unless product.coupon?
     end
     cart_total
   end
