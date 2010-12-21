@@ -82,7 +82,7 @@ def shop_full_cart_feature(data)
             end
           end
           c.define_tag 'cart:product:quantity' do |tag|
-            if tag.locals.cart_item.coupon?
+            if tag.locals.cart_item_type == 'Shop::ShopCoupon'
               ''
             elsif data[:static]
               tag.locals.cart_item.quantity
