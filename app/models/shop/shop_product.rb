@@ -263,8 +263,8 @@ class Shop::ShopProduct < DomainModel
   end
  
   def get_price(currency,user=nil)
-    price = self.prices.detect { |pr| pr.currency = currency }
-    
+    price = self.prices.detect { |pr| pr.currency == currency }
+
     return nil unless price
     
     price = price.clone
