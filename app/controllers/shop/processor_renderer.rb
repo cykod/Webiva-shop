@@ -177,7 +177,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
       return
     end
 
-    if request.post? && params[:payment] && !(params[:update].to_i > 0)
+    if request.post? && (params[:payment] || @order_processor.cart.total <= 0) && !(params[:update].to_i > 0)
       if @order_processor.process_payment
         session[:shop][:stage] = 'processing'
 
