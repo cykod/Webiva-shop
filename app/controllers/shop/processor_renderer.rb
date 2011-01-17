@@ -52,7 +52,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     
     @cart.validate_cart!
 
-    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id, :site_feature_id =>  options.cart_site_feature_id }
+    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id}
     feature_output = shop_full_cart_feature(data)
     render_paragraph :text => feature_output
   end  
@@ -262,7 +262,9 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
   def render_cart
     get_module
-    data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true}
+    data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true,
+      :site_feature_id =>  options.cart_site_feature_id 
+    }
 
     session[:shop_continue_shopping_url_link] = nil
     @feature_output = shop_full_cart_feature(data) unless @page == 'payment'
