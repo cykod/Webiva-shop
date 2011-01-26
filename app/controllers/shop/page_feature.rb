@@ -57,7 +57,7 @@ class Shop::PageFeature < ParagraphFeature
       end
 
       c.define_tag 'no_products' do |tag|
-        data[:category].shop_category_products.size ==  0 ? nil : tag.expand
+        data[:category].shop_category_products.size ==  0 ? tag.expand : nil
       end
       
       c.define_value_tag('count') { |tag|  data[:category].product_count(data[:options].shop_shop_id)  }
