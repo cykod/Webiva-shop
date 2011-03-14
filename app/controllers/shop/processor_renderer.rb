@@ -73,10 +73,10 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     return invalid_cart_page if !@order_processor.valid_cart? && !editor? && @page_name  != 'success'
 
     require_js('prototype.js');
+    @options = paragraph_options(:checkout)
 
     @feature_output = render_cart() unless @page_name == 'payment'
     
-    @options = paragraph_options(:checkout)
 
     @feature_data = { :page => @page_name, :order_processor => @order_processor,
                       :cart_feature => @feature_output, :options => @options }
@@ -263,7 +263,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
   def render_cart
     get_module
     data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true,
-      :site_feature_id =>  options.cart_site_feature_id 
+      :site_feature_id =>  @options.cart_site_feature_id 
     }
 
     session[:shop_continue_shopping_url_link] = nil
