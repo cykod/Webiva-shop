@@ -50,6 +50,10 @@ class Shop::ShopProduct < DomainModel
     "Shop Product".t
   end
 
+  def title
+    self.name
+  end
+
   # return the deepest category a product belongs to - helpful for searches
   # or indexes
   def deepest_category
