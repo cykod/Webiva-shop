@@ -4,6 +4,8 @@ class Shop::ManageUserController < ModuleController
   permit 'shop_manage'
 
   component_info 'Shop'
+
+  include Shop::CartUtility
   
   def self.members_view_handler_info
     { 
@@ -125,7 +127,7 @@ class Shop::ManageUserController < ModuleController
   
   def action_setup
     @mod = get_module
-    @currency = @mod.options[:currency] || 'USD'  
+    @currency = @mod.currency || 'USD'  
     
     @user = EndUser.find_by_id(params[:path][0]) unless @user
     @cart_id =params[:cart_id] unless @cart_id
