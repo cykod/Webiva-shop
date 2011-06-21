@@ -69,7 +69,6 @@ class Shop::AdminController < ModuleController
   def options
 
     cms_page_info [ ["Options",url_for(:controller => '/options') ], ["Modules",url_for(:controller => "/modules")], "Shop Module Options "], "options"
-    get_module
 
     if Shop::ShopShop.count == 0
       Shop::ShopShop.create_default_shop
