@@ -58,7 +58,7 @@ class Shop::ShopProduct < DomainModel
   # or indexes
   def deepest_category
     left_index, cat = self.shop_categories.inject([-1,nil]) do |cur,cat| 
-      if cat.left_index > cur[0]
+      if cat && cat.left_index > cur[0]
         [ cat.left_index, cat ]
       else
         cur
