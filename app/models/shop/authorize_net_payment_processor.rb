@@ -20,7 +20,7 @@ class Shop::AuthorizeNetPaymentProcessor < Shop::ActiveMerchantCreditCardProcess
   end
     
   def get_gateway 
-    AuthorizedNetGateway.new(
+    ActiveMerchant::Billing::AuthorizedNetGateway.new(
             :login => @options[:login],
             :password => @options[:password],
             :test => !(@options[:test_server] == 'live')
