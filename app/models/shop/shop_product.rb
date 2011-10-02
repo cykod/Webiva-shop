@@ -38,6 +38,8 @@ class Shop::ShopProduct < DomainModel
 
   belongs_to :shop_shop, :class_name => 'Shop::ShopShop'
 
+  def identifier; self.url; end
+
   def content_node_body(language)
     %w(sku internal_sku name name_2 description detailed_description brand url).map do |fld|
       self.send(fld)
@@ -48,11 +50,15 @@ class Shop::ShopProduct < DomainModel
     "Shop Product".t
   end
 
+  def title
+    self.name
+  end
+
   # return the deepest category a product belongs to - helpful for searches
   # or indexes
   def deepest_category
     left_index, cat = self.shop_categories.inject([-1,nil]) do |cur,cat| 
-      if cat.left_index > cur[0]
+      if cat && cat.left_index > cur[0]
         [ cat.left_index, cat ]
       else
         cur
@@ -261,8 +267,8 @@ class Shop::ShopProduct < DomainModel
   end
  
   def get_price(currency,user=nil)
-    price = self.prices.detect { |pr| pr.currency = currency }
-    
+    price = self.prices.detect { |pr| pr.currency == currency }
+
     return nil unless price
     
     price = price.clone

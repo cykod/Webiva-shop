@@ -150,7 +150,7 @@ class Shop::ShopOrder < DomainModel
       self.tax = options[:cart].tax.to_f
       self.shipping = options[:cart].shipping.to_f
       self.billing_address = (options[:billing_address]||{}).symbolize_keys 
-      self.shop_payment_processor_id = options[:shop_payment_processor].id
+      self.shop_payment_processor_id = options[:shop_payment_processor].id 
       self.payment_information = (options[:payment]||{}).to_hash.symbolize_keys
       
       self.shop_shipping_category_id = options[:shop_shipping_category_id] if  options[:shop_shipping_category_id].to_i > 0

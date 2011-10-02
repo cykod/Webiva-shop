@@ -1,0 +1,117 @@
+<script>
+ProductEditor = {
+   featureIdx: <%= features.size %>,
+
+   attachFile: function(field,type,id,path,url,thumb,name) {
+    this.removeAttachment(id);
+    
+    var code = "<table><tr><td>";
+    
+    if(type != 'img') {
+      code +=  "<img id='handle_item_" + id + "' src='" + thumb + "' align='top' width='64' height='64'>";
+    }
+    else {
+      code +=  "<div class='fm_image'><img src='" + thumb + "'  align='middle'></div>";
+    }
+    
+    code += " </td><td><a href='javascript:void(0);' onclick='ProductEditor.showAttachmentPopup(" + id + ");'>" + name + "</a><br/>Caption:<input class='formatted' type='text' id='product_caption_" + id + "' size='35' name='product[caption][" + id+ "]' /></td></tr></table></div>";
+    
+    
+    // Need to create an element, otherwise
+    // $('product_images').innerHTML += ...  will kill the values
+    // in the input captions
+    var elem = document.createElement('div');
+    elem.id = 'attachment_' + id;
+    elem.className="attachment";
+    elem.innerHTML = code;
+    
+    if(type != 'img')
+     $('product_files').appendChild(elem);
+    else
+     $('product_images').appendChild(elem);
+     
+    ProductEditor.createMediaSortables();
+  },
+  
+  
+  createMediaSortables: function() {
+    Sortable.create('product_files', { tag: 'div' });
+    Sortable.create('product_images',{ tag: 'div' });
+  
+  },
+  
+  submitForm: function() {
+  
+  
+    var images = $('product_images').select(".attachment").collect(function(elem) {
+      var name = elem.id.split("_");
+      return name[name.length - 1];
+    
+    });
+    $('product_images_order').value = images.join(",");
+    
+    var files = $('product_files').select(".attachment").collect(function(elem) {
+      var name = elem.id.split("_");
+      return name[name.length - 1];
+    
+    });
+    $('product_files_order').value = files.join(",");
+
+    ProductEditor.updateFeaturesOrder();
+  },
+
+  updateFeaturesOrder: function() {
+    var arr = Sortable.sequence('features');
+    $('features_order').value = arr.join(",");
+  },
+
+  showAttachmentPopup: function(aid) {
+     SCMS.popup(new Array(
+        [ 'Remove Attachment', 'js', 'ProductEditor.removeAttachment(' + aid + ')' ]
+      )); 
+  },
+  
+  removeAttachment: function(id) {
+    if($('attachment_' + id)) {
+      Element.remove('attachment_' + id);
+      ProductEditor.createMediaSortables();
+    }
+  },
+  
+  changeOptions: function(value) {
+    if(value) {
+      new Ajax.Updater('product_options',
+                      "<%= url_for :controller => 'catalog', :action => 'update_options', :product_id => @product ? @product.id : nil %>",
+                      { parameters: $H({ product_class_id: value }).toQueryString() });
+    }
+    else {
+      $('product_options').innerHTML = '';
+    }
+  
+  },
+  
+  addFeature: function(feature) {
+    if(feature) {
+      var index = ProductEditor.featureIdx++;
+      new Ajax.Updater('features',
+                      "<%= url_for :controller => 'catalog', :action => 'add_feature' %>",
+                      { parameters: { feature_handler: feature, index: index },
+                        insertion: 'bottom',
+                        onComplete: function(req) {
+                          ProductEditor.recreateFeatureSortables();
+                        } });
+    
+    }
+  
+  },
+  
+  recreateFeatureSortables: function() {
+    Sortable.create("features",{ tag: "div", handle: "handle" } ); 
+  },
+  
+  removeFeature: function(idx) {
+    Element.remove($('feature_' + idx));
+    ProductEditor.removeFeature(idx);
+  }
+}
+</script>

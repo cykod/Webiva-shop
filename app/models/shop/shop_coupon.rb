@@ -55,7 +55,10 @@ class Shop::ShopCoupon < DomainModel
       coupon.cart_limit({},cart) > 0    
     end
   end
-  
+
+  def coupon?
+    true
+  end
   
   def name
     self.cart_name

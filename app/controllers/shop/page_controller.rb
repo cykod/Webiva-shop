@@ -66,7 +66,7 @@ class Shop::PageController < ParagraphController
       attributes :product_id => nil, :cart_page_id => nil, :list_page_id => nil, :shop_shop_id => nil
       page_options :list_page_id, :cart_page_id
 
-     canonical_paragraph "Shop::ShopShop", :shop_shop_id, :list_page_id => :list_page_id
+     canonical_paragraph "Shop::ShopProduct", :identifier, :list_page_id => :list_page_id
   end
 
 

@@ -1,15 +1,30 @@
+<%= render :partial => '/shop/catalog/product_editor_js', :locals => {:features => @cls.features} %>
+
 <div class='admin_content'>
-  <% admin_form_for :cls, @cls, :html => { :onsubmit => 'OptionEditor.saveVariationOrder();' } do |f| -%>
+  <% admin_form_for :cls, @cls, :html => { :onsubmit => 'OptionEditor.saveVariationOrder(); ProductEditor.updateFeaturesOrder(); return true' } do |f| -%>
   <%= f.text_field :name %>
   <% f.custom_field '', :vertical => true do %>
- <br/>
-  <h3>Manage Product Variations:</h3>
   <br/>
-        <%= render :partial => 'options' %>
-  <div style='margin-top:20px; width:450px; text-align:right;' >
-  <button><%= h "Submit Changes".t %></button>
+  <div class="tab_container">
+  <% ajax_tabs ['Manage Product Variations', 'Features'], 'Manage Product Variations' do |t| -%>
+
+  <% t.tab do -%>
+  <%= render :partial => 'options' %>
+  <% end -%>
+
+  <% t.tab do -%>
+  <%= render :partial => '/shop/catalog/features', :locals => {:item => @cls} %>
+  <% end -%>
+
+  <% end -%>
+
+  <div style='padding:10px 10px 0 0; text-align:right;'>
   <button onclick='document.location="<%= url_for :action=>'index' %>"; return false;' ><%= h "Cancel".t %></button>
+  <button><%= h "Submit Changes".t %></button>
   </div>
+
+  </div>
+
 <% end -%>
 <% end -%>
 </div>

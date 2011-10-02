@@ -66,6 +66,38 @@ describe Shop::ShopProductClass do
 
    end
 
+    it "should be able to add and remove features from class" do
+      activate_module('shop')
+
+      @cls.features = [{:shop_feature_handler => "shop/features/add_user_tag", :id => "", :feature_options => {:add_tags => "new"}}]
+      assert_difference 'Shop::ShopProductFeature.count', 1 do
+        @cls.save
+      end
+
+      @feature = Shop::ShopProductFeature.last
+      @feature.shop_product_class_id.should == @cls.id
+      @feature.options.add_tags.should == "new"
+
+      @cls = Shop::ShopProductClass.find @cls.id
+      @cls.features = [{:shop_feature_handler => "shop/features/add_user_tag", :id => @feature.id, :feature_options => {:add_tags => "old"}}]
+
+      assert_difference 'Shop::ShopProductFeature.count', 0 do
+        @cls.save
+      end
+
+      @feature = Shop::ShopProductFeature.find @feature.id
+      @feature.options.add_tags.should == 'old'
+
+      @cls = Shop::ShopProductClass.find @cls.id
+      @cls.features = []
+
+      assert_difference 'Shop::ShopProductFeature.count', -1 do
+        @cls.save
+      end
+
+      @feature = Shop::ShopProductFeature.find_by_id @feature.id
+      @feature.should be_nil
+    end
  end
 
 end

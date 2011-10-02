@@ -44,4 +44,18 @@ class Shop::ShopPaymentProcessor < DomainModel
   def can_authorize_payment?
     get_instance(nil).can_authorize_payment?
   end
+
+
+  def self.free_payment_processor
+    handler = self.find_by_payment_type("free")
+    
+    if(!handler)  
+      handler = self.new(:payment_type => 'Free', 
+                  :active => 1,
+                  :name => 'Zero-cost transations')
+      handler.processor_handler =  'shop/free_payment_processor'
+      handler.save
+    end
+    handler
+  end
 end

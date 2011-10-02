@@ -5,8 +5,8 @@ Add a feature: <select name='add_feature' id='add_feature'><%= options_for_selec
 
 <div id='features'>
 
-<% @product.features.each_with_index do |feature,idx| -%>
-  <%= render :partial => 'feature', :locals => { :feature => feature, :idx => idx } %>
+<% item.features.each_with_index do |feature,idx| -%>
+  <%= render :partial => '/shop/catalog/feature', :locals => { :feature => feature, :idx => idx } %>
 <% end -%>
 </div>
 

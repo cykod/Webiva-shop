@@ -200,11 +200,15 @@ class Shop::OrderProcessor
 #    end
 
     # Find the ShopPaymentProcessor
-    @shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])
+    if @cart.total == 0
+      @shop_processor = Shop::ShopPaymentProcessor.free_payment_processor
+    else
+      @shop_processor = Shop::ShopPaymentProcessor.find_by_id(@payment[:selected_processor_id])
+    end
 
     return false if !@shop_processor
 
-    unless @shop_processor.test?
+    if @shop_processor && !@shop_processor.test?
       errors = @shop_processor.validate_payment_options(@user,@payment[@payment[:selected_processor_id]],adr(:billing))
     end
 

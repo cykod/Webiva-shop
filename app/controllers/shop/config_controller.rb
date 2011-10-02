@@ -1,7 +1,7 @@
 
 class Shop::ConfigController < ModuleController
   
-  permit 'shop_manager'
+  permit 'shop_manage'
 
   component_info 'shop'
 
@@ -373,7 +373,7 @@ class Shop::ConfigController < ModuleController
       end
     end
 
-    @active_table_output = payment_processor_table_generate params, {:order => 'shop_payment_processors.name' }
+    @active_table_output = payment_processor_table_generate params, {:order => 'shop_payment_processors.name', :conditions => [ 'payment_type != "Free"']  }
 
 
     render :partial => 'payment_processor_table' if display

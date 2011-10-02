@@ -10,7 +10,7 @@ class Shop::ShopProductClass < DomainModel
   has_many :quantity_variations , :class_name => 'Shop::ShopVariation', :conditions => "variation_type = 'quantity'"
 
 
-  has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature'
+  has_many :shop_product_features, :class_name => 'Shop::ShopProductFeature', :dependent => :destroy
   
   def before_destroy
     self.shop_products.each do |prd|
@@ -71,5 +71,40 @@ class Shop::ShopProductClass < DomainModel
     end
     Shop::ShopVariation.destroy(deleted_variation_ids)
     
+  end
+
+  def validate
+    ok = self.features.to_a.inject(true) do |ok,feature|
+      ok && feature.options.valid?
+    end
+    
+    errors.add(:features,'are invalid')  if !ok
+  end
+
+  def features
+    @features_cache || self.shop_product_features
+  end
+  
+  def features=(val)
+    idx = 0
+    @features_cache = val.collect do |elm|
+      elm = elm.clone
+      pf = self.shop_product_features.find_by_id(elm[:id]) || self.shop_product_features.build
+      hndler = get_handler_info(:shop,:product_feature,elm[:shop_feature_handler])
+      pf.shop_feature_handler = hndler[:identifier]
+      pf.position = idx
+      idx+=1
+      elm.delete(:id)
+      elm.delete(:shop_feature_handler)
+      pf.attributes = elm
+      pf
+    end
+  end
+
+  def after_save
+    if @features_cache
+      @features_cache.each { |feat| feat.feature_options = feat.options.to_h; feat.save } 
+      self.shop_product_features = self.features
+    end
   end
 end

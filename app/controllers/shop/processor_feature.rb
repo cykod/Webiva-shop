@@ -82,7 +82,7 @@ def shop_full_cart_feature(data)
             end
           end
           c.define_tag 'cart:product:quantity' do |tag|
-            if tag.locals.cart_item.coupon?
+            if tag.locals.cart_item_type == 'Shop::ShopCoupon'
               ''
             elsif data[:static]
               tag.locals.cart_item.quantity
@@ -227,8 +227,10 @@ def shop_full_cart_feature(data)
    <cms:gift/>
   </cms:show_gift>
   
+  <cms:payment_options>
   <h4>Payment:</h4>
-  <cms:payment_options/>
+    <cms:value/>
+  </cms:payment_options>
   <cms:no_payment><div class='error'>There are no payment processors available</div></cms:no_payment>
 
   
@@ -350,8 +352,8 @@ FEATURE
        end
 
        c.expansion_tag('payment_page:payment') { |t|  data[:order_processor].payment_processors.length > 0 }
-       c.define_tag('payment_page:payment_options') do |t|
-         if data[:order_processor].payment_processors.length > 0 
+       c.define_value_tag('payment_page:payment_options') do |t|
+         if data[:order_processor].payment_processors.length > 0 && data[:order_processor].cart.total > 0
           render_to_string  :partial => '/shop/processor/payment_processors', :locals => {
                   :payment_processors => data[:order_processor].payment_processors,
                   :admin => false, 

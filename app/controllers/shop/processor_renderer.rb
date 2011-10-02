@@ -18,7 +18,9 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     super_myself = controller.send(:myself)
     if !super_myself.id && session[:shop_user_id] 
       @shop_user_only = true
-      return @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
+      @shop_myself ||= EndUser.find_by_id(session[:shop_user_id])
+      self.visiting_end_user_id = @shop_myself.id if @shop_myself
+      return @shop_myself
     else
       super_myself
     end
@@ -50,7 +52,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     
     @cart.validate_cart!
 
-    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id, :site_feature_id =>  options.cart_site_feature_id }
+    data = { :cart=> @cart, :checkout_page => options.checkout_page_url, :currency => @mod.currency, :paragraph_id => paragraph.id}
     feature_output = shop_full_cart_feature(data)
     render_paragraph :text => feature_output
   end  
@@ -71,10 +73,10 @@ class Shop::ProcessorRenderer < ParagraphRenderer
     return invalid_cart_page if !@order_processor.valid_cart? && !editor? && @page_name  != 'success'
 
     require_js('prototype.js');
+    @options = paragraph_options(:checkout)
 
     @feature_output = render_cart() unless @page_name == 'payment'
     
-    @options = paragraph_options(:checkout)
 
     @feature_data = { :page => @page_name, :order_processor => @order_processor,
                       :cart_feature => @feature_output, :options => @options }
@@ -175,7 +177,7 @@ class Shop::ProcessorRenderer < ParagraphRenderer
       return
     end
 
-    if request.post? && params[:payment] && !(params[:update].to_i > 0)
+    if request.post? && (params[:payment] || @order_processor.cart.total <= 0) && !(params[:update].to_i > 0)
       if @order_processor.process_payment
         session[:shop][:stage] = 'processing'
 
@@ -260,7 +262,9 @@ class Shop::ProcessorRenderer < ParagraphRenderer
 
   def render_cart
     get_module
-    data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true}
+    data = { :cart=> @cart, :checkout_page => nil, :currency => @mod.currency, :static => true,
+      :site_feature_id =>  @options.cart_site_feature_id 
+    }
 
     session[:shop_continue_shopping_url_link] = nil
     @feature_output = shop_full_cart_feature(data) unless @page == 'payment'

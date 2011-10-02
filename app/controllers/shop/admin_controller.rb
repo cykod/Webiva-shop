@@ -27,6 +27,7 @@ class Shop::AdminController < ModuleController
   register_handler :shop, :product_feature, "Shop::Features::ProfilePriceAdjustment"
   register_handler :shop, :product_feature, "Shop::Features::ProfileQuantityOption"
   register_handler :shop, :product_feature, "Shop::Features::AddUserTag"
+  register_handler :shop, :product_feature, "Shop::Features::AddAccessToken"
 
   register_handler :webiva, :widget, "Shop::ShopOrdersWidget"
   register_handler :webiva, :widget, "Shop::ShopRevenueWidget"
@@ -38,6 +39,8 @@ class Shop::AdminController < ModuleController
   register_handler :site_feature, :shop_product_detail, "Shop::Features::ProfileQuantityOption"
 
   register_handler :members, :view,  "Shop::ManageUserController"
+
+  register_handler :editor, :auth_user_register_feature, 'Shop::UserRegisterExtension'
 
   register_action '/shop/processor/purchase',
     :description => 'Shop Purchase',
@@ -66,7 +69,6 @@ class Shop::AdminController < ModuleController
   def options
 
     cms_page_info [ ["Options",url_for(:controller => '/options') ], ["Modules",url_for(:controller => "/modules")], "Shop Module Options "], "options"
-    get_module
 
     if Shop::ShopShop.count == 0
       Shop::ShopShop.create_default_shop

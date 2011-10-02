@@ -64,7 +64,7 @@ class Shop::ShopCartProduct < DomainModel
   end
   
   def coupon?
-    self.cart_item_type == 'Shop::ShopCoupon'
+    self.item ? self.item.respond_to?(:coupon?) && self.item.coupon? : false
   end
   
   def price(cart)
