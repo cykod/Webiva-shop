@@ -268,8 +268,8 @@ class Shop::ShopOrder < DomainModel
   end
   
   def capture_payment
-    self.reload(:lock => true)
     if self.state == 'authorized' 
+      self.reload(:lock => true)
       processor = self.shop_payment_processor
       transaction do
         authorization = find_authorization

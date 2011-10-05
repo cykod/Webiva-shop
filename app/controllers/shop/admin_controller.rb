@@ -104,9 +104,9 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-    attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true
+    attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true, :auto_capture => false
 
-    boolean_options :category_in_url
+    boolean_options :category_in_url, :auto_capture
 
     validates_presence_of :shop_currency
 
