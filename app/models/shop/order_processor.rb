@@ -255,8 +255,17 @@ class Shop::OrderProcessor
   end
 
   def email_data
- { :ORDER_ID => @order.id, :ORDER_HTML => @order.format_order_html, :ORDER_TEXT => @order.format_order_text }
-
+    { :ORDER_ID => @order.id,
+      :ORDER_HTML => @order.format_order_html,
+      :ORDER_TEXT => @order.format_order_text,
+      :ORDER_BILLING_COUNTRY  => (@order.billing_address[:country]).to_s ,
+      :ORDER_BILLING_NAME     => (@order.billing_address[:address_name]).to_s ,
+      :ORDER_BILLING_ZIP      => (@order.billing_address[:zip]).to_s ,
+      :ORDER_BILLING_ADDRESS  => (@order.billing_address[:address]).to_s ,
+      :ORDER_BILLING_CITY     => (@order.billing_address[:city]).to_s ,
+      :ORDER_BILLING_STATE    => (@order.billing_address[:state]).to_s ,
+      :ORDER_BILLING_ADDRESS2 => (@order.billing_address[:address_2]).to_s
+    }
   end
   
   def calculate_shipping(shipping_category_id = nil)
