@@ -1,5 +1,5 @@
 class Shop::AdminController < ModuleController
-  permit 'shop_admin'
+  permit 'shop_config'
 
   component_info 'Shop', :description => 'Shop Component', 
                               :access => :private
@@ -7,7 +7,7 @@ class Shop::AdminController < ModuleController
   register_permission_category :shop, "Shop" ,"Permissions for Shop Actions"
   
   register_permissions :shop, [  [ :manage, 'Shop Manage', 'Mange Shop Orders and Catalog' ],
-                                 [ :admin, 'Shop Admin', 'Edit Shop Configuration']
+                                 [ :config, 'Shop Admin', 'Edit Shop Configuration']
                              ]
 
   
@@ -104,9 +104,9 @@ class Shop::AdminController < ModuleController
   end
 
   class ShopModuleOptions < HashModel
-    attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true
+    attributes :shop_currency => nil, :shipping_template_id => nil,:category_in_url => true, :auto_capture => false
 
-    boolean_options :category_in_url
+    boolean_options :category_in_url, :auto_capture
 
     validates_presence_of :shop_currency
 

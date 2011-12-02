@@ -172,7 +172,7 @@ def shop_full_cart_feature(data)
     <li><cms:last_name_label/><cms:last_name/></li>
     <li><cms:email_label/><cms:email/></li>
     <cms:guest_allowed>
-      <li><h4>Create an account by entering an email (optional)</h4></li>
+      <li><h4>Create an account by entering a password(optional)</h4></li>
     </cms:guest_allowed>
     <li><cms:password_label/><cms:password/></li>
     <li><cms:confirmation_label/><cms:confirmation/></li>
@@ -391,7 +391,7 @@ FEATURE
       else if($('shipping_address_state'))
         existingState = $('shipping_address_state').value;
       var params = { state: existingState, country: country };      
-      new Ajax.Request('<%= url_for :controller => "/shop/processor", :action => "update_shipping_country" %>',
+      new Ajax.Request('#{url_for :controller => "/shop/processor", :action => "update_shipping_country"}',
                        { parameters: params});
     
     },
@@ -404,7 +404,7 @@ FEATURE
         existingState = $('billing_address_state').value;
       var params = { state: existingState, country: country };
       
-      new Ajax.Request('<%= url_for :controller => "/shop/processor", :action => "update_billing_country" %>',
+      new Ajax.Request('#{url_for :controller => "/shop/processor", :action => "update_billing_country"}',
                        { parameters: params });
     
     }
