@@ -190,6 +190,7 @@ class Shop::OrderProcessor
       @order.save
       @order_state[:order_id] = @order.id
 
+
     end
 
     @order_state[:payment_info] = @payment
@@ -245,6 +246,10 @@ class Shop::OrderProcessor
       @order_state[:stage] = 'success'
       @order_state[:order_id] = nil
       @order_state[:shop_user_id] = nil
+
+      if Shop::AdminController.module_options.auto_capture
+        @order.capture_payment
+      end
 
       return @order
     else

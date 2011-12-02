@@ -1,7 +1,7 @@
 
 class Shop::ConfigController < ModuleController
   
-  permit 'shop_manager'
+  permit 'shop_manage'
 
   component_info 'shop'
 

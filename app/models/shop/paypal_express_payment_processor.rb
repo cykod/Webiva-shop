@@ -2,7 +2,7 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
 
   def self.shop_payment_processor_handler_info
     { 
-      :currencies => ['USD'],
+      :currencies => ['USD','EUR', 'CHF' ],
       :type => 'Paypal',
       :name => "Paypal Express Payment Processor"
     }
@@ -85,10 +85,6 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
   def purchase(parameters,currency,amount,user_info,request_options = {})
     gw = get_gateway
     
-    if currency != 'USD'
-      return Shop::ShopOrderTransaction::TransactionResponse.new(false,nil,'Invalid Currency',{},gw.test?)
-    end
-
     details_response = gw.details_for(request_options[:parameters][:token])
 
     details_transaction = Shop::ShopOrderTransaction::TransactionResponse.new(
@@ -104,7 +100,8 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
     response = gw.purchase(amount*100,
                            :ip => request_options[:remote_ip],
                            :payer_id => request_options[:parameters]['PayerID'],
-                           :token => request_options[:parameters][:token]
+                           :token => request_options[:parameters][:token],
+                           :currency => currency
                            )
 
     Shop::ShopOrderTransaction::TransactionResponse.new(
@@ -122,7 +119,7 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
 
   def credit(authorization,currency,amount)
     return standard_transaction(currency) do |gw|
-      response = gw.credit(amount * 100,format_authorization(authorization))
+      response = gw.credit(amount * 100,format_authorization(authorization),:currency => currency)
     end
   end
 
@@ -159,7 +156,7 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
       :address2 => order.shipping_address[:address_2],
       :city => order.shipping_address[:city],
       :state => order.shipping_address[:state],
-      :country => 'US', #order.shipping_address[:country],
+      :country => order.shipping_address[:country],
       :zip => order.shipping_address[:zip]
     }
   end
@@ -180,10 +177,6 @@ class Shop::PaypalExpressPaymentProcessor < Shop::PaymentProcessor
   
   def standard_transaction(currency = nil,&block)
     gw = get_gateway
-    
-    if currency && currency != 'USD'
-      return Shop::ShopOrderTransaction::TransactionResponse.new(false,nil,'Invalid Currency',{},gw.test?)
-    end 
     
     begin 
       response = yield(gw)

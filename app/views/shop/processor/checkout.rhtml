@@ -6,7 +6,7 @@
       <%= f.page_selector :cart_page_id, :label => 'Edit Cart Page'.t %>
       <%= f.page_selector :success_page_id, :label => 'Success Page'.t %>
       <%= f.select :receipt_template_id, [["--Don't send a receipt--".t,nil]] +  MailTemplate.site_template_options, 
-                :description => "Available Variables: %%ORDER_ID%%, %%ORDER_HTML%%,\n %%ORDER_TEXT%% (User Variables as well)" %>
+                :description => "Available Variables: %%ORDER_ID%%, %%ORDER_HTML%%,\n %%ORDER_TEXT%%, %%ORDER_BILLING_COUNTRY%%, %%ORDER_BILLING_NAME%%,\n %%ORDER_BILLING_ZIP%%, %%ORDER_BILLING_ADDRESS%%, %%ORDER_BILLING_CITY%%,\n %%ORDER_BILLING_STATE%%, %%ORDER_BILLING_ADDRESS2%% (User Variables as well)" %>
       <%= f.radio_buttons :show_gift, [['Yes'.t,true],['No'.t,false]] %>
       <%= f.text_field :add_tags, :description => 'Tags to add after an order' %>
       <%= f.radio_buttons :address_type, [['American'.t,'american'],['European'.t,'european']] %>
